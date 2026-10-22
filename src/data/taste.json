@@ -1,0 +1,387 @@
+[
+  {
+    "id": "la-la-land",
+    "title": "La La Land",
+    "kind": "film",
+    "line": "I have watched La La Land more than 100 times.",
+    "swatch": [
+      "#151B30",
+      "#2C4A8F",
+      "#E0609E",
+      "#3FA58F"
+    ],
+    "light": "lalaland"
+  },
+  {
+    "id": "karwaan",
+    "title": "Karwaan",
+    "kind": "film",
+    "by": "Irrfan Khan",
+    "line": "I revisit a lot. I don’t know why again.",
+    "swatch": [
+      "#3E7D4A",
+      "#3A7CA5",
+      "#E9E4D8"
+    ],
+    "light": "karwaan"
+  },
+  {
+    "id": "znmd",
+    "title": "Zindagi Na Milegi Dobara",
+    "kind": "film",
+    "swatch": [
+      "#1F6FA8",
+      "#D7261E",
+      "#F4EFE6",
+      "#D9A441"
+    ],
+    "light": "znmd"
+  },
+  {
+    "id": "a-real-pain",
+    "title": "A Real Pain",
+    "kind": "film",
+    "by": "Jesse Eisenberg",
+    "swatch": [
+      "#3F4A44",
+      "#A3A7A8",
+      "#A8673F"
+    ],
+    "light": "realpain"
+  },
+  {
+    "id": "eternity",
+    "title": "Eternity",
+    "kind": "film",
+    "swatch": [
+      "#A4502A",
+      "#9C9A94",
+      "#F3F1EA"
+    ]
+  },
+  {
+    "id": "michael",
+    "title": "Michael",
+    "kind": "film",
+    "line": "I feel I hear the music. Or I hear things.",
+    "swatch": [
+      "#0B0B0F",
+      "#FFF6E0",
+      "#D99A3B",
+      "#B3122E"
+    ]
+  },
+  {
+    "id": "hail-mary",
+    "title": "Project Hail Mary",
+    "kind": "film",
+    "line": "Reignited my spark to get into space as well.",
+    "swatch": [
+      "#9DB8D9",
+      "#F0B46A",
+      "#4FB3A3",
+      "#E48BB5"
+    ],
+    "light": "hailmary"
+  },
+  {
+    "id": "kiarostami",
+    "title": "Kiarostami",
+    "kind": "film",
+    "line": "It will help me understand movies better, emotions better, humans better.",
+    "swatch": [
+      "#C9A96E",
+      "#7E8A5C",
+      "#E9E2D0"
+    ]
+  },
+  {
+    "id": "better-call-saul",
+    "title": "Better Call Saul",
+    "kind": "show",
+    "line": "My favorite, absolute favorite.",
+    "swatch": [
+      "#1C1C1C",
+      "#C8C8C8",
+      "#E0902F",
+      "#9E2B3A"
+    ],
+    "light": "saul"
+  },
+  {
+    "id": "the-office",
+    "title": "The Office",
+    "kind": "show",
+    "line": "I’ve watched it more than 10-12 times end to end.",
+    "swatch": [
+      "#CBBF9F",
+      "#8C97A0",
+      "#EEF0E4",
+      "#2C4A70"
+    ],
+    "light": "office"
+  },
+  {
+    "id": "bojack",
+    "title": "BoJack Horseman",
+    "kind": "show",
+    "line": "More about what to not be.",
+    "swatch": [
+      "#3F6FB5",
+      "#C2569B",
+      "#F09A4A",
+      "#2BB3B1"
+    ]
+  },
+  {
+    "id": "slow-horses",
+    "title": "Slow Horses",
+    "kind": "show",
+    "swatch": [
+      "#B5A46C",
+      "#5D6354",
+      "#0E0F11"
+    ]
+  },
+  {
+    "id": "breaking-bad",
+    "title": "Breaking Bad",
+    "kind": "show",
+    "swatch": [
+      "#2E6B3A",
+      "#C9A15A",
+      "#59B7D8"
+    ]
+  },
+  {
+    "id": "daredevil",
+    "title": "Daredevil",
+    "kind": "show",
+    "swatch": [
+      "#0A0A0C",
+      "#8E0F14",
+      "#3D4A2A"
+    ]
+  },
+  {
+    "id": "widows-bay",
+    "title": "Widow’s Bay",
+    "kind": "show",
+    "line": "I just blew my mind. And I want to write something like that.",
+    "swatch": [
+      "#A7ACA8",
+      "#3E4A50",
+      "#D89A4E"
+    ]
+  },
+  {
+    "id": "ted-lasso",
+    "title": "Ted Lasso",
+    "kind": "show",
+    "swatch": [
+      "#1F4E9A",
+      "#C8102E"
+    ]
+  },
+  {
+    "id": "shrinking",
+    "title": "Shrinking",
+    "kind": "show",
+    "swatch": [
+      "#4F6B3A",
+      "#E5DCC5"
+    ]
+  },
+  {
+    "id": "sopranos",
+    "title": "The Sopranos",
+    "kind": "show",
+    "line": "I really liked the first few episodes.",
+    "swatch": [
+      "#7E8183",
+      "#B3121B"
+    ]
+  },
+  {
+    "id": "b99",
+    "title": "Brooklyn Nine-Nine",
+    "kind": "show",
+    "swatch": []
+  },
+  {
+    "id": "new-girl",
+    "title": "New Girl",
+    "kind": "show",
+    "swatch": []
+  },
+  {
+    "id": "strokes",
+    "title": "The Strokes",
+    "kind": "music",
+    "swatch": [
+      "#F5F2E8",
+      "#C34537",
+      "#DFB467",
+      "#1B344B"
+    ]
+  },
+  {
+    "id": "in-rainbows",
+    "title": "Radiohead",
+    "kind": "music",
+    "by": "In Rainbows",
+    "swatch": [
+      "#050404",
+      "#D8612D",
+      "#E9AC46",
+      "#4F8880"
+    ],
+    "light": "inrainbows"
+  },
+  {
+    "id": "kid-a",
+    "title": "Radiohead",
+    "kind": "music",
+    "by": "Kid A",
+    "swatch": [
+      "#111110",
+      "#C3C7C5",
+      "#616F7B",
+      "#89281F"
+    ],
+    "light": "kida"
+  },
+  {
+    "id": "currents",
+    "title": "Tame Impala",
+    "kind": "music",
+    "by": "Currents",
+    "swatch": [
+      "#1F062C",
+      "#786372",
+      "#C9BCCE",
+      "#BC2B39"
+    ],
+    "light": "currents"
+  },
+  {
+    "id": "gambino",
+    "title": "Childish Gambino",
+    "kind": "music",
+    "swatch": [
+      "#050608",
+      "#2D5BD6",
+      "#6FC3E8"
+    ]
+  },
+  {
+    "id": "kanye",
+    "title": "Kanye West",
+    "kind": "music",
+    "swatch": [
+      "#B5121B",
+      "#F58233"
+    ]
+  },
+  {
+    "id": "rafi",
+    "title": "Mohammed Rafi",
+    "kind": "music",
+    "swatch": [
+      "#F28DB2",
+      "#1F6F78"
+    ]
+  },
+  {
+    "id": "kishore",
+    "title": "Kishore Kumar",
+    "kind": "music",
+    "swatch": [
+      "#F2711C",
+      "#C62828"
+    ]
+  },
+  {
+    "id": "bollywood-house",
+    "title": "Bollywood house",
+    "kind": "music",
+    "swatch": [
+      "#B08A5B",
+      "#2F5DA8",
+      "#F2A900"
+    ]
+  },
+  {
+    "id": "frankl",
+    "title": "Man’s Search for Meaning",
+    "kind": "book",
+    "by": "Viktor Frankl",
+    "swatch": [
+      "#E8E0CC",
+      "#24506B"
+    ]
+  },
+  {
+    "id": "sisyphus",
+    "title": "The Myth of Sisyphus",
+    "kind": "book",
+    "by": "Albert Camus",
+    "swatch": [
+      "#111111",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "id": "tiny-experiments",
+    "title": "Tiny Experiments",
+    "kind": "book",
+    "by": "Anne-Laure Le Cunff",
+    "swatch": [
+      "#F3F1EA",
+      "#1F9E9A"
+    ]
+  },
+  {
+    "id": "carson",
+    "title": "Anne Carson",
+    "kind": "book",
+    "line": "Just ordered.",
+    "swatch": [
+      "#E8E0CC",
+      "#A8322D",
+      "#24506B",
+      "#7FA6B8"
+    ]
+  },
+  {
+    "id": "gervais",
+    "title": "Ricky Gervais",
+    "kind": "person",
+    "swatch": [
+      "#D8D2C2",
+      "#8E9196"
+    ]
+  },
+  {
+    "id": "sloss",
+    "title": "Daniel Sloss",
+    "kind": "person",
+    "by": "Jigsaw",
+    "swatch": []
+  },
+  {
+    "id": "jeselnik",
+    "title": "Anthony Jeselnik",
+    "kind": "person",
+    "swatch": []
+  },
+  {
+    "id": "kohli",
+    "title": "Virat Kohli",
+    "kind": "person",
+    "swatch": [
+      "#1A1A1A",
+      "#8B1D1D"
+    ]
+  }
+]

@@ -69,14 +69,17 @@ function bands(sw: string[]): string {
 const lightOf = (w: Work) => w.light ?? (w.swatch.length ? `t-${w.id}` : '');
 
 /* The record beneath the shelf: every line he gave, in shelf order, plus music and the last film he logged. */
-type Said = { id?: string; kicker?: string; text: string; label: string; href?: string; num?: string; when?: string; rating?: number | null };
+type Said = { id?: string; kicker?: string; text: string; note?: string[]; label: string; href?: string; num?: string; when?: string; rating?: number | null };
 const said: Said[] = [];
+/* a note's paragraphs; split here, not in the template (braces in a regex confuse the compiler) */
+const paragraphs = (s?: string) => (s ? s.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean) : undefined);
 for (const g of groups) {
   for (const w of g.items) {
-    const text = lineFor(w);
+    /* his line, and under it his longer note where he wrote one (taste.json, via /tend) */
+    const text = lineFor(w) ?? w.note;
     if (!text) continue;
     const f = logged(w);
-    said.push({ id: w.id, text, label: fullName(w), num: numberIn(w.line), when: f?.watched, rating: f?.rating });
+    said.push({ id: w.id, text, note: text === w.note ? undefined : paragraphs(w.note), label: fullName(w), num: numberIn(w.line), when: f?.watched, rating: f?.rating });
   }
   if (g.kind === 'music') said.push({ text: me.music, label: KIND_LABEL.music });
 }
@@ -157,6 +160,7 @@ const record = said.filter((s) => s.id !== rest?.id);
         <li class:list={['say', place[i % 3]]}>
           {s.kicker && <p class="kicker small">{s.kicker}</p>}
           <p class="lit q">{s.text}</p>
+          {s.note && <div class="note">{s.note.map((para) => <p>{para}</p>)}</div>}
           <p class="meta small">
             {s.href ? (
               <a href={s.href} class="quiet" rel="external">{s.label}</a>
@@ -399,6 +403,18 @@ const record = said.filter((s) => s.id !== rest?.id);
   .say.b { grid-column: 4 / 9; }
   .say.c { grid-column: 7 / 12; }
   .say .q { max-width: 24em; text-wrap: pretty; }
+  /* his longer words on a work: Newsreader, a step smaller than the line, under it */
+  .say .note {
+    margin-top: 0.75rem;
+    font-family: var(--serif);
+    font-size: var(--fs-body);
+    font-weight: 400;
+    line-height: 1.55;
+    font-optical-sizing: auto;
+    max-width: 30em;
+    text-wrap: pretty;
+  }
+  .say .note p + p { margin-top: 0.8em; }
   .kicker { color: var(--ink-muted); font-weight: 500; margin-bottom: 0.5rem; }
   .meta {
     display: flex;

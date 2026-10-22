@@ -4,7 +4,12 @@
  * Rule: his words only. Every line here comes from his answers (about-me.md),
  * his charter, or his own posts. Trim and reorder, never paraphrase. If a
  * line needs writing, leave a TODO for him instead.
+ *
+ * `now` and `projects` live in now.json and projects.json so /tend can edit them;
+ * this module re-exports them with the same names and types.
  */
+import nowJson from './now.json';
+import projectsJson from './projects.json';
 
 export const me = {
   name: 'Abhishek',
@@ -97,19 +102,15 @@ export const charter = [
   'This is something I want to pursue wholeheartedly.',
 ];
 
+export type Now = { verb: string; short: string; what: string };
+
 /**
  * What's happening now. His Q11, Q18, Q20, Q28 answers, cut down.
  * `short` is the same line trimmed further, for the bubbles in the hero:
  * read as one phrase, "Building a score for lending in India".
+ * Lives in now.json so /tend can edit it.
  */
-export const now = [
-  { verb: 'Building', short: 'a score for lending in India', what: 'A score for lending in India, apart from the current CIBIL and Experian score.' },
-  { verb: 'Writing', short: 'my poetry book', what: 'My poetry book. My fiction book. My short stories.' },
-  { verb: 'Learning', short: 'to DJ, as Wet Tissues', what: 'To DJ, properly. As Wet Tissues, music for the sad and the horny people.' },
-  { verb: 'Joining', short: 'a VC firm, in January', what: 'A VC firm, in January.' },
-  { verb: 'Planning', short: 'Stories of India', what: 'Stories of India. Local stories, voice notes from strangers.' },
-  { verb: 'Obsessed with', short: 'space', what: 'Space. Project Hail Mary reignited my spark.' },
-];
+export const now: Now[] = nowJson as Now[];
 
 export const links = {
   substack: 'https://abhishekvyas02032001.substack.com',
@@ -149,33 +150,9 @@ export type Project = {
 /**
  * All of it, unfinished included (Q17: "I'm all the work").
  * Source: projects-draft.md. Lines marked draft are mine from his documents and
- * need his OK before launch.
+ * need his OK before launch. Lives in projects.json so /tend can edit it.
  */
-export const projects: Project[] = [
-  { slug: 'signal-spark', name: 'Signal Spark', line: 'A quiet place to keep reminders of your own worth.', status: 'live', when: 'Oct 2026', tags: ['mental health', 'product'] },
-  { slug: 'priya', name: 'Priya', line: 'A Hinglish voice agent that calls before your parcel goes back.', status: 'live', when: 'Aug 2026', tags: ['voice', 'agents'] },
-  { slug: 'credit', name: 'A credit score for India', line: 'Apart from the current CIBIL and Experian score.', status: 'building', when: '2026', tags: ['lending', 'research'] },
-  { slug: 'kairos', name: 'Kairos', line: 'Finding founders before they are obvious to the market.', why: 'Started as Mandrake at 3am after I resigned.', status: 'in use', when: 'Oct 2025', tags: ['vc', 'agents'] },
-  { slug: 'life-os', name: 'Life OS', line: 'Pocket notebooks, a second brain, and this website.', why: 'I have to get my life back on.', status: 'building', when: 'Aug 2026', tags: ['personal'] },
-  { slug: 'apriori', name: 'Apriori', line: 'AI personas walk through a product and predict who drops off, and why.', status: 'paused', when: 'Jun 2026', tags: ['agents', 'product', 'research'] },
-  { slug: 'rocky', name: 'Rocky', line: 'A check-in for founders that compares you only to yourself.', status: 'paused', when: 'Aug 2026', tags: ['mental health', 'founders'], href: 'https://abhishek5878.github.io/rocky' },
-  { slug: 'voice-instrument', name: 'Voice instrument', line: 'No independent Indian instrument exists.', status: 'paused', when: 'Aug 2026', tags: ['voice', 'tooling'] },
-  { slug: 'sizing', name: 'Audience sizing', line: 'Sizing lender and insurer audiences, live.', status: 'shipped', when: 'Jun 2026', tags: ['lending', 'tooling'] },
-  { slug: 'fewwords', name: 'fewwords', line: 'Checks an agent’s plan against rules before it runs.', status: 'stopped', when: 'Apr 2026', tags: ['agents', 'tooling'], href: 'https://github.com/abhishek5878/fewwords' },
-  { slug: 'pitchrobin', name: 'PitchRobin', line: 'A digital twin for an investor or a high agency person.', status: 'stopped', when: 'Feb 2026', tags: ['vc', 'agents'] },
-  { slug: 'sentinel', name: 'Sentinel', line: 'Talent misallocation is the biggest capital inefficiency.', status: 'stopped', when: 'Mar 2026', tags: ['vc', 'founders'] },
-  { slug: 'life-agent', name: 'life_agent', line: 'A WhatsApp +1 that finishes household tasks.', status: 'stopped', when: 'May 2026', tags: ['agents', 'personal'] },
-  { slug: 'life-track', name: 'life-track', line: 'An evening log of money, food, exercise and time.', status: 'stopped', when: 'Aug 2026', tags: ['personal'] },
-  { slug: 'apexy', name: 'Apexy', line: 'Built in a day for a friend.', status: 'stopped', when: 'Aug 2026', tags: ['agents'] },
-  { slug: 'glp1', name: 'GLP-1 India', line: 'Care for GLP-1 patients after the patent expires.', status: 'stopped', when: 'Apr 2026', tags: ['health'] },
-  { slug: 'micro-pe', name: 'micro-PE hunt', line: 'Small software companies for sale, and how motivated the seller is.', status: 'stopped', when: 'Feb 2026', tags: ['finance', 'agents'] },
-  { slug: 'indiastox', name: 'IndiaStox', line: 'A market data layer built for agents.', status: 'stopped', when: 'May 2026', tags: ['finance', 'agents'] },
-  { slug: 'devflow', name: 'devflow', line: 'One memory across every AI coding tool.', status: 'stopped', when: 'Mar 2026', tags: ['tooling'] },
-  { slug: 'warehouses', name: 'Warehouse finder', line: 'Warehouses in India, from satellite images.', status: 'stopped', when: 'May 2026', tags: ['agents'] },
-  { slug: 'vc-scrapers', name: 'The first scrapers', line: 'The first step before WASP.', status: 'stopped', when: 'Sep 2025', tags: ['vc', 'research'] },
-  { slug: 'project-kit', name: 'project-kit', line: 'How every new thing starts.', status: 'in use', when: 'Sep 2026', tags: ['tooling'] },
-  { slug: 'this-site', name: 'This site', line: 'You are here.', status: 'building', when: 'Oct 2026', tags: ['personal'] },
-];
+export const projects: Project[] = projectsJson as Project[];
 
 /** Q20. His proudest, in his words. */
 export const proud = [

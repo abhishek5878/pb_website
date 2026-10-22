@@ -9,10 +9,19 @@
  * Every line here is his: first lines verbatim, titles, dates.
  */
 import Base from '../../layouts/Base.astro';
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import { me, links } from '../../data/me';
 import { getWriting, firstLine, label, fmtDate, iso, type Post } from '../../lib/posts';
 
 const pieces = await getWriting();
+
+/** A post with photos and no first line shows its first photo, small, with the title. */
+const thumbOf = (p: Post): ImageMetadata | undefined => {
+  if (firstLine(p)) return undefined;
+  const img = p.images.find((i) => typeof i.src !== 'string');
+  return img ? (img.src as ImageMetadata) : undefined;
+};
 
 /* Q33: what the writing is about. The long setup, then the turn. */
 const { setup, punch } = me.writesAbout;
@@ -58,9 +67,16 @@ for (const p of pieces) {
           <ol class="pieces" role="list">
             {items.map((p) => (
               <li class:list={['piece', voice(p)]} style={`--ink-age: ${inkPct(p)}%`}>
-                <a href={p.href} class="quiet" rel={p.external ? 'external' : undefined}>
-                  <p class="line">{firstLine(p)}</p>
-                </a>
+                {thumbOf(p) ? (
+                  <a href={p.href} class="quiet photo-line">
+                    <Image src={thumbOf(p)!} alt="" width={320} densities={[1, 2]} loading="lazy" decoding="async" />
+                    <p class="line">{label(p)}</p>
+                  </a>
+                ) : (
+                  <a href={p.href} class="quiet" rel={p.external ? 'external' : undefined}>
+                    <p class="line">{firstLine(p)}</p>
+                  </a>
+                )}
                 <p class="small label">
                   <span class="t">{label(p)}</span>
                   <time class="mono" datetime={iso(p.date)}>{fmtDate(p.date)}</time>
@@ -76,7 +92,8 @@ for (const p of pieces) {
 </Base>
 
 <style>
-  .index { padding-top: 0.5rem; }
+  /* centred on the reading room's axis (docs/design/reading.md): one place, two pages */
+  .index { padding-top: 0.5rem; max-width: 880px; }
   .label-row h1 { font: 500 var(--fs-small) / 1.45 var(--sans); }
   .elsewhere { display: flex; gap: 1.25rem; color: var(--ink-muted); }
   .elsewhere a:hover { color: var(--ink); }
@@ -110,8 +127,9 @@ for (const p of pieces) {
 
   /* one typeface per voice; the notes sit right, like marginalia */
   .piece { --old: oklch(0.68 0.025 60); }
-  .piece.life { grid-column: 1 / 9; }
-  .piece.note { grid-column: 5 / 13; }
+  /* inside the 880 column: his life takes ten of twelve, the notes keep a two-column right offset */
+  .piece.life { grid-column: 1 / 11; }
+  .piece.note { grid-column: 3 / 13; }
   .line {
     font-size: var(--fs-title);
     color: color-mix(in oklab, var(--ink) var(--ink-age), var(--old));
@@ -132,6 +150,10 @@ for (const p of pieces) {
     letter-spacing: -0.01em;
     max-width: 20em;
   }
+  /* a roll with no words: the first photo, small, beside the title */
+  .photo-line { display: flex; gap: 1.25rem; align-items: flex-start; }
+  .photo-line img { width: 120px; height: auto; flex: none; background: var(--bg-raised); }
+  @media (min-width: 720px) { .photo-line img { width: 160px; } }
   .piece a.quiet:hover { text-decoration: none; }
   .piece a.quiet:hover .line {
     text-decoration: underline;

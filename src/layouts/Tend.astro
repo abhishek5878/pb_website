@@ -1,0 +1,42 @@
+---
+/**
+ * The slim layout for /tend: the site's head and light, the mark, no public
+ * nav, no footer, noindex. Ships lit by La La Land like the rest; picking a
+ * light in the editor relights this room too (tend.js sets data-light).
+ */
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/light.css';
+import '../styles/tend.css';
+import Mark from '../components/Mark.astro';
+
+interface Props { title?: string }
+const { title = 'Tend' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-hour="day" data-light="lalaland">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title} · Abhishek</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#0A1328" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/switzer/Switzer-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <div class="glow on" id="glow-a" aria-hidden="true"></div>
+    <header class="top">
+      <div class="wrap row">
+        <a href="/" class="mark quiet" aria-label="Abhishek, home"><Mark /></a>
+        <slot name="top" />
+      </div>
+    </header>
+    <main id="main" class="wrap tend-main">
+      <slot />
+    </main>
+  </body>
+</html>

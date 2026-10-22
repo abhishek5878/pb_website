@@ -1,0 +1,43 @@
+---
+/**
+ * /tend: the publishing room (docs/design/tend-spec.md). On demand, behind the
+ * passphrase: with no session the page is one field and one button; with one,
+ * the editor (src/scripts/tend.js) builds its views here. Never cached, never
+ * indexed, never linked from the site.
+ */
+export const prerender = false;
+
+import Tend from '../../layouts/Tend.astro';
+import { hasSession } from '../../lib/tend/auth';
+import { FRAME } from '../../lib/tend/http';
+import lightCss from '../../styles/light.css?raw';
+
+Astro.response.headers.set('Cache-Control', 'no-store');
+for (const [k, v] of Object.entries(FRAME)) Astro.response.headers.set(k, v);
+const authed = hasSession(Astro.request);
+
+/* The eleven presets, read from light.css so the swatches never drift from the room. */
+const lights = [...lightCss.matchAll(/html\[data-light='([a-z]+)'\]\s*\{([^}]*)\}/g)].map(([, id, body]) => {
+  const v = (name: string) => body.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1].trim() ?? '';
+  return { id, bg: v('--p-bg'), accent: v('--p-accent'), glow: v('--p-glow') };
+});
+---
+
+<Tend>
+  {authed ? (
+    <div id="tend" data-lights={JSON.stringify(lights)}>
+      <noscript><p class="quietline">Needs JavaScript.</p></noscript>
+      <div id="view"></div>
+    </div>
+  ) : (
+    <form class="login" id="login" method="post" action="/api/tend/login/" autocomplete="on">
+      <label class="field">
+        <span class="fl">Passphrase</span>
+        <input type="password" name="passphrase" autocomplete="current-password" required autofocus />
+      </label>
+      <button type="submit" class="btn">Enter</button>
+      <p class="status small" role="status" aria-live="polite"></p>
+    </form>
+  )}
+  <script src="../../scripts/tend.js"></script>
+</Tend>

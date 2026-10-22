@@ -34,3 +34,6 @@ day-one-posts.md
 # notes, which quote his private answers. This repo is public.
 /_parked/
 /docs/
+
+# The publishing room ships its env names (no values).
+!.env.example
