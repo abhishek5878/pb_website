@@ -43,6 +43,7 @@
 .field { display: grid; gap: 0.4rem; font-size: var(--fs-small); font-weight: 500; }
 .field .fl { display: flex; gap: 0.5rem; }
 .field .fl .opt { color: var(--ink-muted); font-weight: 400; }
+.field .hint { color: var(--ink-muted); font-weight: 400; }
 .field input,
 .field textarea,
 .field select {
@@ -190,6 +191,32 @@ details.more .form { margin-top: 0.75rem; }
 .work-head .name { font-size: var(--fs-title); font-weight: 600; letter-spacing: -0.015em; line-height: 1.1; }
 .work-head .by { color: var(--ink-muted); margin-top: 0.35rem; }
 
+/* screenshots on a project's page: one per row, the image beside its caption and address */
+.field[role='group'] > .form { margin-top: 0.5rem; }
+.roll.wide { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+.roll.wide .shot { grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0 1rem; align-items: start; }
+@media (min-width: 720px) { .roll.wide .shot { grid-template-columns: 12rem minmax(0, 1fr); gap: 0 1.5rem; } }
+.roll.wide .side { display: grid; gap: 0.5rem; }
+.roll.wide .fields { display: grid; gap: 0.75rem; }
+.roll.wide .cap textarea { font-size: max(16px, var(--fs-small)); padding: 0.35rem 0; min-height: 0; }
+.roll.wide .shot .tools { flex-wrap: wrap; gap: 0.25rem 1rem; }
+
+/* a project: the list's fields, then its page */
+.part { margin-top: var(--gap-section); padding-top: 0.75rem; border-top: 1px solid var(--hairline); display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1.5rem; }
+.part .group-label { font-size: var(--fs-small); font-weight: 500; color: var(--ink); }
+.part .where { color: var(--ink-muted); overflow-wrap: anywhere; }
+.rows.links { margin-top: 0.5rem; gap: 2rem; }
+.rows.links:empty { display: none; }
+.linkrow { display: grid; gap: 1rem; }
+.linkrow .kindtools { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; }
+.linkrow .kindtools .field { flex: 0 1 10rem; }
+.linkrow .tools { display: flex; gap: 1.25rem; align-items: center; min-height: 44px; }
+@media (min-width: 720px) {
+  .linkrow { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 1rem 1.5rem; }
+  .linkrow .kindtools { grid-column: 1 / -1; }
+}
+.rows.links + .addrow { margin-top: 1.25rem; }
+
 /* now: rows */
 .rows { display: grid; gap: 2.5rem; margin-top: var(--gap-block); }
 .nowrow { display: grid; gap: 1.25rem; }
@@ -221,7 +248,8 @@ details.more .form { margin-top: 0.75rem; }
 }
 
 /* after a save */
-.done { margin-top: var(--gap-block); display: grid; gap: 1.5rem; justify-items: start; }
+/* not .shot.done: that's a photo that finished uploading */
+.done:not(.shot) { margin-top: var(--gap-block); display: grid; gap: 1.5rem; justify-items: start; }
 .done .big { font-size: var(--fs-title); font-weight: 600; letter-spacing: -0.015em; line-height: 1.1; }
 .done .links { display: flex; flex-wrap: wrap; gap: 1rem 1.75rem; }
 

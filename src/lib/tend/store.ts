@@ -30,11 +30,17 @@ export type PostMeta = {
   images: number;
 };
 
+/** A read of a file that isn't there (a project whose page isn't written yet). */
+export class Missing extends Error {}
+
 export interface Store {
+  /** Throws Missing when the file isn't there. */
   read(path: string): Promise<string>;
   /** The files beside a folder post's index.md (names only), so a delete can take the whole folder. */
   siblings(dir: string): Promise<string[]>;
   list(): Promise<PostMeta[]>;
+  /** The slugs that have a page: folders under src/content/work/ holding an index.md. */
+  pages(): Promise<string[]>;
   blob(bytes: Buffer): Promise<{ sha: string }>;
   commit(message: string, files: CommitFile[], deletes: string[]): Promise<{ commit: string }>;
 }
@@ -42,6 +48,8 @@ export interface Store {
 export const store = (): Store => (isMock() ? mock() : github());
 
 const POSTS = 'src/content/posts/';
+const WORK = 'src/content/work/';
+const PAGE = /^src\/content\/work\/([a-z0-9-]+)\/index\.md$/;
 
 function meta(path: string, text: string): PostMeta {
   const { fields } = parseMarkdown(text);
@@ -82,7 +90,14 @@ function mock(): Store {
       .digest('hex');
 
   return {
-    read: (p) => fs.readFile(at(p), 'utf8'),
+    async read(p) {
+      try {
+        return await fs.readFile(at(p), 'utf8');
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException)?.code === 'ENOENT') throw new Missing(p);
+        throw e;
+      }
+    },
     async siblings(dir) {
       try {
         return (await fs.readdir(at(dir), { withFileTypes: true })).filter((e) => e.isFile()).map((e) => e.name);
@@ -103,6 +118,24 @@ function mock(): Store {
       }
       return out.sort(newestFirst);
     },
+    async pages() {
+      let entries;
+      try {
+        entries = await fs.readdir(at(WORK), { withFileTypes: true });
+      } catch {
+        return [];
+      }
+      const out: string[] = [];
+      for (const e of entries) {
+        const rel = `${WORK}${e.name}/index.md`;
+        if (!e.isDirectory() || !PAGE.test(rel)) continue;
+        try {
+          await fs.access(at(rel));
+          out.push(e.name);
+        } catch {}
+      }
+      return out.sort();
+    },
     async blob(bytes) {
       const sha = gitSha(bytes);
       await fs.mkdir(blobs, { recursive: true });
@@ -119,7 +152,7 @@ function mock(): Store {
       for (const p of deletes) {
         await fs.rm(at(p), { force: true });
         const d = dirname(at(p));
-        if (d !== at(POSTS).replace(/\/$/, '')) {
+        if (d !== at(POSTS).replace(/\/$/, '') && d !== at(WORK).replace(/\/$/, '')) {
           try {
             if ((await fs.readdir(d)).length === 0) await fs.rmdir(d);
           } catch {}
@@ -167,7 +200,13 @@ function github(): Store {
   const fromBase64 = (s: string) => Buffer.from(s.replace(/\n/g, ''), 'base64').toString('utf8');
 
   async function readAt(path: string): Promise<string> {
-    const file = await api<{ content?: string; encoding?: string }>(`/contents/${path}?ref=${encodeURIComponent(ref)}`);
+    let file: { content?: string; encoding?: string };
+    try {
+      file = await api(`/contents/${path}?ref=${encodeURIComponent(ref)}`);
+    } catch (e) {
+      if (e instanceof GitHubError && e.status === 404) throw new Missing(path);
+      throw e;
+    }
     if (file.encoding !== 'base64' || typeof file.content !== 'string') throw new Error('unexpected contents payload');
     return fromBase64(file.content);
   }
@@ -199,6 +238,15 @@ function github(): Store {
         });
       }
       return out.sort(newestFirst);
+    },
+    async pages() {
+      const tree = await api<{ tree: { path: string; type: string }[] }>(`/git/trees/${encodeURIComponent(ref)}?recursive=1`);
+      const out: string[] = [];
+      for (const t of tree.tree) {
+        const m = t.type === 'blob' ? PAGE.exec(t.path) : null;
+        if (m) out.push(m[1]);
+      }
+      return out.sort();
     },
     async blob(bytes) {
       const { sha } = await api<{ sha: string }>('/git/blobs', {

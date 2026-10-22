@@ -93,7 +93,7 @@ export function markdown(fields: Fields, body: string): string {
   return `---\n${front}---\n${text ? '\n' + text + '\n' : ''}`;
 }
 
-/** Frontmatter and body of an existing post, for editing. Dates come back as YYYY-MM-DD strings. */
+/** Frontmatter and body of an existing post or project page, for editing. Dates come back as YYYY-MM-DD strings. */
 export function parseMarkdown(text: string): { fields: Record<string, unknown>; body: string } {
   const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---[ \t]*\r?\n?([\s\S]*)$/);
   if (!m) return { fields: {}, body: text };
@@ -102,8 +102,83 @@ export function parseMarkdown(text: string): { fields: Record<string, unknown>; 
     const parsed = yaml.load(m[1]);
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) fields = parsed as Record<string, unknown>;
   } catch {}
-  if (fields.date instanceof Date) fields.date = fields.date.toISOString().slice(0, 10);
+  for (const k of ['date', 'updated']) {
+    const v = fields[k];
+    if (v instanceof Date) fields[k] = v.toISOString().slice(0, 10);
+  }
   return { fields, body: m[2].replace(/^\n+/, '') };
+}
+
+/* ---------- a project's page: src/content/work/<slug>/index.md ---------- */
+
+/** The same list as the `work` collection in src/content.config.ts. */
+export const LINK_KINDS = ['live', 'demo', 'repo', 'paper', 'post', 'page'] as const;
+
+/** One line of his: control characters (a pasted newline) become a space. */
+const oneLine = (max: number) => z.string().max(max).transform((s) => s.replace(/[\u0000-\u001f\u007f]+/g, ' '));
+
+/**
+ * The page's frontmatter, mirroring the `work` collection (docs/design/work-pages.md).
+ * Unknown keys are refused, `updated` included: the server sets it on every save.
+ * An example's `src` is a file beside index.md; the commit route checks it is there.
+ */
+export const WorkFields = z
+  .object({
+    summary: oneLine(500).optional(),
+    links: z
+      .array(z.object({ label: oneLine(200).refine((s) => s.trim().length > 0, 'a label'), url, kind: z.enum(LINK_KINDS) }).strict())
+      .max(30)
+      .default([]),
+    examples: z
+      .array(z.object({ src: z.string().regex(/^\.\/[a-z0-9-]+\.(jpg|webp|png)$/), caption: oneLine(500), url: url.optional() }).strict())
+      .max(30)
+      .default([]),
+    stopped: oneLine(1000).optional(),
+  })
+  .strict();
+export type WorkFields = z.infer<typeof WorkFields>;
+
+/** Today in Asia/Kolkata, YYYY-MM-DD: the page's `updated` on every save. */
+export const todayIST = (now = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+
+/** A string as js-yaml writes it double-quoted: every character escaped as YAML needs, always one line. */
+const quoted = (s: string) => yaml.dump(s, { forceQuotes: true, quotingType: '"', lineWidth: -1 }).replace(/\n$/, '');
+/** An enum value or a `./file` name: already held to [a-z0-9./-] by the schema, written plain like the files he has. */
+const bare = (s: string) => (/^[a-z0-9./-]+$/.test(s) ? s : quoted(s));
+
+/**
+ * The whole page file, in the shape the 23 pages are written in, so opening
+ * and saving one without changes gives the same bytes (only `updated` moves):
+ *
+ *   summary: "…"
+ *   links:
+ *     - { label: "…", url: "…", kind: live }
+ *   examples:
+ *     - { src: ./shot-1.png, caption: "…", url: "…" }
+ *   stopped: "…"
+ *   updated: 2026-10-23
+ *
+ * Every string of his goes through js-yaml's double-quoted dump (escaped);
+ * the rest is enums, `./file` names and today's date, all checked above.
+ */
+export function workMarkdown(fields: WorkFields, body: string, updated = todayIST()): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(updated) || !validDate(updated)) throw new Error('bad date');
+  const out: string[] = [];
+  if (fields.summary !== undefined && fields.summary.trim() !== '') out.push(`summary: ${quoted(fields.summary)}`);
+  if (fields.links.length) {
+    out.push('links:');
+    for (const l of fields.links) out.push(`  - { label: ${quoted(l.label)}, url: ${quoted(l.url)}, kind: ${bare(l.kind)} }`);
+  }
+  if (fields.examples.length) {
+    out.push('examples:');
+    for (const e of fields.examples)
+      out.push(`  - { src: ${bare(e.src)}, caption: ${quoted(e.caption)}${e.url !== undefined ? `, url: ${quoted(e.url)}` : ''} }`);
+  }
+  if (fields.stopped !== undefined && fields.stopped.trim() !== '') out.push(`stopped: ${quoted(fields.stopped)}`);
+  out.push(`updated: ${updated}`);
+  const text = body.replace(/\r\n?/g, '\n').replace(/\s+$/, '');
+  return `---\n${out.join('\n')}\n---\n${text ? '\n' + text + '\n' : ''}`;
 }
 
 /* The data files. */

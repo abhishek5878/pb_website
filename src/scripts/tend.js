@@ -2,9 +2,11 @@
  * /tend: the publishing room (docs/design/tend-spec.md).
  *
  * One page, hash routes: #/ home · #/write · #/trip · #/taste · #/now ·
- * #/projects · #/posts · #/posts/<id>. Every save is one POST to
- * /api/tend/commit/; photos are shrunk on a canvas here (which drops EXIF and
- * GPS), uploaded one blob each with progress, then named in the same commit.
+ * #/projects · #/projects/<slug> · #/posts · #/posts/<id>. Every save is one
+ * POST to /api/tend/commit/; photos are shrunk on a canvas here (which drops
+ * EXIF and GPS), uploaded one blob each with progress, then named in the same
+ * commit. A project is one editor for its line in projects.json and its page,
+ * src/content/work/<slug>/index.md, saved together.
  * UI words only: nothing in this file writes in his voice.
  */
 
@@ -127,9 +129,15 @@ const PHOTO = new Set(['trip', 'photo']);
 const crumb = (name) =>
   h('div', { class: 'label-row' }, h('a', { href: '#/', class: 'quiet back' }, 'Tend'), h('span', { class: 'here' }, name));
 
-function field(label, control, { optional = false } = {}) {
+function field(label, control, { optional = false, hint = '' } = {}) {
   const fl = h('span', { class: 'fl' }, label, optional && h('span', { class: 'opt' }, 'optional'));
-  return h('label', { class: 'field' }, fl, control);
+  return h('label', { class: 'field' }, fl, control, hint && h('span', { class: 'hint' }, hint));
+}
+
+/** A named set of controls (links, screenshots): a group, not a label, so a tap on its name focuses nothing. */
+function group(label, control, { optional = false } = {}) {
+  const fl = h('span', { class: 'fl' }, label, optional && h('span', { class: 'opt' }, 'optional'));
+  return h('div', { class: 'field', role: 'group', 'aria-label': label }, fl, control);
 }
 
 const input = (attrs = {}) => h('input', { type: 'text', autocapitalize: 'sentences', spellcheck: 'true', ...attrs });
@@ -304,16 +312,25 @@ async function shrink(file) {
 
 /**
  * The photo roll: pick, shrink, upload (two at a time, as soon as each is
- * ready), caption, reorder, remove. `existing`: [{ src: './photo-1.jpg', alt }]
- * already in the post. ready() resolves when every upload has a sha.
+ * ready), caption, reorder, remove. `existing`: [{ src: './photo-1.jpg', alt, url? }]
+ * already in the post or page. ready() resolves when every upload has a sha.
+ *
+ * Options, for a project page's screenshots: `prefix` names new files
+ * (shot-3.jpg), `taken` lists the files already in the folder so a new name
+ * never lands on one, `withUrl` adds the address each one shows, `thumbs`
+ * maps a kept file to an image of it, `wide` lays them out one per row.
  */
-function photoRoll(existing = []) {
-  const shots = existing.map((i) => ({ name: i.src.replace(/^\.\//, ''), alt: i.alt || '', sha: null, state: 'kept' }));
-  let next = 1 + Math.max(0, ...shots.map((s) => Number(/^photo-(\d+)\./.exec(s.name)?.[1] || 0)));
-  const grid = h('div', { class: 'roll' });
+function photoRoll(existing = [], { prefix = 'photo', taken = [], withUrl = false, thumbs = {}, wide = false, addLabel = 'Add photos', keptLabel = 'In the post' } = {}) {
+  const shots = existing.map((i) => {
+    const name = i.src.replace(/^\.\//, '');
+    return { name, alt: i.alt || '', url: i.url || '', sha: null, state: 'kept', thumb: thumbs[name] || null };
+  });
+  const numbered = new RegExp(`^${prefix}-(\\d+)\\.`);
+  let next = 1 + Math.max(0, ...[...shots.map((s) => s.name), ...taken].map((n) => Number(numbered.exec(n)?.[1] || 0)));
+  const grid = h('div', { class: wide ? 'roll wide' : 'roll' });
   const count = h('span', { class: 'n' });
   const picker = h('input', { type: 'file', accept: 'image/*', multiple: true });
-  const add = h('label', { class: 'add' }, picker, h('span', {}, 'Add photos'), count);
+  const add = h('label', { class: 'add' }, picker, h('span', {}, addLabel), count);
   const el = h('div', { class: 'form' }, add, grid);
 
   const queue = [];
@@ -355,7 +372,7 @@ function photoRoll(existing = []) {
 
   async function take(files) {
     for (const file of files) {
-      const s = { name: `photo-${next++}.jpg`, alt: '', sha: null, state: 'shrinking', file };
+      const s = { name: `${prefix}-${next++}.jpg`, alt: '', url: '', sha: null, state: 'shrinking', file };
       shots.push(s);
       render();
       try {
@@ -379,11 +396,22 @@ function photoRoll(existing = []) {
     count.textContent = shots.length ? String(shots.length) : '';
     grid.replaceChildren(
       ...shots.map((s, i) => {
-        const pic = h('div', { class: 'pic' }, s.thumb && h('img', { src: s.thumb, alt: '' }), h('span', { class: 'nm' }, s.name.replace(/\.jpg$/, '')));
+        const pic = h('div', { class: 'pic' }, s.thumb && h('img', { src: s.thumb, alt: '' }), h('span', { class: 'nm' }, s.name.replace(/\.[a-z]+$/, '')));
         const meter = h('div', { class: 'meter' }, (s.meter = h('i', { style: `width: ${Math.round((s.progress || 0) * 100)}%` })));
         const state =
-          s.state === 'shrinking' ? 'Preparing…' : s.state === 'uploading' ? 'Uploading…' : s.state === 'failed' ? 'Didn’t upload.' : s.state === 'kept' ? 'In the post' : '';
-        const cap = h('label', { class: 'field cap' }, h('span', { class: 'vh' }, 'Caption'), input({ value: s.alt, placeholder: 'Caption', onInput: (e) => (s.alt = e.target.value) }));
+          s.state === 'shrinking' ? 'Preparing…' : s.state === 'uploading' ? 'Uploading…' : s.state === 'failed' ? 'Didn’t upload.' : s.state === 'kept' ? keptLabel : '';
+        const capControl = wide
+          ? textarea({ rows: 1, value: s.alt, placeholder: 'Caption', onInput: (e) => (s.alt = e.target.value) })
+          : input({ value: s.alt, placeholder: 'Caption', onInput: (e) => (s.alt = e.target.value) });
+        const cap = h('label', { class: 'field cap' }, h('span', { class: 'vh' }, 'Caption'), capControl);
+        const url =
+          withUrl &&
+          h(
+            'label',
+            { class: 'field cap' },
+            h('span', { class: 'vh' }, 'Address it shows'),
+            h('input', { type: 'url', inputmode: 'url', autocapitalize: 'none', spellcheck: 'false', value: s.url, placeholder: 'https:// it shows (optional)', onInput: (e) => (s.url = e.target.value) })
+          );
         const tools = h(
           'div',
           { class: 'tools' },
@@ -393,6 +421,7 @@ function photoRoll(existing = []) {
           s.state === 'failed' && s.blob && h('button', { type: 'button', class: 'textbtn', onClick: () => upload(s) }, 'Retry'),
           state && h('span', { class: 'state' }, state)
         );
+        if (wide) return h('div', { class: `shot ${s.state}`, 'data-name': s.name }, h('div', { class: 'side' }, pic, meter), h('div', { class: 'fields' }, cap, url, tools));
         return h('div', { class: `shot ${s.state}`, 'data-name': s.name }, pic, meter, cap, tools);
       })
     );
@@ -417,11 +446,19 @@ function photoRoll(existing = []) {
     count: () => shots.length,
     removed: () => removed,
     pending: () => shots.filter((s) => s.state !== 'kept' && s.state !== 'done').length,
+    /** Show an image of a kept file once one is found (the public page's own). */
+    thumb(name, src) {
+      const s = shots.find((x) => x.name === name && x.state === 'kept');
+      if (s && !s.thumb) {
+        s.thumb = src;
+        render();
+      }
+    },
     async ready() {
       await Promise.all(shots.filter((s) => s.done).map((s) => s.done));
       const bad = shots.filter((s) => s.state !== 'kept' && s.state !== 'done');
       if (bad.length) throw new Error(bad.length === 1 ? 'One photo didn’t upload.' : `${bad.length} photos didn’t upload.`);
-      return shots.map((s) => ({ name: s.name, alt: s.alt.trim(), sha: s.sha }));
+      return shots.map((s) => ({ name: s.name, alt: s.alt.trim(), url: s.url.trim(), sha: s.sha }));
     },
   };
 }
@@ -622,7 +659,7 @@ function viewHome() {
     ['#/trip', 'Trip', 'photos and words'],
     ['#/taste', 'Taste', 'what you say about a work'],
     ['#/now', 'Now', 'the bubbles'],
-    ['#/projects', 'Projects', ''],
+    ['#/projects', 'Projects', 'the list and each page'],
     ['#/posts', 'Posts', 'edit or delete'],
   ];
   const out = h(
@@ -856,25 +893,133 @@ async function viewNow() {
   return view;
 }
 
-/* projects */
+/* projects: the line in projects.json, and the page in src/content/work/<slug>/index.md */
+
+const LINK_KINDS = ['live', 'demo', 'repo', 'paper', 'post', 'page'];
+const PROJECTS = 'src/data/projects.json';
+const pagePath = (slug) => `src/content/work/${slug}/index.md`;
+const hostOf = (u) => (u || '').replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+/** A first guess at a link's kind from its address; he can change it. */
+const guessKind = (u) =>
+  /github\.com\//i.test(u) ? 'repo' : /arxiv\.org|doi\.org|\.pdf$/i.test(u) ? 'paper' : /substack\.com|vyas\.garden\/writing\//i.test(u) ? 'post' : 'page';
+
+/** The slugs that have a page folder, read at runtime (they can be renamed under us). */
+const pageSlugs = () =>
+  api('list', { of: 'pages' })
+    .then((r) => new Set(r.pages || []))
+    .catch(() => null);
+
 async function viewProjects(slug) {
-  const { data } = await api('read', { path: 'src/data/projects.json' });
-  if (slug === 'new') return editProject(data, null);
+  const [{ data }, pages] = await Promise.all([api('read', { path: PROJECTS }), pageSlugs()]);
+  if (slug === 'new') return editProject(data, null, { pages });
   if (slug) {
     const p = data.find((x) => x.slug === slug);
     if (!p) return h('div', { class: 'view' }, crumb('Projects'), h('p', { class: 'quietline' }, 'Not here.'));
-    return editProject(data, p);
+    const page = await api('read', { path: pagePath(p.slug) });
+    return editProject(data, p, { pages, page });
   }
   const items = h('div', { class: 'items' });
   for (const p of data) {
-    items.append(h('a', { class: 'item', href: `#/projects/${p.slug}` }, h('span', { class: 'name' }, p.name), h('span', { class: 'sub' }, h('span', {}, p.status), h('span', { class: 'mono' }, p.when))));
+    items.append(
+      h(
+        'a',
+        { class: 'item', href: `#/projects/${p.slug}` },
+        h('span', { class: 'name' }, p.name),
+        h('span', { class: 'sub' }, h('span', {}, p.status), h('span', { class: 'mono' }, p.when), pages && !pages.has(p.slug) && h('span', {}, 'no page yet'))
+      )
+    );
   }
   return h('div', { class: 'view' }, crumb('Projects'), h('p', { class: 'addrow' }, h('a', { href: '#/projects/new', class: 'quiet' }, 'Add project')), items);
 }
 
-function editProject(data, p) {
+/** The links on a page: label, address, kind; add, remove, reorder. */
+function linkRows(initial = []) {
+  const rows = initial.map((l) => ({ label: l.label || '', url: l.url || '', kind: LINK_KINDS.includes(l.kind) ? l.kind : 'page', picked: true }));
+  const list = h('div', { class: 'rows links' });
+  const render = () => {
+    list.replaceChildren(
+      ...rows.map((r, i) => {
+        const kind = h('select', { 'aria-label': 'Kind', onChange: (e) => ((r.kind = e.target.value), (r.picked = true)) }, ...LINK_KINDS.map((k) => h('option', { value: k, selected: k === r.kind }, k)));
+        const url = h('input', {
+          type: 'url',
+          inputmode: 'url',
+          autocapitalize: 'none',
+          spellcheck: 'false',
+          value: r.url,
+          placeholder: 'https://',
+          onInput: (e) => {
+            r.url = e.target.value;
+            if (!r.picked) kind.value = r.kind = guessKind(r.url.trim());
+          },
+        });
+        return h(
+          'div',
+          { class: 'linkrow' },
+          field('Label', input({ value: r.label, placeholder: hostOf(r.url) || '', onInput: (e) => (r.label = e.target.value) })),
+          field('Address', url),
+          h(
+            'div',
+            { class: 'kindtools' },
+            field('Kind', kind),
+            h(
+              'div',
+              { class: 'tools' },
+              h('button', { type: 'button', class: 'textbtn', 'aria-label': 'Move up', disabled: i === 0, onClick: () => { [rows[i - 1], rows[i]] = [rows[i], rows[i - 1]]; render(); } }, '↑'),
+              h('button', { type: 'button', class: 'textbtn', 'aria-label': 'Move down', disabled: i === rows.length - 1, onClick: () => { [rows[i + 1], rows[i]] = [rows[i], rows[i + 1]]; render(); } }, '↓'),
+              h('button', { type: 'button', class: 'textbtn', onClick: () => { rows.splice(i, 1); render(); } }, 'Remove')
+            )
+          )
+        );
+      })
+    );
+  };
+  render();
+  const add = h(
+    'p',
+    { class: 'addrow' },
+    h('button', { type: 'button', class: 'textbtn', onClick: () => { rows.push({ label: '', url: '', kind: 'page', picked: false }); render(); list.lastChild?.querySelector('input')?.focus(); } }, 'Add a link')
+  );
+  return {
+    el: h('div', {}, list, add),
+    /** The links as the page wants them; an empty row is dropped, a half-filled one is an error. */
+    read() {
+      const out = [];
+      for (const r of rows) {
+        const url = r.url.trim();
+        const label = r.label.trim();
+        if (!url && !label) continue;
+        if (!/^https?:\/\/\S+$/i.test(url)) throw new Error(label ? `“${label}” needs an address that starts with https://.` : 'Every link needs an address that starts with https://.');
+        out.push({ label: label || hostOf(url), url, kind: r.kind });
+      }
+      return out;
+    },
+  };
+}
+
+/**
+ * The images on the public page, by caption, so kept screenshots show as
+ * themselves rather than as a name. Best effort: the page may not be built yet.
+ */
+async function liveThumbs(slug, roll) {
+  try {
+    const res = await fetch(`/work/${slug}/`, { credentials: 'same-origin' });
+    if (!res.ok) return;
+    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+    return [...doc.querySelectorAll('.examples img[alt]')].map((img) => {
+      const set = (img.getAttribute('srcset') || '').split(',')[0]?.trim().split(/\s+/)[0];
+      return { alt: img.getAttribute('alt'), src: set || img.getAttribute('src') };
+    });
+  } catch {
+    return;
+  }
+}
+
+function editProject(data, p, { pages = null, page = null } = {}) {
   const isNew = !p;
   const q = p || { slug: '', name: '', line: '', status: 'building', when: '', tags: [] };
+  const pf = (page && page.fields) || {};
+
+  /* the list: projects.json */
   const name = input({ value: q.name });
   const line = textarea({ rows: 1, value: q.line });
   const why = textarea({ rows: 1, value: q.why || '' });
@@ -882,14 +1027,43 @@ function editProject(data, p) {
   const when = input({ value: q.when, placeholder: 'Oct 2026', autocapitalize: 'words' });
   const tags = input({ value: (q.tags || []).join(', '), autocapitalize: 'none', placeholder: 'comma, separated' });
   const href = h('input', { type: 'url', value: q.href || '', inputmode: 'url', autocapitalize: 'none' });
+
+  /* the page: src/content/work/<slug>/index.md */
+  const summary = textarea({ rows: 1, value: typeof pf.summary === 'string' ? pf.summary : '' });
+  const body = textarea({ class: 'words', rows: 8, value: (page && page.body) || '', 'aria-label': 'Words' });
+  const links = linkRows(Array.isArray(pf.links) ? pf.links : []);
+  const examples = (Array.isArray(pf.examples) ? pf.examples : []).filter((e) => e && typeof e.src === 'string').map((e) => ({ src: e.src, alt: e.caption || '', url: e.url || '' }));
+  const roll = photoRoll(examples, { prefix: 'shot', taken: (page && page.files) || [], withUrl: true, wide: true, addLabel: 'Add screenshots', keptLabel: 'On the page' });
+  const stopped = textarea({ rows: 1, value: typeof pf.stopped === 'string' ? pf.stopped : '' });
+
+  if (!isNew && examples.length)
+    liveThumbs(q.slug).then((found) => {
+      for (const e of examples) {
+        const hit = (found || []).find((f) => f.alt === e.alt);
+        if (hit?.src) roll.thumb(e.src.replace(/^\.\//, ''), hit.src);
+      }
+    });
+
+  const live = !isNew && page && !page.missing ? h('a', { href: `/work/${q.slug}/`, class: 'quiet' }, `${location.host.replace(/^www\./, '')}/work/${q.slug}/`) : h('span', {}, 'Not written yet');
   const view = h(
     'div',
     { class: 'view' },
     h('div', { class: 'label-row' }, h('a', { href: '#/projects', class: 'quiet back' }, 'Projects'), h('span', { class: 'here' }, isNew ? 'New' : q.name)),
-    h('div', { class: 'form' }, field('Name', name), field('Line', line), field('Why', why, { optional: true }), h('div', { class: 'two' }, field('Status', status), field('When', when)), field('Tags', tags), field('Link', href, { optional: true }))
+    h('div', { class: 'form' }, field('Name', name), field('Line', line), field('Why', why, { optional: true }), h('div', { class: 'two' }, field('Status', status), field('When', when)), field('Tags', tags), field('Link', href, { optional: true })),
+    h('div', { class: 'part' }, h('p', { class: 'group-label' }, 'The page'), h('p', { class: 'small where' }, live)),
+    h(
+      'div',
+      { class: 'form' },
+      field('Summary', summary, { optional: true, hint: 'On the page, in place of the line.' }),
+      field('Words', body),
+      group('Links', links.el, { optional: true }),
+      group('Screenshots', roll.el, { optional: true }),
+      field('Why it stopped', stopped, { optional: true })
+    )
   );
   const bar = saveBar('Save', async (say) => {
     if (!name.value.trim() || !line.value.trim() || !when.value.trim()) throw new Error('A name, a line and a when, please.');
+    const pageLinks = links.read();
     const next = {
       slug: q.slug || slugify(name.value) || 'project',
       name: name.value.trim(),
@@ -901,15 +1075,36 @@ function editProject(data, p) {
       href: href.value.trim() || undefined,
     };
     if (isNew) {
-      const taken = new Set(data.map((x) => x.slug));
+      /* never a slug that's in the list or already has a folder */
+      const taken = new Set([...data.map((x) => x.slug), ...(pages || [])]);
       let s = next.slug;
       for (let n = 2; taken.has(s); n++) s = `${next.slug}-${n}`;
       next.slug = s;
-      data.unshift(next);
-    } else Object.assign(p, next, { why: next.why, href: next.href });
-    if (!isNew) for (const k of ['why', 'href']) if (p[k] === undefined) delete p[k];
+    }
+    if (roll.pending()) say('Waiting for the screenshots…');
+    const shots = await roll.ready();
+
+    /* the list, changed in a copy so a failed save can be tried again */
+    const entry = { ...(p || {}), ...next };
+    for (const k of ['why', 'href']) if (entry[k] === undefined) delete entry[k];
+    const list = isNew ? [entry, ...data] : data.map((x) => (x === p ? entry : x));
+
+    const dir = `src/content/work/${next.slug}`;
+    const fields = {
+      summary: summary.value.trim() || undefined,
+      links: pageLinks,
+      examples: shots.map((s) => ({ src: `./${s.name}`, caption: s.alt, ...(s.url ? { url: s.url } : {}) })),
+      stopped: stopped.value.trim() || undefined,
+    };
+    const files = [
+      { path: `${dir}/index.md`, work: { fields, body: body.value } },
+      { path: PROJECTS, text: JSON.stringify(list, null, 2) + '\n' },
+      ...shots.filter((s) => s.sha).map((s) => ({ path: `${dir}/${s.name}`, sha: s.sha })),
+    ];
+    const deletes = roll.removed().map((n) => `${dir}/${n}`);
+    if (files.length + deletes.length > 40) throw new Error('Too many files for one save; add fewer screenshots at a time.');
     say('Saving…');
-    const { url } = await api('commit', { message: `projects, ${next.name}`, files: [{ path: 'src/data/projects.json', text: JSON.stringify(data, null, 2) + '\n' }] });
+    const { url } = await api('commit', { message: `${isNew ? 'new project' : 'projects'}, ${next.name}`, files, deletes });
     view.replaceChildren(view.firstChild, done({ url, again: '#/projects', againLabel: 'Projects' }));
   });
   view.append(bar);
