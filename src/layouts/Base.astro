@@ -119,11 +119,17 @@ const person = {
 
     <header class="top">
       <div class="wrap row">
-        <a href="/" class="mark quiet" aria-label="Abhishek, home"><Mark /></a>
+        <p class="left">
+          <a href="/" class="mark quiet" aria-label="Abhishek, home"><Mark /></a>
+          <!-- the way in for someone new; from 720px up (on a phone it's in the footer and the homepage's Explore) -->
+          <a href="/start/" class="start quiet" aria-current={path.startsWith('/start/') ? 'page' : undefined}>Start here</a>
+        </p>
         <nav aria-label="Site">
           {nav.map(([label, href]) => (
             <a href={href} class="quiet" aria-current={path.startsWith(href) ? 'page' : undefined}>{label}</a>
           ))}
+          <!-- the newsletter, quietly; on a phone the row is full, so it moves to the footer -->
+          <a href={links.substack} class="quiet sub" rel="me">Subscribe</a>
           <!-- JS joins data-u and data-d into the mailto; without JS it opens the ask box on the homepage -->
           <a href="/#dm" class="dm" data-u={mailUser} data-d={mailDomain}>send a dm</a>
         </nav>
@@ -150,6 +156,8 @@ const person = {
         <div class="row">
           <p class="mono">v.I · Oct 2026</p>
           <nav aria-label="For readers and their agents" class="small">
+            <a href="/start/" class="quiet">Start here</a>
+            <a href={links.substack} class="quiet" rel="me">Subscribe</a>
             <a href="/2am/" class="quiet">2am</a>
             <a href="/llms.txt" class="quiet">llms.txt</a>
             <a href="/rss.xml" class="quiet">rss</a>
@@ -192,11 +200,22 @@ const person = {
     height: 100%;
     gap: var(--gutter);
   }
+  .top .left { display: flex; align-items: center; gap: clamp(1.25rem, 2.6vw, 2.5rem); }
   .mark {
     display: block;
     color: var(--ink);
     padding-block: 0.5rem;
   }
+  .top .start {
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--ink-muted);
+    transition: color var(--d-hover) var(--ease-hover);
+  }
+  .top .start:hover,
+  .top .start[aria-current='page'] { color: var(--ink); }
+  .top .start[aria-current='page'] { text-decoration: underline; }
+  @media (max-width: 719px) { .top .start { display: none; } }
   .top nav {
     display: flex;
     gap: clamp(1rem, 2.2vw, 2rem);
@@ -204,6 +223,11 @@ const person = {
     font-weight: 500;
   }
   .top nav a[aria-current='page'] { text-decoration: underline; text-decoration-color: currentColor; }
+  .top nav a { white-space: nowrap; }
+  /* Subscribe sits a little apart from the four nouns, before the dm; under 600px the row is
+     full, so it lives in the footer and the homepage's Explore instead */
+  .top nav .sub { margin-left: clamp(0.25rem, 1.2vw, 1.25rem); }
+  @media (max-width: 599px) { .top nav .sub { display: none; } }
   .top nav .dm {
     text-decoration-color: var(--accent);
     text-decoration-thickness: 1.5px;

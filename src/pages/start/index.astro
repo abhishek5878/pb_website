@@ -1,0 +1,209 @@
+---
+/**
+ * Start here: a short way in for someone new (after invertedpassion.com's
+ * "Start here"). The hello, then three posts, three projects and one thread,
+ * each with one line that is his, verbatim: for a post a sentence from it, for
+ * a project its line in projects.json, for the thread the first line it quotes.
+ *
+ * The picks live in src/data/start.json, so they are easy to change:
+ *   posts:    post ids (the file name, e.g. "2026-10-22-seven-minutes"). A post
+ *             shows its first pull line, else its first sentence; to choose the
+ *             line, write { "id": "…", "line": "…" } instead. The line must be in
+ *             the post word for word; if it isn't (he edited it), the page falls
+ *             back to the pull line or first sentence and the build log says so.
+ *   projects: slugs from src/data/projects.json.
+ *   thread:   an id from src/data/threads.ts (seen, credit, founders).
+ */
+import Base from '../../layouts/Base.astro';
+import { me, charter, projects } from '../../data/me';
+import { getWriting, firstLine, inPost, label, fmtDate, iso, type Post } from '../../lib/posts';
+import { workEntries, projectHref, whenISO } from '../work/_work';
+import { THREADS } from '../../data/threads';
+import start from '../../data/start.json';
+
+type Pick = string | { id: string; line?: string };
+
+const writing = await getWriting();
+const entries = await workEntries();
+
+/* ---- posts: title, date, one sentence of his ---- */
+const lineOf = (post: Post, chosen?: string) => {
+  if (chosen) {
+    if (inPost(post, chosen)) return chosen;
+    console.warn(`[start] "${chosen}" is no longer in ${post.id}; showing its pull line or first sentence instead.`);
+  }
+  return post.pull[0] ?? firstLine(post);
+};
+const posts = (start.posts as Pick[]).map((pick) => {
+  const id = typeof pick === 'string' ? pick : pick.id;
+  const post = writing.find((p) => p.id === id);
+  if (!post) throw new Error(`/start/: no post ${id} (src/data/start.json)`);
+  return { post, line: lineOf(post, typeof pick === 'string' ? undefined : pick.line) };
+});
+
+/* ---- projects: name, status, when, his line ---- */
+const picked = start.projects.map((slug) => {
+  const p = projects.find((x) => x.slug === slug);
+  if (!p) throw new Error(`/start/: no project ${slug} (src/data/start.json)`);
+  return { p, href: projectHref(p, entries) };
+});
+
+/* ---- the thread: its title, the first line it quotes, and its stops in order ---- */
+const thread = THREADS.find((t) => t.id === start.thread);
+if (start.thread && !thread) throw new Error(`/start/: no thread ${start.thread} (src/data/start.json)`);
+const refs = thread ? thread.stops.flatMap((s) => s.refs) : [];
+const firstQuote = refs.find((r): r is { post: string; quote: string } => 'post' in r);
+const quotePost = firstQuote ? writing.find((p) => p.id === firstQuote.post) : undefined;
+const threadLine = firstQuote && quotePost ? (inPost(quotePost, firstQuote.quote) ? firstQuote.quote : lineOf(quotePost)) : undefined;
+/** The walk, stop by stop: posts and projects by name, the charter as About's label. */
+const stops = thread
+  ? thread.stops.map((s) =>
+      s.refs
+        .map((r) => {
+          if ('post' in r) return label(writing.find((p) => p.id === r.post)!);
+          if ('project' in r) return projects.find((p) => p.slug === r.project)?.name ?? r.project;
+          return charter[r.charter] ? 'Charter' : '';
+        })
+        .filter(Boolean)
+        .join(', ')
+    )
+  : [];
+
+const count = (n: number) => ['None', 'One', 'Two', 'Three', 'Four', 'Five'][n] ?? String(n);
+const plural = (n: number, one: string, many: string) => `${count(n)} ${n === 1 ? one : many}`;
+---
+
+<Base title="Start here" description={`${me.home.hello} ${me.home.line}`}>
+  <section class="wrap start" aria-labelledby="start-label">
+    <div class="label-row">
+      <h1 id="start-label">Start here</h1>
+    </div>
+    <p class="hi">
+      <span class="title name">{me.home.hello}</span>
+      <span class="title-lit line">{me.home.line}</span>
+    </p>
+  </section>
+
+  <!-- three posts -->
+  <section class="section wrap picks" aria-labelledby="posts-label">
+    <div class="label-row">
+      <h2 id="posts-label">{plural(posts.length, 'post', 'posts')}</h2>
+      <a href="/writing/" class="quiet">All <span class="mono">{writing.length}</span> →</a>
+    </div>
+    <ol class="list" role="list">
+      {posts.map(({ post, line }) => (
+        <li class="pick grid">
+          <p class="meta">
+            <a href={post.href} class="name">{label(post)}</a>
+            <span class="small muted">
+              <time class="mono" datetime={iso(post.date)}>{fmtDate(post.date)}</time>
+              {post.lane && <span class="mono">({post.lane})</span>}
+            </span>
+          </p>
+          <blockquote class="q" cite={`https://vyas.garden${post.href}`}><p>{line}</p></blockquote>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <!-- three projects -->
+  <section class="section wrap picks" aria-labelledby="projects-label">
+    <div class="label-row">
+      <h2 id="projects-label">{plural(picked.length, 'project', 'projects')}</h2>
+      <a href="/work/" class="quiet">All <span class="mono">{projects.length}</span> →</a>
+    </div>
+    <ol class="list" role="list">
+      {picked.map(({ p, href }) => (
+        <li class="pick grid">
+          <p class="meta">
+            <a href={href} class="name">{p.name}</a>
+            <span class="small muted">
+              <span>{p.status}</span>
+              <time class="mono" datetime={whenISO(p.when)}>{p.when}</time>
+            </span>
+          </p>
+          <p class="q plain">{p.line}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <!-- one thread -->
+  {thread && (
+    <section class="section wrap picks" aria-labelledby="thread-label">
+      <div class="label-row">
+        <h2 id="thread-label">One thread</h2>
+        <a href="/threads/" class="quiet">All <span class="mono">{THREADS.length}</span> →</a>
+      </div>
+      <div class="pick grid">
+        <p class="meta">
+          <a href={`/threads/#${thread.id}`} class="name">{thread.title}</a>
+          <span class="small muted"><span><span class="mono">{stops.length}</span> stops</span></span>
+        </p>
+        <div class="right">
+          {threadLine && quotePost && (
+            <blockquote class="q" cite={`https://vyas.garden${quotePost.href}`}><p>{threadLine}</p></blockquote>
+          )}
+          <ol class="walk small" role="list" aria-label="The stops, in order">
+            {stops.map((s) => <li>{s}</li>)}
+          </ol>
+        </div>
+      </div>
+    </section>
+  )}
+</Base>
+
+<style>
+  .start { padding-top: 0.5rem; }
+  .hi { display: grid; gap: 0.4rem; margin-top: var(--gap-block); }
+  .hi .line { max-width: 15em; text-wrap: balance; }
+
+  /* a pick: the name on the left (4 of 12), his line on the right (8 of 12) */
+  .list { margin-top: var(--gap-block); display: grid; row-gap: clamp(2.5rem, 4vw, 4rem); }
+  .picks > .pick { margin-top: var(--gap-block); }
+  .pick { align-items: start; }
+  .meta { grid-column: 1 / 5; display: grid; gap: 0.4rem; align-content: start; }
+  .meta .name {
+    font-size: var(--fs-lit);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-decoration-color: var(--hairline-strong);
+    text-wrap: pretty;
+  }
+  .meta .name:hover { text-decoration-color: var(--accent); }
+  .meta .small { display: flex; flex-wrap: wrap; gap: 0 0.75rem; }
+  .meta .mono { font-size: inherit; }
+  .q, .right { grid-column: 5 / 13; }
+  .q p,
+  .q.plain {
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 1.2rem + 1.05vw, 2.2rem);
+    font-weight: 300;
+    line-height: 1.18;
+    font-optical-sizing: auto;
+    text-wrap: pretty;
+    max-width: 24em;
+  }
+  /* his words from a piece hang their quote marks, so the words keep the edge */
+  .q p::before { content: '“'; margin-left: -0.42em; display: inline-block; width: 0.42em; }
+  .q p::after { content: '”'; }
+
+  /* the thread's walk: its stops in order, joined by a short rule */
+  .walk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0;
+    margin-top: 1.5rem;
+    color: var(--ink-muted);
+    max-width: 44em;
+  }
+  /* the arrow ends a stop, so a wrapped line ends on the way to the next */
+  .walk li:not(:last-child)::after { content: '→'; margin-inline: 0.6rem; color: var(--accent); transition: color var(--d-relight) var(--ease-standard); }
+
+  @media (max-width: 719px) {
+    .meta, .q, .right { grid-column: 1 / -1; }
+    .pick { row-gap: 1rem; }
+  }
+</style>

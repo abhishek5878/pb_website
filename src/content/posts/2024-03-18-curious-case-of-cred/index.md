@@ -4,6 +4,7 @@ date: 2024-03-18
 title: "CURIOUS CASE OF CRED"
 subtitle: "A case study to understand CRED and their ads"
 publication: personal
+lane: signal
 canonical: https://abhishekvyas02032001.substack.com/p/curious-case-of-cred
 ---
 

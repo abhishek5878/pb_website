@@ -4,6 +4,7 @@ date: 2025-09-30
 title: "the less I know the better"
 subtitle: "Day-4, lessgooo"
 publication: personal
+lane: night
 canonical: https://abhishekvyas02032001.substack.com/p/the-less-i-know-the-better
 ---
 

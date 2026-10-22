@@ -4,6 +4,7 @@ date: 2025-09-27
 title: "What Reddit Tells Us About the Future of VC Workflow"
 subtitle: "Day-2 of posting daily, more chaotic blogs on it's way"
 publication: personal
+lane: build
 canonical: https://abhishekvyas02032001.substack.com/p/what-reddit-tells-us-about-the-future
 ---
 

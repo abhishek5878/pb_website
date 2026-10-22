@@ -4,6 +4,7 @@ date: 2026-08-21
 title: "40>42, Forty is the answer for everything, not 42"
 subtitle: "An attempt to bring some clarity and sanity for the entire humanity, you’re welcome!!"
 publication: personal
+lane: night
 canonical: https://abhishekvyas02032001.substack.com/p/4042-forty-is-the-answer-for-everything
 ---
 

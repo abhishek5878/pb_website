@@ -2,6 +2,7 @@
 kind: essay
 date: 2026-10-22
 title: Seven minutes
+lane: night
 pull:
   - "Who in my brain is editing this?"
 ---

@@ -4,6 +4,7 @@ date: 2026-03-09
 title: "Perform!!! This is GTM dude!!!"
 subtitle: "Been tinkering or someone might say 'performing' with this for a while"
 publication: personal
+lane: build
 canonical: https://abhishekvyas02032001.substack.com/p/perform-this-is-gtm-dude
 ---
 

@@ -3,6 +3,7 @@ kind: essay
 date: 2025-07-22
 title: "MANDRAKE- VENTURE INTELLIGENCE"
 publication: personal
+lane: build
 canonical: https://abhishekvyas02032001.substack.com/p/mandrake-venture-intelligence
 ---
 

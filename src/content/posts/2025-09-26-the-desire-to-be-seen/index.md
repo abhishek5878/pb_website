@@ -4,6 +4,7 @@ date: 2025-09-26
 title: "the desire to be seen"
 subtitle: "Day 1 of posting daily blogs, Day 124 of writing them secretly"
 publication: personal
+lane: night
 canonical: https://abhishekvyas02032001.substack.com/p/the-desire-to-be-seen
 ---
 

@@ -4,6 +4,7 @@ date: 2024-03-14
 title: "A PIECE OF PLASTIC"
 subtitle: "Swipe, Spend, Save: Decoding the Credit Card Game"
 publication: personal
+lane: signal
 canonical: https://abhishekvyas02032001.substack.com/p/a-piece-of-plastic
 ---
 

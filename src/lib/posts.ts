@@ -9,8 +9,14 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import type { ImageMetadata } from 'astro';
 import writing from '../data/writing.json';
 import films from '../data/films.json';
+import { LANES } from '../content.config';
 
 export type Kind = CollectionEntry<'posts'>['data']['kind'];
+export type Lane = (typeof LANES)[number];
+
+/** The three lanes of /writing/, in the order the filter shows them. */
+export const LANE_LABEL: Record<Lane, string> = { night: 'Night', signal: 'Signal', build: 'Build' };
+export { LANES };
 
 export type Post = {
   id: string;
@@ -33,6 +39,8 @@ export type Post = {
   pull: string[];
   /** Poems: the relight preset an interlude uses (src/styles/light.css). */
   light?: string;
+  /** The lane on /writing/. A WASP Signal issue without one counts as signal. */
+  lane?: Lane;
   source: 'site' | 'substack' | 'letterboxd';
   sourceName?: string;
   href: string;
@@ -84,6 +92,7 @@ export async function getPosts(): Promise<Post[]> {
       tags: d.tags,
       pull: d.pull,
       light: d.light,
+      lane: d.lane ?? (d.publication === 'wasp' ? 'signal' : undefined),
       source: 'site',
       sourceName: d.publication === 'wasp' ? 'WASP Signal' : undefined,
       href: `/writing/${e.id}/`,
@@ -105,6 +114,7 @@ export async function getPosts(): Promise<Post[]> {
         images: [],
         tags: [],
         pull: [],
+        lane: p.sourceName === 'WASP Signal' ? 'signal' : undefined,
         source: 'substack',
         sourceName: p.sourceName,
         href: p.url,
@@ -160,6 +170,18 @@ export function firstLine(p: Post): string {
   return t;
 }
 
+/** Text as it reads: markdown emphasis and escapes gone, whitespace collapsed. */
+const flat = (s: string) => s.replace(/[*_\\]/g, '').replace(/\s+/g, ' ').trim();
+/**
+ * True when `line` is in the post word for word (its title, subtitle, body or pull
+ * lines; a leading or trailing "…" marks a trim). Pages that quote a post check
+ * this at build time and fall back to the post's own first line if he edits it.
+ */
+export function inPost(p: Post, line: string): boolean {
+  const source = flat([p.title, p.subtitle, p.raw?.body ?? '', ...p.pull].filter(Boolean).join('\n'));
+  return source.includes(flat(line.replace(/^…|…$/g, '')));
+}
+
 /** What a post is called when it has no title. */
 export function label(p: Post): string {
   if (p.title) return p.title;
@@ -171,4 +193,6 @@ export function label(p: Post): string {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const fmtDate = (d: Date) => `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 export const fmtMonth = (d: Date) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+/** "22 Oct": a date under a year heading. */
+export const fmtDay = (d: Date) => `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
 export const iso = (d: Date) => d.toISOString().slice(0, 10);

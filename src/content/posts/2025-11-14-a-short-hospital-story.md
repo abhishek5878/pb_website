@@ -2,6 +2,7 @@
 kind: poem
 date: 2025-11-14
 title: A short hospital story
+lane: night
 canonical: https://abhishekvyas02032001.substack.com/p/a-short-hospital-story
 light: hospital
 pull:

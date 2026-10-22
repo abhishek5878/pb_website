@@ -4,6 +4,7 @@ date: 2025-09-28
 title: "backside of your favourite notebook"
 subtitle: "Day-3, Big things often start as scribbles"
 publication: personal
+lane: night
 canonical: https://abhishekvyas02032001.substack.com/p/backside-of-your-favourite-notebook
 ---
 

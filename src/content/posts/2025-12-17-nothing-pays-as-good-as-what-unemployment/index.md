@@ -4,6 +4,7 @@ date: 2025-12-17
 title: "Nothing pays as good as what unemployment feels"
 subtitle: "oofff"
 publication: personal
+lane: night
 canonical: https://abhishekvyas02032001.substack.com/p/nothing-pays-as-good-as-what-unemployment
 ---
 

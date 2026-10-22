@@ -21,6 +21,16 @@ export const KINDS = [
   'build', // a project update
 ] as const;
 
+/**
+ * Writing's three lanes (the external review, docs/design/feedback-external-1.md, adopted 23 Oct 2026).
+ * Optional; /writing/ filters by them. src/lib/tend/shapes.ts keeps the same list.
+ */
+export const LANES = [
+  'night', // personal: his inner life, poems
+  'signal', // venture notes: the WASP Signal issues, reading markets and founders
+  'build', // things he built
+] as const;
+
 const examples = process.env.SITE_EXAMPLES === '1';
 
 const posts = defineCollection({
@@ -45,6 +55,8 @@ const posts = defineCollection({
       subtitle: z.string().optional(),
       /** For posts brought over from Substack: which one. WASP Signal posts take the venture-notes voice. */
       publication: z.enum(['personal', 'wasp']).optional(),
+      /** Which lane of /writing/ it runs in: night, signal or build. A WASP Signal issue without one counts as signal. */
+      lane: z.enum(LANES).optional(),
       /** The thing being reviewed or listened to, and who made it. */
       subject: z.string().optional(),
       by: z.string().optional(),

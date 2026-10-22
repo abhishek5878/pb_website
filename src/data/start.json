@@ -1,0 +1,12 @@
+{
+  "posts": [
+    "2025-11-14-a-short-hospital-story",
+    "2026-10-22-seven-minutes",
+    {
+      "id": "2025-12-17-nothing-pays-as-good-as-what-unemployment",
+      "line": "Even if this startup fails, I want to end up with a life where I’m excited to sleep just so I can wake up again."
+    }
+  ],
+  "projects": ["priya", "kairos", "signal-spark"],
+  "thread": "seen"
+}

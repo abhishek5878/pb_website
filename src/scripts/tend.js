@@ -121,6 +121,13 @@ const KIND_LABEL = { film: 'Films', show: 'Shows', music: 'Music', book: 'Books'
 const STATUSES = ['live', 'in use', 'building', 'paused', 'stopped', 'shipped'];
 const WRITE_KINDS = ['note', 'essay', 'poem', 'book', 'film', 'listening'];
 const ALL_KINDS = ['note', 'essay', 'poem', 'book', 'film', 'listening', 'trip', 'photo', 'link', 'video', 'mix', 'build'];
+/* The lanes of /writing/ (src/content.config.ts LANES): none, or one of the three. */
+const LANES = [
+  { value: '', label: 'none' },
+  { value: 'night', label: 'night' },
+  { value: 'signal', label: 'signal' },
+  { value: 'build', label: 'build' },
+];
 const REVIEW = new Set(['book', 'film', 'listening']);
 const PHOTO = new Set(['trip', 'photo']);
 
@@ -514,6 +521,8 @@ function postForm({ kinds, initial = {}, photos = false, draftKey }) {
   const draft = h('input', { type: 'checkbox', checked: f.draft === true });
   const light = lightPicker(v('light'));
   relight(v('light'));
+  /* which lane of /writing/ it runs in; a WASP issue with none still counts as signal */
+  const lane = pills('lane', LANES, LANES.some((l) => l.value === f.lane) ? f.lane : '', () => {});
 
   const titleField = field('Title', title);
   const subtitleField = field('Subtitle', subtitle, { optional: true });
@@ -555,6 +564,7 @@ function postForm({ kinds, initial = {}, photos = false, draftKey }) {
     subtitleField,
     placeField,
     field('Date', date),
+    field('Lane', lane, { optional: true }),
     reviewFields,
     field('Words', body),
     roll && field('Photos', roll.el),
@@ -594,6 +604,7 @@ function postForm({ kinds, initial = {}, photos = false, draftKey }) {
     fields.pull = pull.value.split('\n').map((s) => s.trim()).filter(Boolean);
     fields.tags = tags.value.split(',').map((s) => s.trim()).filter(Boolean);
     fields.light = light.value() || undefined;
+    fields.lane = lane.value() || undefined;
     fields.draft = draft.checked;
     return { fields, body: body.value };
   }

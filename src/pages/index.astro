@@ -13,6 +13,8 @@ import { me, links, projects, ask } from '../data/me';
 import { works } from '../data/taste';
 import { getWriting, firstLine, fmtDate, iso } from '../lib/posts';
 import { workEntries, pagePath } from './work/_work';
+import { THREADS } from '../data/threads';
+import start from '../data/start.json';
 
 const writing = await getWriting();
 /** The address only ever appears assembled by JS (Base), so scrapers reading the HTML miss it. */
@@ -29,6 +31,21 @@ const entries = await workEntries();
 const workHref = (p: (typeof projects)[number]) => (entries.has(p.slug) ? pagePath(p.slug) : (p.href ?? `/work/#${p.slug}`));
 
 const img = me.epigraph.image;
+
+/* Explore: the ways in. Counts are computed; the words are UI words. */
+const nWord = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const startCount = [
+  nWord(start.posts.length, 'post', 'posts'),
+  nWord(start.projects.length, 'project', 'projects'),
+  nWord(start.thread ? 1 : 0, 'thread', 'threads'),
+].join(', ');
+const doors: { label: string; href: string; n?: number; note?: string; rel?: string }[] = [
+  { label: 'Work', href: '/work/', n: projects.length },
+  { label: 'Threads', href: '/threads/', n: THREADS.length },
+  { label: 'Taste', href: '/taste/', n: works.length },
+  { label: 'Writing', href: '/writing/', n: writing.length },
+  { label: 'Newsletter', href: links.substack, note: 'on Substack', rel: 'me' },
+];
 ---
 
 <Base>
@@ -53,6 +70,37 @@ const img = me.epigraph.image;
       <p class="l2">{me.epigraph.lines[1]}</p>
     </blockquote>
     <Strip class="hero-strip" />
+  </section>
+
+  <!-- 1b. Hello, and the ways in (after invertedpassion.com's "Welcome, friend" and its Explore box):
+       his line on the left; on the right, Start here, then five doors, each a UI word and a count -->
+  <section class="section wrap hello" aria-labelledby="hello-label">
+    <div class="label-row">
+      <h2 id="hello-label">Hello</h2>
+    </div>
+    <div class="grid hello-row">
+      <p class="hi">
+        <span class="title name">{me.home.hello}</span>
+        <span class="title-lit line">{me.home.line}</span>
+      </p>
+      <nav class="explore" aria-labelledby="explore-label">
+        <p class="small muted" id="explore-label">Explore</p>
+        <a href="/start/" class="start quiet">
+          <span class="t">Start here</span>
+          <span class="small muted">{startCount}</span>
+        </a>
+        <ul role="list">
+          {doors.map((d) => (
+            <li>
+              <a href={d.href} class="quiet" rel={d.rel}>
+                <span class="t">{d.label}</span>
+                {d.n != null ? <span class="n mono">{d.n}</span> : <span class="n small">{d.note}</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
   </section>
 
   <!-- 2. Taste: the line and the moon -->
@@ -300,6 +348,26 @@ const img = me.epigraph.image;
   }
   @media (min-width: 720px) and (max-width: 1023px) {
     .epigraph { font-size: 2.5rem; }
+  }
+
+  /* 1b. hello: his line left, the ways in right, as a contents page: name left, count right */
+  .hello-row { margin-top: var(--gap-block); row-gap: var(--gap-block); align-items: start; }
+  .hi { grid-column: 1 / 7; display: grid; gap: 0.4rem; }
+  .hi .line { max-width: 15em; text-wrap: balance; }
+  .explore { grid-column: 8 / 13; }
+  .explore a.quiet:hover { text-decoration: none; }
+  .explore a { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .explore a:hover .t,
+  .explore a:focus-visible .t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+  .explore .start { margin-top: 0.75rem; padding-bottom: 0.9rem; }
+  .explore .start .t { font-size: var(--fs-title); font-weight: 600; letter-spacing: -0.015em; line-height: 1.1; }
+  .explore .start .t::after { content: ' →'; color: var(--accent); transition: color var(--d-relight) var(--ease-standard); }
+  .explore li a { padding-block: 0.35rem; }
+  .explore li .t { font-size: var(--fs-lit); font-weight: 500; }
+  .explore .n { color: var(--ink-muted); flex: none; }
+  @media (max-width: 719px) {
+    .hi, .explore { grid-column: 1 / -1; }
+    .hello-row { margin-top: 2rem; row-gap: 3rem; }
   }
 
   /* 2. taste: the line left, the moon right */

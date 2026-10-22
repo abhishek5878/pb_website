@@ -9,6 +9,8 @@ import yaml from 'js-yaml';
 
 /** The same list as src/content.config.ts. Kept in step by hand; the build enforces it. */
 export const KINDS = ['note', 'essay', 'poem', 'link', 'book', 'film', 'listening', 'mix', 'photo', 'video', 'trip', 'build'] as const;
+/** The same list as LANES in src/content.config.ts: the three lanes of /writing/. */
+export const LANES = ['night', 'signal', 'build'] as const;
 
 const line = (max: number) => z.string().max(max);
 /* http(s) only (review L2): no javascript:, data:, file: */
@@ -34,6 +36,7 @@ export const Fields = z
     /** The line under the title (Substack's subtitle); `publication` says which Substack. Imported posts carry both. */
     subtitle: line(500).optional(),
     publication: z.enum(['personal', 'wasp']).optional(),
+    lane: z.enum(LANES).optional(),
     subject: line(200).optional(),
     by: line(200).optional(),
     year: z.number().int().min(1800).max(2100).optional(),
@@ -71,7 +74,7 @@ export function compact<T extends Record<string, unknown>>(o: T): T {
   return out as T;
 }
 
-const ORDER: (keyof Fields)[] = ['kind', 'date', 'title', 'subtitle', 'publication', 'subject', 'by', 'year', 'rating', 'place', 'images', 'youtube', 'audio', 'link', 'canonical', 'tags', 'pull', 'light', 'draft'];
+const ORDER: (keyof Fields)[] = ['kind', 'date', 'title', 'subtitle', 'publication', 'lane', 'subject', 'by', 'year', 'rating', 'place', 'images', 'youtube', 'audio', 'link', 'canonical', 'tags', 'pull', 'light', 'draft'];
 
 /**
  * The whole file: generated frontmatter, then his body, one trailing newline.

@@ -4,6 +4,7 @@ date: 2026-03-14
 title: "Young Builders Signal"
 subtitle: "Four Operators Under the Radar (or maybe not)"
 publication: wasp
+lane: signal
 canonical: https://waspsignal.substack.com/p/young-builders-signal
 ---
 

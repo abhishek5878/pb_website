@@ -1,54 +1,44 @@
 ---
 /**
- * Writing: the index, read as a reading room, not a table.
+ * Writing: the index. Its job is scanning (after invertedpassion.com's
+ * "All essays and posts": years to jump to, every title, small tags).
  *
- * The one idea: one typeface per voice (House of Leaves, from his shelf).
- * His life is set in Newsreader; the venture notes (WASP Signal) in Switzer,
- * pushed to the right like margin notes. One river, by date, no tabs.
- * Older pieces fade toward old paper, so time reads as colour.
- * Every line here is his: first lines verbatim (a WASP issue's subtitle), titles, dates.
+ * Top to bottom: his answer to what the writing is about (the long setup, then
+ * the turn); Recent, the five newest, numbered; then every post by year, with
+ * the years to jump to and the three lanes to filter by.
+ *
+ * The lanes (night, signal, build) are a post's `lane`. Each is a plain link
+ * to #night, #signal or #build, and the filter is CSS (:target), so it works
+ * with JavaScript off; with it, the links say which is current and a year link
+ * scrolls without dropping the lane.
+ *
+ * Every line here is his: titles, dates, and his Q33 answer. The rest is UI words.
  */
 import Base from '../../layouts/Base.astro';
-import { Image } from 'astro:assets';
-import type { ImageMetadata } from 'astro';
 import { me, links } from '../../data/me';
-import { getWriting, firstLine, label, fmtDate, iso, type Post } from '../../lib/posts';
-import { isWasp } from '../../lib/og/post';
+import { getWriting, label, fmtDate, fmtDay, iso, LANES, LANE_LABEL, type Post } from '../../lib/posts';
 
 const pieces = await getWriting();
-
-/** The preview line: his first line, except a WASP Signal issue, whose subtitle is the line
-    that differs (every issue opens on the same template sentence). */
-const preview = (p: Post) => (isWasp(p) && p.subtitle ? p.subtitle : firstLine(p));
-
-/** A post with photos and no first line shows its first photo, small, with the title. */
-const thumbOf = (p: Post): ImageMetadata | undefined => {
-  if (preview(p)) return undefined;
-  const img = p.images.find((i) => typeof i.src !== 'string');
-  return img ? (img.src as ImageMetadata) : undefined;
-};
+const recent = pieces.slice(0, 5);
 
 /* Q33: what the writing is about. The long setup, then the turn. */
 const { setup, punch } = me.writesAbout;
 
-/* time as colour: 100% ink for the newest, old paper for the oldest */
-const newest = pieces[0]?.date.getTime() ?? 0;
-const oldest = pieces[pieces.length - 1]?.date.getTime() ?? 0;
-const span = Math.max(1, newest - oldest);
-const inkPct = (p: Post) => Math.round((1 - (newest - p.date.getTime()) / span) * 100);
+/** The lanes with something in them, and how many. */
+const lanes = LANES.map((id) => ({ id, label: LANE_LABEL[id], n: pieces.filter((p) => p.lane === id).length })).filter((l) => l.n > 0);
 
-/* two voices: his life (site + personal Substack) and the venture notes (WASP Signal) */
-const voice = (p: Post) => (p.sourceName === 'WASP Signal' ? 'note' : 'life');
-const where = (p: Post) => (p.sourceName === 'WASP Signal' ? 'on WASP Signal' : 'on Substack');
+/** Small tags after a title: its lane, its kind when it isn't an essay, and his own tags. */
+const tagsOf = (p: Post) => [...new Set([p.lane, p.kind !== 'essay' ? p.kind : undefined, ...p.tags].filter(Boolean))] as string[];
 
-/* grouped by year, newest first, in order */
-const years: [number, Post[]][] = [];
+/* grouped by year, newest first, in order; each year knows its lanes so a filter can hide it */
+const years: { year: number; items: Post[]; lanes: string }[] = [];
 for (const p of pieces) {
   const y = p.date.getUTCFullYear();
   const last = years[years.length - 1];
-  if (last && last[0] === y) last[1].push(p);
-  else years.push([y, [p]]);
+  if (last && last.year === y) last.items.push(p);
+  else years.push({ year: y, items: [p], lanes: '' });
 }
+for (const y of years) y.lanes = [...new Set(y.items.map((p) => p.lane).filter(Boolean))].join(' ');
 ---
 
 <Base title="Writing" description={`${setup} ${punch}`}>
@@ -65,41 +55,94 @@ for (const p of pieces) {
     <p class="setup muted">{setup}</p>
     <p class="punch display">{punch}</p>
 
-    <div class="river">
-      {years.map(([year, items]) => (
-        <section class="year" aria-label={String(year)}>
-          <p class="year-label"><time class="mono" datetime={String(year)}>{year}</time></p>
-          <ol class="pieces" role="list">
-            {items.map((p) => (
-              <li class:list={['piece', voice(p)]} style={`--ink-age: ${inkPct(p)}%`}>
-                {thumbOf(p) ? (
-                  <a href={p.href} class="quiet photo-line">
-                    <Image src={thumbOf(p)!} alt="" width={320} densities={[1, 2]} loading="lazy" decoding="async" />
-                    <p class="line">{label(p)}</p>
-                  </a>
-                ) : (
-                  <a href={p.href} class="quiet" rel={p.external ? 'external' : undefined}>
-                    <p class="line">{preview(p)}</p>
-                  </a>
-                )}
-                <p class="small label">
-                  <span class="t">{label(p)}</span>
-                  <time class="mono" datetime={iso(p.date)}>{fmtDate(p.date)}</time>
-                  {p.external && <span class="src">{where(p)}</span>}
+    <!-- Recent: the five newest, numbered -->
+    <section class="recent" aria-labelledby="recent-label">
+      <h2 id="recent-label" class="sub">Recent</h2>
+      <ol class="recent-list" role="list">
+        {recent.map((p, i) => (
+          <li>
+            <span class="i mono" aria-hidden="true">{i + 1}</span>
+            <p class="what">
+              <a href={p.href} class="t" rel={p.external ? 'external' : undefined}>{label(p)}</a>
+              <span class="meta">
+                <time class="mono" datetime={iso(p.date)}>{fmtDate(p.date)}</time>
+                {p.lane && <span class="tags mono">({p.lane})</span>}
+              </span>
+            </p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- Everything, by year. The lane targets come first: #night etc. filter the list below by CSS. -->
+    <section class="all" id="all" aria-labelledby="all-label">
+      {lanes.map((l) => <span class="tgt" id={l.id}></span>)}
+      <div class="label-row">
+        <h2 id="all-label">All posts</h2>
+        <a href="/rss.xml" class="quiet">rss</a>
+      </div>
+
+      <nav class="lanes" aria-label="Lanes">
+        <a href="#all" data-lane="all">All <span class="n mono">{pieces.length}</span></a>
+        {lanes.map((l) => (
+          <a href={`#${l.id}`} data-lane={l.id}>{l.label} <span class="n mono">{l.n}</span></a>
+        ))}
+      </nav>
+
+      <nav class="years" aria-label="Years">
+        {years.map((y) => (
+          <a href={`#y${y.year}`} class="mono" data-lanes={y.lanes}>{y.year}</a>
+        ))}
+      </nav>
+
+      {years.map((y) => (
+        <section class="year" id={`y${y.year}`} data-lanes={y.lanes} aria-labelledby={`y${y.year}-h`}>
+          <h3 class="year-label mono" id={`y${y.year}-h`}>{y.year}</h3>
+          <ol class="entries" role="list">
+            {y.items.map((p) => (
+              <li class="entry" data-lane={p.lane}>
+                <time class="d mono" datetime={iso(p.date)}>{fmtDay(p.date)}</time>
+                <p class="what">
+                  <a href={p.href} class="t" rel={p.external ? 'external' : undefined}>{label(p)}</a>
+                  {tagsOf(p).length > 0 && <span class="tags mono">({tagsOf(p).join(', ')})</span>}
                 </p>
               </li>
             ))}
           </ol>
         </section>
       ))}
-    </div>
+    </section>
   </section>
 </Base>
+
+<script>
+  /* The filter itself is CSS (:target). Here: say which lane is current, and let a
+     year link scroll to its year without changing the hash, so the lane stays. */
+  const laneLinks = [...document.querySelectorAll<HTMLAnchorElement>('.lanes a')];
+  const known = new Set(laneLinks.map((a) => a.dataset.lane));
+  function mark() {
+    const h = decodeURIComponent(location.hash.slice(1));
+    const cur = known.has(h) ? h : 'all';
+    for (const a of laneLinks) {
+      if (a.dataset.lane === cur) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    }
+  }
+  addEventListener('hashchange', mark);
+  mark();
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('.years a')) {
+    a.addEventListener('click', (e) => {
+      const target = document.getElementById(a.getAttribute('href')!.slice(1));
+      if (!target || !known.has(decodeURIComponent(location.hash.slice(1)))) return;
+      e.preventDefault();
+      target.scrollIntoView();
+    });
+  }
+</script>
 
 <style>
   /* centred on the reading room's axis (docs/design/reading.md): one place, two pages */
   .index { padding-top: 0.5rem; max-width: 880px; }
-  .label-row h1 { font: 500 var(--fs-small) / 1.45 var(--sans); }
   .elsewhere { display: flex; gap: 1.25rem; color: var(--ink-muted); }
   .elsewhere a:hover { color: var(--ink); }
 
@@ -114,72 +157,99 @@ for (const p of pieces) {
     margin-left: -0.04em;
   }
 
-  /* the river: years as the only apparatus, one hairline each */
-  .river { margin-top: var(--gap-section); }
-  .year + .year { margin-top: var(--gap-section); }
+  /* titles: ink, a hairline underline that fills on hover */
+  .t {
+    text-decoration-color: var(--hairline);
+    text-underline-offset: 0.18em;
+  }
+  .t:hover { text-decoration-color: currentColor; }
+  .tags { color: var(--ink-muted); white-space: nowrap; }
+
+  /* Recent: five, numbered, a size up from the index */
+  .recent { margin-top: var(--gap-block); }
+  .sub { font: 500 var(--fs-small) / 1.45 var(--sans); color: var(--ink-muted); }
+  .recent-list { margin-top: 1rem; display: grid; gap: 1.1rem; }
+  .recent-list li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); align-items: baseline; }
+  .recent-list .i { color: var(--ink-muted); }
+  .recent-list .t {
+    font-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.9rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    text-wrap: pretty;
+  }
+  .recent-list .meta { display: flex; flex-wrap: wrap; gap: 0 0.75rem; margin-top: 0.3rem; color: var(--ink-muted); }
+  .recent-list .meta time { color: var(--ink-muted); }
+  .recent-list .what { display: grid; }
+
+  /* All posts: the lanes, the years, then every title */
+  .all { position: relative; margin-top: var(--gap-section); }
+  .tgt { position: absolute; top: 0; scroll-margin-top: 1rem; }
+  .lanes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+    margin-top: 1.5rem;
+    font-size: var(--fs-small);
+    font-weight: 500;
+  }
+  .lanes a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    text-underline-offset: 0.3em;
+    transition: color var(--d-hover) var(--ease-hover);
+  }
+  .lanes a:hover { color: var(--ink); }
+  .lanes .n { font-weight: 400; }
+  .years {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+    margin-top: 0.9rem;
+  }
+  .years a { color: var(--ink-muted); text-decoration-color: var(--hairline); }
+  .years a:hover { color: var(--ink); text-decoration-color: currentColor; }
+
+  .year { margin-top: var(--gap-block); scroll-margin-top: 1.5rem; }
+  .years + .year { margin-top: 2.5rem; }
   .year-label {
     padding-top: 0.75rem;
     border-top: 1px solid var(--hairline);
     color: var(--ink-muted);
-  }
-  .pieces {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gutter);
-    row-gap: var(--gap-block);
-    margin-top: var(--gap-block);
-  }
-
-  /* one typeface per voice; the notes sit right, like marginalia */
-  .piece { --old: oklch(0.68 0.025 60); }
-  /* inside the 880 column: his life takes ten of twelve, the notes keep a two-column right offset */
-  .piece.life { grid-column: 1 / 11; }
-  .piece.note { grid-column: 3 / 13; }
-  .line {
-    font-size: var(--fs-title);
-    color: color-mix(in oklab, var(--ink) var(--ink-age), var(--old));
-    text-wrap: pretty;
-  }
-  .life .line {
-    font-family: var(--serif);
-    font-weight: 300;
-    line-height: 1.2;
-    font-optical-sizing: auto;
-    hanging-punctuation: first;
-    max-width: 24em;
-  }
-  .note .line {
-    font-family: var(--sans);
     font-weight: 400;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    max-width: 20em;
   }
-  /* a roll with no words: the first photo, small, beside the title */
-  .photo-line { display: flex; gap: 1.25rem; align-items: flex-start; }
-  .photo-line img { width: 120px; height: auto; flex: none; background: var(--bg-raised); }
-  @media (min-width: 720px) { .photo-line img { width: 160px; } }
-  .piece a.quiet:hover { text-decoration: none; }
-  .piece a.quiet:hover .line {
+  .entries { margin-top: 1.25rem; display: grid; gap: 0.7rem; }
+  .entry {
+    display: grid;
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+    align-items: baseline;
+  }
+  .entry .d { color: var(--ink-muted); }
+  .entry .what { line-height: 1.35; text-wrap: pretty; }
+  .entry .t { font-size: var(--fs-lit); font-weight: 500; letter-spacing: -0.005em; margin-right: 0.5rem; }
+
+  /* the lane filter, by CSS: the current link, then everything not in the lane goes */
+  .lanes a[aria-current],
+  .all:not(:has(.tgt:target)) .lanes a[data-lane='all'],
+  .all:has(#night:target) .lanes a[data-lane='night'],
+  .all:has(#signal:target) .lanes a[data-lane='signal'],
+  .all:has(#build:target) .lanes a[data-lane='build'] {
+    color: var(--ink);
     text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.12em;
-    text-decoration-color: var(--hairline-strong);
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: var(--accent);
   }
-  .piece .label {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
-    margin-top: 0.875rem;
-    color: var(--ink-muted);
+  .all:has(#night:target) :is(.entry:not([data-lane='night']), .year:not([data-lanes~='night']), .years a:not([data-lanes~='night'])),
+  .all:has(#signal:target) :is(.entry:not([data-lane='signal']), .year:not([data-lanes~='signal']), .years a:not([data-lanes~='signal'])),
+  .all:has(#build:target) :is(.entry:not([data-lane='build']), .year:not([data-lanes~='build']), .years a:not([data-lanes~='build'])) {
+    display: none;
   }
-  .piece .t { font-weight: 500; }
-  .piece .mono { flex: none; }
 
   @media (max-width: 719px) {
-    .piece.life { grid-column: 1 / -1; }
-    .piece.note { grid-column: 1 / -1; padding-left: 2.5rem; }
-    .river { margin-top: clamp(4rem, 12vw, 6rem); }
-    .year + .year { margin-top: clamp(4rem, 12vw, 6rem); }
+    .recent-list li { grid-template-columns: 1.75rem minmax(0, 1fr); }
+    .entry { grid-template-columns: 3.4rem minmax(0, 1fr); }
+    .entries { gap: 0.85rem; }
+    .entry .d { font-size: 0.75rem; }
   }
 </style>

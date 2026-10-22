@@ -34,6 +34,17 @@ export const me = {
       alt: 'Michael Scott in The Office, sitting under a whiteboard that reads: “You miss 100% of the shots you don’t take. – Wayne Gretzky” – Michael Scott',
     },
   },
+  /**
+   * The hello, on the homepage (under the hero) and /start/. "I’m Abhishek.", then his
+   * words from his first brief for this site (his first message, 22 Oct 2026):
+   * "This will be my second place to jot down everything." `line` is that sentence
+   * trimmed to the phrase; `verbatim` keeps it whole.
+   */
+  home: {
+    hello: 'I’m Abhishek.',
+    line: 'My second place to jot down everything.',
+    verbatim: 'This will be my second place to jot down everything.',
+  },
   /** Q9, the end of his answer. */
   interests: 'Art, music, AI, tech, brain rot, anything.',
   feral: 'It is a curious curiosity filled feral existence which I have been living.',

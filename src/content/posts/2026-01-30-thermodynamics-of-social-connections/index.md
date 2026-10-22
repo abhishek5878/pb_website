@@ -4,6 +4,7 @@ date: 2026-01-30
 title: "Thermodynamics of Social Connections"
 subtitle: "After a 3 hour discussion with a cool af founder building a social network, blog is a must!"
 publication: personal
+lane: night
 canonical: https://abhishekvyas02032001.substack.com/p/thermodynamics-of-social-connections
 ---
 

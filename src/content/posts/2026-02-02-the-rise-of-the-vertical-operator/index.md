@@ -4,6 +4,7 @@ date: 2026-02-02
 title: "The Rise of the Vertical Operator"
 subtitle: "Forget the Model - Follow the Execution"
 publication: wasp
+lane: signal
 canonical: https://waspsignal.substack.com/p/the-rise-of-the-vertical-operator
 ---
 

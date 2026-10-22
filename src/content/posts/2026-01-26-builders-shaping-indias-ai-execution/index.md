@@ -4,6 +4,7 @@ date: 2026-01-26
 title: "Builders Shaping India’s AI Execution Layer"
 subtitle: "What Our Agents Flagged This Week in India’s AI Builder Graph"
 publication: wasp
+lane: signal
 canonical: https://waspsignal.substack.com/p/builders-shaping-indias-ai-execution
 ---
 

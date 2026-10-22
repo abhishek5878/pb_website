@@ -4,6 +4,7 @@ date: 2026-02-24
 title: "From Inflection to Ignition"
 subtitle: "Hyper-growth Alumni Turning Founder"
 publication: wasp
+lane: signal
 canonical: https://waspsignal.substack.com/p/from-inflection-to-ignition
 ---
 
