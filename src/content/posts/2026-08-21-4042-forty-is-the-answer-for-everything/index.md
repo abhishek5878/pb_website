@@ -22,14 +22,14 @@ Post World War II, radio had expanded so much in numbers in early 1950s America 
 
 
 
-here comes our hero, ‘Todd Storz’(Omaha, Nebraska), he saw a strategy that people kept playing same few songs on the jukebox, they also used the list option in the jukebox to play those 40 songs, I repeat 40 songs( few more of these jukebox stories have grown in the retelling and nobody can fully verify it now, but forty is the number that stuck)  
+here comes our hero, ‘Todd Storz’ (Omaha, Nebraska), he saw a strategy that people kept playing same few songs on the jukebox, they also used the list option in the jukebox to play those 40 songs, I repeat 40 songs (few more of these jukebox stories have grown in the retelling and nobody can fully verify it now, but forty is the number that stuck)  
 So Storz and team created the ‘Top-40’ format, on the exploding records, weather and whatnot. Consequently there were big national shows such as 'American Top 40', a syndicated countdown of the 40 highest ranked songs, counted straight off the 'Billboard Hot 100'  
 
 Rock ‘n’ Roll music made the ‘Top 40’ as big as it gets, Elvis Presley was the first rock superstar to help establish the Top-40 as something legit to follow for new upcoming artists and best of the music out there  
 This just created the butterfly effect for the establishment of iconic Top40 radio stations across US, radio jingles, selling of vinyl records, artists craving for more and more Top 40 songs, all of this because jukebox at that time had list of 40 songs  
 Nobody has ever seriously proposed a Top 42 and they shouldn’t  
 
-![](./image-02.jpg)
+![Typed list of rock songs numbered 1 to 40, from Stairway to Heaven by Led Zeppelin to In My Own Way by Marshall Tucker Band](./image-02.jpg)
 
 
 
@@ -38,7 +38,7 @@ Nobody has ever seriously proposed a Top 42 and they shouldn’t
 Do you remember covid times, do you remember the word ‘quarantine’, do you remember how you’d need to get quarantined if you got any symptoms according to a forwarded message from ‘that’ uncle on the whatsapp group  
 
 Actually the word “quarantine” doesn’t mean isolation, it means forty, sorry FORTY!!!!  
-In 1300s, the Great Council of Ragusa ordered that any arrivals from plague affected area to undergo isolation for thirty days, a ‘trentino’. Over the following decades, other port cities and councils extended the period to forty days and the practice became 'quarantena', from \*quaranta giorni\* i.e. forty days. The reasons are lost to history, most probably because the Council members weren't journalling daily, taking ice-baths and nobody bothered to write down why thirty became forty; the leading guess is their own cultural preference for round figures(I, too, start any work at round figures)  
+In 1300s, the Great Council of Ragusa ordered that any arrivals from plague affected area to undergo isolation for thirty days, a ‘trentino’. Over the following decades, other port cities and councils extended the period to forty days and the practice became 'quarantena', from \*quaranta giorni\* i.e. forty days. The reasons are lost to history, most probably because the Council members weren't journalling daily, taking ice-baths and nobody bothered to write down why thirty became forty; the leading guess is their own cultural preference for round figures (I, too, start any work at round figures)  
 
 ![How old were you when you first heard the word "Quarantine" ? 😳🙉 👦](./image-03.jpg)
 
@@ -59,7 +59,7 @@ produce 40 consecutive prime numbers for n=0,1,2,…..39. That 41 sitting inside
 ![Euler's Function, Euler's Equation, Euler's Formula, ... : r/mathmemes](./image-04.jpg)
 
 Forty is the only number in English whose letters appear in alphabetical order, yes you read it correct, THE ONLY NUMBER  
-Let it sink in, try out other numbers to disprove this argument(I did that as well).  
+Let it sink in, try out other numbers to disprove this argument (I did that as well).  
 Now let us try for ‘forty-two’, shame to even try, suck it again 42
 
 –40 °C is identical to –40 °F , the unique point at which the two common temperature scales agree.

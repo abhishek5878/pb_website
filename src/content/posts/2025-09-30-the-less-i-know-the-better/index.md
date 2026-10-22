@@ -12,7 +12,7 @@ Some songs don’t just get stuck in your head, they get stuck in your life.
 
 *The Less I Know, The Better* has always felt like one of those.
 
-![](./image-01.jpg)
+![Album artwork for Tame Impala’s Currents: a silver sphere cutting through swirling purple and black lines](./image-01.jpg)
 
 A true bipolar song, the lyrics make the song sad, the bass makes the song sexy, guitar makes the song nostalgic and beat makes the song happy, it’s PERFECT
 
@@ -26,7 +26,7 @@ And yet, there’s something freeing in pulling back. Not ignorance in the reckl
 
 The song reminds me: knowledge isn’t always power. In Cersei words, “POWER IS POWER”. Sometimes, power is protecting your peace.
 
-![](./image-02.jpg)
+![Two Game of Thrones stills with quotes: Knowledge is power, from Petyr Baelish, and Power is power, from Cersei Lannister](./image-02.jpg)
 
 Maybe that’s the real punchline: life isn’t ruined by what we don’t know, it’s ruined by those 3 a.m. deep dives we absolutely didn’t need.
 

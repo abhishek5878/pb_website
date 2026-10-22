@@ -18,11 +18,11 @@ To delve into the credit card industry of India, I analysed the [RBI’s bank's 
 
 Below is a snapshot of cleaned Credit Card data
 
-![](./image-01.png)
+![Spreadsheet of RBI credit card data by bank for January 2024: bank name, bank type, total cards, and PoS, online and cash transaction volumes and values](./image-01.png)
 
 Some graphs for data peeps:
 
-![](./image-02.png)
+![Pie chart of bank types: private 50%, public 26.5%, foreign 17.6%, small finance 5.9%](./image-02.png)
 
 The Chart shows ***‘Private’ banks being the Top-G***, followed by ‘Public’ banks mainly because of more rewards provided by Private bank, luring more people (umm capitalism)
 
@@ -32,7 +32,7 @@ The Chart shows ***‘Private’ banks being the Top-G***, followed by ‘Public
 ![Percentage wise Market Distribution](./image-04.png)
 <p class="caption">Percentage wise Market Distribution</p>
 
-Both graphs indicate the presence of only a ***few big players*** dominating the industry, mainly because of better and more diverse card choices for a diverse range of users.(More blogs about each of them.)
+Both graphs indicate the presence of only a ***few big players*** dominating the industry, mainly because of better and more diverse card choices for a diverse range of users. (More blogs about each of them.)
 
 ## **2\. FUTURE Trends**
 
@@ -112,7 +112,7 @@ I have started this blog substack for a specific selfish reason: to be better at
 
 So I will be publishing a blog every week. (Sometimes may be good, Sometimes may be shit.) just a humble start like credit cards
 
-![](./image-08.png)
+![Meme of a man speaking at a press conference, captioned: Sometimes maybe good, sometimes maybe shit](./image-08.png)
 
 ### 6\. Sources
 

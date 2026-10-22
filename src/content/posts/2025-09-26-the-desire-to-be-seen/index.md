@@ -12,7 +12,7 @@ Everyone wants to be seen, validated, encouraged, it’s one of the things still
 
 but this desire to be seen has turned the entire game, now to get seen people perform, they perform in front of their managers, their parents, their partners, their colleagues, even sometimes when no one is around because they’ve gotten so much into that character. This performance will be hard to keep up with, life doesn’t move around in 3 acts, life isn’t always rewarding for playing a good character, fyi good characters get killed first lol.
 
-![](./image-01.jpg)
+![Venn diagram meme: younger me thinking I’d finally be loved if I got everything, adult me still tying my worth to my productivity, overlapping at: Would they notice me if I stopped performing?](./image-01.jpg)
 
 I know I’ve yapped in the previous paragraph but I was just building the base to let off some stuff, I think I’ve too performed my entire life, in school for teachers, in sports break for my friends even though I don’t like basketball that much but couldn’t say it out loud, at home for my parents being the sorted kid, in office not proving my point in front of my manager even though he is one of the dumbest people I’ve ever crossed paths with, I think resigning from the job, trying to build this startup was just my brain’s way of saying “Stop performing brother” and you know what over the years I’d gotten worse in performing, side eyes, clear disgust on the face, there were signs of a failing actor and I hope that actor always fails, there’s no need for that actor , the way I’m as a person is dramatic enough for this stupid little world.  
 
@@ -28,4 +28,4 @@ you started behaving/acting in a way by your own choice, fuck other reasons, at 
 fear of being seen or desire of being seen????  
 spoiler alert, in my opinion, both of them are wrong answers, choose yourself, rest fear or desire becomes irrelevant, so enough yapping for the day, back to try to built out this startup.
 
-![](./image-02.jpg)
+![Black-and-white painting of people in evening wear toasting at a bar, under handwritten text repeating: I feel important. Do you feel important? Yes, I feel important.](./image-02.jpg)

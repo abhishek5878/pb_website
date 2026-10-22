@@ -12,7 +12,7 @@ A year of two halves: employed and unemployed.
 Unemployment for the win.  
 (But please send money.)
 
-![](./image-01.jpg)
+![Phone screenshot of a reel captioned: If January me and October me sat down for a debrief I think January me would simply disintegrate and blow away in the wind.](./image-01.jpg)
 
 “Nothing pays as good as unemployment feels.”
 
@@ -23,7 +23,7 @@ Someone asked me recently:
 Why would you willingly put yourself in this uncertainty when 99% of startups fail?  
 On paper, it’s a recipe for failure.
 
-![](./image-02.png)
+![Phone screenshot of a grainy photo of three people around a car on a seaside road, captioned: Get in loser we’re healing and falling in love with life again.](./image-02.png)
 
 What I couldn’t explain then was the frustration of not living up to the vision I have of myself.  
 The pain of knowing you might be the smartest person in the room but still being too afraid to even enter those rooms.
@@ -48,7 +48,7 @@ But, on being real, don’t know how many months are left with this startup expe
 
 <video src="/media/posts/nothing-pays-as-good-as-what-unemployment/video-01.mp4" controls playsinline preload="metadata"></video>
 
-Top Screenshots of 2025, this section is just for me, on that note, even this substack is just for me, entire video of top-150 screenshots below followed by top picks(quite difficult task but we did it)
+Top Screenshots of 2025, this section is just for me, on that note, even this substack is just for me, entire video of top-150 screenshots below followed by top picks (quite difficult task but we did it)
 
 <video src="/media/posts/nothing-pays-as-good-as-what-unemployment/video-02.mp4" controls playsinline preload="metadata"></video>
 
@@ -56,148 +56,148 @@ Top Screenshots of 2025, this section is just for me, on that note, even this su
 
 1. Still funny
 
-   ![](./image-03.jpg)
+   ![White text on black: Your lisp, My lisp, Uncle Chisps](./image-03.jpg)
 
 2. Namma bangalore
 
-   ![](./image-04.png)
+   ![Phone screenshot of an IndiGo boarding pass for a non-stop flight from Jaipur to Bengaluru on 25 August 2025](./image-04.png)
 
 3. I Identify with multiple personalities but theek hai
 
-   ![](./image-05.png)
+   ![Phone screenshot of a 16Personalities result: Architect, INTJ-A, with a Blaise Pascal quote about man as a thinking reed](./image-05.png)
 
 4. Sorry
 
-   ![](./image-06.png)
+   ![Screenshot of a tweet joking that whenever Julius Caesar had an epileptic seizure, people said he was having a caesar](./image-06.png)
 
 5. Soon, some money and I’m out
 
-   ![](./image-07.png)
+   ![Screenshot of a tweet: The longer you spend in tech, the stronger the urge to buy a farm and never touch a computer again in your life](./image-07.png)
 
 6. Got my first term sheet, didn’t take it though but still he took my term sheet virginity
 
-   ![](./image-08.png)
+   ![Screenshot of a chat message from an investor: Let’s build this, promising to share engagement terms and send a Shagun amount once the company is registered](./image-08.png)
 
 7. Pasting this here for future use, rajma chawal and dal chawal for the win because I can cook only these two dishes
 
-   ![](./image-09.png)
+   ![Screenshot of a phone note with a rajma chawal recipe written in Hinglish: ingredients, masalas and steps](./image-09.png)
 
 8. Launch post
 
-   ![](./image-10.png)
+   ![Screenshot of the author’s LinkedIn post launching Mandrake, a tool to spot breakout startups early, with 8,680 impressions](./image-10.png)
 
 9. Okay jaanu
 
-   ![](./image-11.png)
+   ![Screenshot of a reel: a couple in a romantic Hindi film scene, overlaid with yellow Hindi lyric text](./image-11.png)
 
-10. Sad but true(someone take the initiative)
+10. Sad but true (someone take the initiative)
 
-    ![](./image-12.png)
+    ![Screenshot of a text post: Unfortunately, i have no idea how to flirt so i just speak nonsense and hope you think i’m cute and fall in love with me](./image-12.png)
 
 11. I’m nerdy enough to explain
 
-    ![](./image-13.png)
+    ![Screenshot of a subtitled Hindi TV scene: a man in glasses tells a woman, And of you’re not nerdy enough to understand anything, I’ll simply explain to you](./image-13.png)
 
 12. Tumhe dekho naaaaaaa, yeh kya ho gyaaaa
 
-    ![](./image-14.png)
+    ![Screenshot of a YouTube Music recap: top song Tumhi Dekho Naa from Kabhi Alvida Naa Kehna, listened to for 295 minutes](./image-14.png)
 
 13. Most probably
 
-    ![](./image-15.png)
+    ![Screenshot of a reel: a city skyline across water at dusk, with Hindi text reading shayad main hi chutiya hu](./image-15.png)
 
-14. TRUTH and I will never stop it(maybe in control wink wink).
+14. TRUTH and I will never stop it (maybe in control wink wink).
 
-    ![](./image-16.png)
+    ![Screenshot of a reel: people dancing under blue party lights, captioned: I’m proud of my drunk state. Never lost a phone, wallet or keys, just my dignity but that’s normal](./image-16.png)
 
 15. Very Possible
 
-    ![](./image-17.png)
+    ![Screenshot of a meme: a man in a blazer and sunglasses holding a rose and leaning on a gate, captioned: When she introduces me to her dad and I pull out the I didn’t know you had a sister line (I panicked)](./image-17.png)
 
 16. Screenshot direct sent to boys group, Akshat needs to be better
 
-    ![](./image-18.png)
+    ![Screenshot of a WhatsApp chat: after a birthday exchange, a message asks him to call a friend who is not answering and tell him to call back](./image-18.png)
 
 17. Whyyyy but I get it too
 
-    ![](./image-19.png)
+    ![Screenshot of an Instagram DM thread with actor Kiara Advani’s verified account: a story reply saying Hey, I’m chocolate cake, then her wedding post, answered with Aise kaise](./image-19.png)
 
 18. 99.9% doctors agree
 
-    ![](./image-20.jpg)
+    ![Photo of a car’s rear window with a sticker reading CANCER CURES SMOKING](./image-20.jpg)
 
 19. Gurgaon flat was epic and sometimes wayyy too personal, Pranav naughty
 
-    ![](./image-21.png)
+    ![Screenshot of a Splitwise notification: Cream, cucumber, ₹243, you owe ₹60.75](./image-21.png)
 
-20. Right I am(until now, maybe employee soon)
+20. Right I am (until now, maybe employee soon)
 
-    ![](./image-22.png)
+    ![Screenshot of a reel: a business card reading I’m CEO, Bitch, with Mark Zuckerberg’s name and Facebook’s headquarters address](./image-22.png)
 
-21. Completed 4 years as an ordained minister, one day I will use my powers and marry people(I can, I checked), I’ll take ‘advantage’
+21. Completed 4 years as an ordained minister, one day I will use my powers and marry people (I can, I checked), I’ll take ‘advantage’
 
-    ![](./image-23.png)
+    ![Screenshot of an email marking four years since he became an ordained minister, with a Universal Life Church Credentials of Ministry certificate dated March 2021](./image-23.png)
 
 22. Free’d
 
-    ![](./image-24.png)
+    ![Screenshot of a work email confirming his last working day as 12 July 2025](./image-24.png)
 
 23. Lovely Singh goated but koi ‘ koi baat nahi ‘ toh bole
 
-    ![](./image-25.png)
+    ![Screenshot of a reel showing a chat: one side sends Lovely Singh Reporting and a string of nonsense sounds, the other asks why are u like this, then replies koi baat nahi i love u](./image-25.png)
 
-24. Had multiple screenshots of this, will try and call now(lol)
+24. Had multiple screenshots of this, will try and call now (lol)
 
-    ![](./image-26.png)
+    ![Screenshot of a phone keyboard with a blurred message notification above it](./image-26.png)
 
-25. Ofcourse chutiye(please)
+25. Of course chutiye (please)
 
-    ![](./image-27.jpg)
+    ![Screenshot of a LinkedIn message asking if he is fundraising and proposing a virtual call to explore investing](./image-27.jpg)
 
-26. Please try and understand(saith bhi chal sakte)
+26. Please try and understand (saith bhi chal sakte)
 
-    ![](./image-28.png)
+    ![Screenshot of a reel: a man looking down in a dim film scene, captioned: When i meet the right woman and she discovers my akele movie dekhne wali aadat](./image-28.png)
 
 27. Not anymore baby
 
-    ![](./image-29.png)
+    ![Screenshot of a text post: a cutu mastikhor like me was never meant to deal with do kaudi ki naukari ka stress but unfortunately im stuck in it](./image-29.png)
 
 28. Very accurate
 
-    ![](./image-30.png)
+    ![Screenshot of a personality quiz with Very Accurate selected for both I dislike myself and I am perfect](./image-30.png)
 
 29. 6 messages in 3 hours, fielding set
 
-    ![](./image-31.png)
+    ![Screenshot of phone notifications: a string of SMS anti-drug slogans from the NCB, Govt. of India, received within a few hours](./image-31.png)
 
-30. Bordeline genius(no borderline)
+30. Borderline genius (no borderline)
 
-    ![](./image-32.png)
+    ![Screenshot of a Wordle solved in three guesses: AUDIO, STERN, PREEN](./image-32.png)
 
 31. WANTED
 
-    ![](./image-33.jpg)
+    ![Overhead photo of a tiled stairwell with a vodka bottle, two glasses and a cigarette pack, and two hands holding a red book and a cigarette, captioned: date idea?](./image-33.jpg)
 
 32. Soon, will play Bella ciao on my yacht (promised my sister too early)
 
-    ![](./image-34.png)
+    ![Screenshot of a meme: a woman resting her chin on her hand, captioned: How quitting my job, scamming VCs of $7 mil and leaving country looks at me on Monday morning](./image-34.png)
 
 33. More power to this noble initiative
 
-    ![](./image-35.png)
+    ![Screenshot of a tweet: Straight men and lesbian women need to work together to create the kind of bonds gay men and straight women have. We are decades behind.](./image-35.png)
 
 34. Gaand Master
 
-    ![](./image-36.png)
+    ![Screenshot of a chess game review: a win with 92.6 accuracy against 85.4, clinched with an endgame mating tactic](./image-36.png)
 
 35. Self love ftw
 
-    ![](./image-37.png)
+    ![Screenshot of a reel: a man in sunglasses and a white jacket in a Hindi film still, captioned: Happy B’day to me, God bless me, Main jiyu hazaro saal, Meri har manokaamna puri ho](./image-37.png)
 
     Ending this very long post but two of my other picks, these aren’t top picks but the picks which very poetically ends this blog with the same thoughts it started with
 
-    ![](./image-38.png)
+    ![Screenshot of a dark, blurred film scene with a Hindi couplet as subtitles: main zindagi ke kharabe mein kho gaya warna, main apne aap se milta to pyaar kar leta](./image-38.png)
 
-    ![](./image-39.png)
+    ![Screenshot of a ChatGPT reply summarising all the books in the world in one sentence: Life is a fleeting miracle, know yourself, love others, seek truth, create boldly, endure suffering with grace, and leave the world wiser than you found it.](./image-39.png)
 
     That’s all for last blog of 2025, have a more crazier idea for this substack for next year, let’s see

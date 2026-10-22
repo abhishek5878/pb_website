@@ -18,7 +18,7 @@ For years, many of us have treated our professional networks like inventory, cou
 
 But here’s the uncomfortable truth: your relationships aren’t assets you own.
 
-They’re energy fields that are constantly decaying.(I don't even know where the fuck half my school friends ended up)
+They’re energy fields that are constantly decaying. (I don't even know where the fuck half my school friends ended up)
 
 ## The Database Delusion
 
@@ -44,7 +44,7 @@ The most dangerous state in any network isn’t conflict, it’s dormancy mimick
 
 A connection that appears solid on the surface might be silently decaying underneath. Every second of silence represents a microscopic erosion of pull. Leave a relationship unmaintained for too long, and something worse happens: the connection doesn’t just weaken, it creates resistance.
 
-![](./image-01.jpg)
+![Poster titled Be Social Dude: two vintage black-and-white portraits of men whose faces are covered by yellow circles reading social and media](./image-01.jpg)
 
 When you reach out to a high-resistance connection, your request doesn’t just get ignored. It can create a “burn effect,” actually damaging your social capital and credibility within the broader network. Silence isn’t neutral. It’s toxic.
 
@@ -74,7 +74,7 @@ Before you make that ask, send that message, or reach out for that favor, you ne
 
 - Red Zone: High resistance. Maintenance required before asking.
 
-- Social Suicide Zone: Connection effectively dead. Any request will backfire.(been there many times, don’t do this kids)
+- Social Suicide Zone: Connection effectively dead. Any request will backfire. (been there many times, don’t do this kids)
 
 
 The most socially intelligent people aren’t the ones with the biggest networks, they’re the ones who understand exactly where they stand with each person in their orbit.
@@ -104,7 +104,7 @@ Imagine a “HUD” for human interaction, a heads-up display that shows you in 
 
 This isn’t surveillance. It’s awareness. It’s about having the same sensitivity to social dynamics that successful people develop intuitively over decades but accessible to everyone.
 
-![](./image-02.jpg)
+![Mock-up of a Network HUD: connections around YOU colored by zone, from close friend to dead link, with stats for active connections, average response time, network entropy and 2 AM call availability](./image-02.jpg)
 
 ## The Bottom Line
 

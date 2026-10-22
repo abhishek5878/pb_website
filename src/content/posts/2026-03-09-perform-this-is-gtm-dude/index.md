@@ -14,7 +14,7 @@ I had just resigned. I was possessed by that specific, anything is possible ener
 
 “I’m building Mandrake to solve this; scanning GitHub activity, hiring patterns, and community signals... Just launched with 3 angel investors... Curious to try it? Comment ‘BETA’ below.”
 
-![](./image-01.jpg)
+![Screenshot of the author’s LinkedIn post launching Mandrake, about spotting breakout startups before TechCrunch covers them, with 12,116 impressions](./image-01.jpg)
 
 At the time, I thought I was being transparent. I thought I was “building in public.” I was sourcing founders who were doing the same, looking for those “early signals” in the noise.
 
@@ -64,4 +64,4 @@ The moment you catch yourself optimising for applause instead of outcomes, it’
 
 So from here on, I’m out, Comment “Number of fucks for your opinion/post” and I’ll send you 0 as a playbook and answer :))
 
-![](./image-02.jpg)
+![Screenshot of a group chat message asking members to keep performative forwards out of the group because they reduce the signal to noise ratio](./image-02.jpg)

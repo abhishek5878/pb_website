@@ -78,7 +78,7 @@ Reddit paints a picture that rarely shows up in glossy VC interviews:
 
 The invisible struggle of small VCs isn’t just an operational headache; it’s an existential risk. Miss a breakout founder because your Airtable was messy, and your fund math collapses.
 
-![](./image-01.jpg)
+![Spreadsheet of seven ventures with industry, sub-industry, AI company, country and GTM columns, including Datavio, GoldDust Gardening, Heltar, Wasp AI, Khojj, Vibebiv and The Coffee Vault](./image-01.jpg)
 
 That’s exactly why tools like **Wasp** are emerging, it already has two successful investments sourced and tracked through its workflow engine. By codifying founder signals and automating the messy middle of dealflow, it proves that lean teams don’t need to stay overwhelmed; they can actually *out-execute* larger funds with smarter systems.  
 

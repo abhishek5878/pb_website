@@ -46,7 +46,7 @@ LinkedIn: [yash-choudharyiitb](https://www.linkedin.com/in/yash-choudharyiitb/)
 
 Signals Observed
 
-- YC & Floworks Pedigree: Yash cut his teeth as a NLP intern at Floworks (YC W23), building to make agents move from chatting to executing complex tasks as an AI Employee
+- YC & Floworks Pedigree: Yash cut his teeth as an NLP intern at Floworks (YC W23), building to make agents move from chatting to executing complex tasks as an AI Employee
 
 - Vertical Moat (Commodities): Currently a Founder in Stealth, Yash is building the AI Stack for Commodities. He is diving into the $100T+ industry that in his own words “fuels and feeds the world,” tackling complex trade finance and risk management.
 
@@ -66,7 +66,7 @@ Signals Observed
 
 - Founder Proof: Co-founded “Return on Search,” a platform for SERP analysis at scale. He has already proven he can build a product that enterprises value and exit successfully.
 
-- Velocity as a Moat: His profile explicitly benchmarks a MVP within 3 weeks capability. In a market moving this fast, speed is the only defence against model commoditisation.
+- Velocity as a Moat: His profile explicitly benchmarks an MVP within 3 weeks capability. In a market moving this fast, speed is the only defence against model commoditisation.
 
 - Data Intensity: Previous experience as a Senior Data Scientist at Verox AI (New York), building forecasting models for 10,000+ crypto coins in parallel.
 
@@ -75,11 +75,11 @@ Why This Matters
 
 Karan is a “Serial Deployment Engine.” While others are debating model ethics, he is shipping production-ready agents. His background in high-concurrency data is a direct prerequisite for the multi-agent coordination systems we expect to dominate the next 12 months.
 
-![](./image-01.png)
+![Cartoon poster titled The Rise of the Vertical Commuter: animals in office clothes skateboard and fly up a spiral track around a skyscraper, subtitled Because horizontal is too last Tuesday](./image-01.png)
 
 ### Meta-Pattern
 
-This week we moved moved to Deep Verticalization. We are seeing a pivot away from horizontal AI towards builders who are boring into the bedrock of legacy industries.
+This week we moved to Deep Verticalization. We are seeing a pivot away from horizontal AI towards builders who are boring into the bedrock of legacy industries.
 
 The categories showing the strongest early traces:
 

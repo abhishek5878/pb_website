@@ -37,7 +37,7 @@ Operators turning founders. Quietly.
 These are the clearest early signals I’m tracking.  
 All stealth / early.
 
-![](./image-01.jpg)
+![Inc42 infographic titled 28 Startups, 1 Connection: The CRED Mafia, a wheel of startups founded by former CRED employees from 2016 to 2023, around a portrait of a man with arms crossed](./image-01.jpg)
 
 credit - grapevine
 

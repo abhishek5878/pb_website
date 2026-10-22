@@ -20,7 +20,7 @@ Many of us have seen the rare scenes of Rahul Dravid being angry in ads, Neeraj 
 
 CRED was founded by Kunal Shah in 2018, and it has a cute, wholesome backstory. In 2015, Kunal Shah's first startup, Snapdeal, was acquired for 400 million dollars. He travelled, conducted polls, and came across a concept incorporated in developed countries: ***“Behavior Incentivization”***. People trust each other more in financial matters, like at groceries, cashiers, unlike in India, where we trust none when it comes to financial matters, so this is how CRED started.
 
-![](./image-03.png)
+![Screenshot of a December 2022 tweet by Kunal Shah saying tech startups in developing markets have a lot to learn from developed global tech ecosystems](./image-03.png)
 
 CRED transcends the typical bill payment application, incentivizing punctuality with rewards and granting users access to exclusive perks, fundamentally reshaping the perception and implementation of credit card management.
 
@@ -47,11 +47,11 @@ But road to profit looks uphill but credit card industry is evolving and will in
 
 ## 3\. CRED Revenue Model
 
-![](./image-05.png)
+![Diagram of the CRED business model resting on three pillars: customers, app and businesses](./image-05.png)
 
 CRED business model is built on three pillars- Customers-**App**\-Businesses
 
-![](./image-06.png)
+![Diagram of the CRED revenue model with arrows to CRED Store, CRED Coins, CRED Stash, CRED Mint, customer data and payment gateway](./image-06.png)
 
 - CRED Store
 
