@@ -3,6 +3,10 @@
  * matches one of these shapes; anything else, any `..`, absolute path or
  * backslash is refused. Deletes are allowed only for post paths and for the
  * images beside a project's page.
+ *
+ * Three more paths are written by the server, never named by the client:
+ * isRecord (a /now snapshot, log.json; the commit route adds them) and
+ * isArchive (films-archive.json; the nightly cron only).
  */
 const POST_MD = /^src\/content\/posts\/[a-z0-9-]+\.md$/;
 const POST_INDEX = /^src\/content\/posts\/[a-z0-9-]+\/index\.md$/;
@@ -17,6 +21,19 @@ const WORK_INDEX = /^src\/content\/work\/[a-z0-9-]+\/index\.md$/;
 const WORK_IMAGE = /^src\/content\/work\/[a-z0-9-]+\/[a-z0-9-]+\.(jpg|webp)$/;
 /* deletes: png too, since the screenshots already there are PNG. Never the page itself. */
 const WORK_IMAGE_GONE = /^src\/content\/work\/[a-z0-9-]+\/[a-z0-9-]+\.(jpg|webp|png)$/;
+
+/*
+ * The records (docs/design/living.md). Never sent by the client: the commit
+ * route writes a snapshot and a log line itself, from validated fields, and only
+ * the nightly cron (src/pages/api/rebuild.ts) writes the film archive.
+ */
+const NOW_HISTORY = /^src\/data\/now-history\/\d{4}-\d{2}-\d{2}\.json$/;
+export const LOG_PATH = 'src/data/log.json';
+export const NOW_PATH = 'src/data/now.json';
+export const PROJECTS_PATH = 'src/data/projects.json';
+export const HISTORY_DIR = 'src/data/now-history';
+export const ARCHIVE_PATH = 'src/data/films-archive.json';
+export const historyPath = (date: string) => `${HISTORY_DIR}/${date}.json`;
 
 export const MAX_FILES = 40;
 
@@ -35,6 +52,10 @@ export const isData = (p: unknown): p is string => sane(p) && DATA.test(p);
 export const isWorkText = (p: unknown): p is string => sane(p) && WORK_INDEX.test(p);
 export const isWorkImage = (p: unknown): p is string => sane(p) && WORK_IMAGE.test(p);
 export const isAllowed = (p: unknown): p is string => isPostText(p) || isPostImage(p) || isData(p) || isWorkText(p) || isWorkImage(p);
+/** A record a save writes beside now.json or projects.json: a /now snapshot, or the log. Server-side only. */
+export const isRecord = (p: unknown): p is string => sane(p) && (NOW_HISTORY.test(p) || p === LOG_PATH);
+/** The film archive: the cron's one file. */
+export const isArchive = (p: unknown): p is string => sane(p) && p === ARCHIVE_PATH;
 export const isDeletable = (p: unknown): p is string =>
   isPostText(p) || (sane(p) && (POST_IMAGE_GONE.test(p) || WORK_IMAGE_GONE.test(p)));
 
@@ -55,5 +76,6 @@ export function pageFor(path: string): string {
   if (kind === 'posts') return `/writing/${path.endsWith('.md') ? postId(path) : name}/`;
   if (path.endsWith('taste.json')) return '/taste/';
   if (path.endsWith('projects.json')) return '/work/';
+  if (path.endsWith('now.json')) return '/now/';
   return '/';
 }

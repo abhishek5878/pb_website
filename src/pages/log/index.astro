@@ -1,0 +1,200 @@
+---
+/**
+ * Log: one dated stream of everything that changed (after winnielim.org/changelog;
+ * docs/design/living.md). His writing, the films he logged, /now's updates and
+ * what /tend changed in the work, newest first, by month. Plain and fast.
+ *
+ * The stream is src/lib/log.ts. The kinds filter like /writing/'s lanes: plain
+ * links to #writing, #work, #now and #films, and CSS (:target) does the rest,
+ * so it works with JavaScript off.
+ *
+ * Words: his line from his first brief, split as /writing/ splits his (the long
+ * setup, then the turn); titles, names and statuses; the rest is UI words.
+ */
+import Base from '../../layouts/Base.astro';
+import { me } from '../../data/me';
+import { fmtMonth, iso } from '../../lib/posts';
+import { getLog, KINDS, KIND_LABEL, ratingText, type Line, type LineKind } from '../../lib/log';
+
+const lines = await getLog();
+
+/* "This will be my second place to jot down everything." The setup, then the turn. */
+const [setup, punch] = (() => {
+  const v = me.home.verbatim;
+  const at = v.indexOf('jot down');
+  return at > 0 ? [v.slice(0, at).trim(), v.slice(at)] : ['', v];
+})();
+
+/** The filter's ids: a kind's own name, films plural as the link says it. */
+const ID: Record<LineKind, string> = { writing: 'writing', work: 'work', now: 'now', film: 'films' };
+const FILTER_LABEL: Record<LineKind, string> = { writing: 'Writing', work: 'Work', now: 'Now', film: 'Films' };
+const kinds = KINDS.map((k) => ({ k, id: ID[k], label: FILTER_LABEL[k], n: lines.filter((l) => l.kind === k).length })).filter((k) => k.n > 0);
+
+/* by month, newest first; each month knows its kinds so a filter can hide it */
+const months: { key: string; label: string; items: Line[]; kinds: string }[] = [];
+for (const l of lines) {
+  const key = l.day.slice(0, 7);
+  const last = months[months.length - 1];
+  if (last && last.key === key) last.items.push(l);
+  else months.push({ key, label: fmtMonth(l.date), items: [l], kinds: '' });
+}
+for (const m of months) m.kinds = [...new Set(m.items.map((l) => ID[l.kind]))].join(' ');
+
+const day = (l: Line) => String(Number(l.day.slice(8, 10)));
+---
+
+<Base title="Log" description={me.home.verbatim}>
+  <section class="wrap log" aria-labelledby="log-label">
+    <div class="label-row">
+      <h1 id="log-label">Log</h1>
+      <p class="elsewhere">
+        <a href="/now/" class="quiet">Now</a>
+        <a href="/taste/log/" class="quiet">Film diary</a>
+      </p>
+    </div>
+
+    <!-- his line, the long setup then the turn, as /writing/ sets his -->
+    {setup && <p class="setup muted">{setup}</p>}
+    <p class="punch display">{punch}</p>
+
+    {lines.length > 0 && (
+      <section class="all" id="all" aria-label="Everything, by month">
+        {kinds.map((k) => <span class="tgt" id={k.id}></span>)}
+
+        <nav class="kinds" aria-label="Kinds">
+          <a href="#all" data-k="all">All <span class="n mono">{lines.length}</span></a>
+          {kinds.map((k) => (
+            <a href={`#${k.id}`} data-k={k.id}>{k.label} <span class="n mono">{k.n}</span></a>
+          ))}
+        </nav>
+
+        {months.map((m) => (
+          <section class="month" id={`m${m.key}`} data-kinds={m.kinds} aria-labelledby={`m${m.key}-h`}>
+            <h2 class="month-label mono" id={`m${m.key}-h`}>{m.label}</h2>
+            <ol class="entries" role="list">
+              {m.items.map((l, i) => (
+                <li class="entry" data-kind={ID[l.kind]}>
+                  <time class:list={['d mono', { again: i > 0 && m.items[i - 1].day === l.day }]} datetime={l.day}>{day(l)}</time>
+                  <span class="k small">{KIND_LABEL[l.kind]}</span>
+                  <p class="what">
+                    {l.href ? (
+                      <a href={l.href} class="t" rel={l.external ? 'external' : undefined}>{l.text}</a>
+                    ) : (
+                      <span class="t">{l.text}</span>
+                    )}
+                    {l.year && <span class="x mono">{l.year}</span>}
+                    {l.lane && <span class="x small">{l.lane}</span>}
+                    {l.rating != null && <span class="x mono">{ratingText(l.rating)}</span>}
+                    {l.rewatch && <span class="x small">rewatch</span>}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+      </section>
+    )}
+  </section>
+</Base>
+
+<script>
+  /* The filter itself is CSS (:target). Here: say which kind is current. */
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.kinds a')];
+  const known = new Set(links.map((a) => a.dataset.k));
+  function mark() {
+    const h = decodeURIComponent(location.hash.slice(1));
+    const cur = known.has(h) ? h : 'all';
+    for (const a of links) {
+      if (a.dataset.k === cur) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    }
+  }
+  addEventListener('hashchange', mark);
+  mark();
+</script>
+
+<style>
+  /* centred on the reading room's axis, as /writing/ is: one place, many pages */
+  .log { padding-top: 0.5rem; max-width: 880px; }
+  .elsewhere { display: flex; gap: 1.25rem; color: var(--ink-muted); }
+  .elsewhere a:hover { color: var(--ink); }
+
+  /* the setup in the margin voice, the turn at display size, pinned left */
+  .setup { margin-top: var(--gap-block); max-width: 34em; text-wrap: pretty; }
+  .punch { margin-top: 0.75rem; margin-left: -0.04em; }
+  .log > .label-row + .punch { margin-top: var(--gap-block); }
+
+  /* the kinds: plain links, a count each */
+  .all { position: relative; margin-top: var(--gap-block); }
+  .tgt { position: absolute; top: 0; scroll-margin-top: 1rem; }
+  .kinds {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+    font-size: var(--fs-small);
+    font-weight: 500;
+  }
+  .kinds a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    text-underline-offset: 0.3em;
+    transition: color var(--d-hover) var(--ease-hover);
+  }
+  .kinds a:hover { color: var(--ink); }
+  .kinds .n { font-weight: 400; }
+
+  /* a month: its name in mono under one hairline, then the days */
+  .month { margin-top: 3rem; }
+  .kinds + .month { margin-top: 2.5rem; }
+  .month-label {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--hairline);
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+  .entries { margin-top: 1.25rem; display: grid; gap: 0.7rem; }
+  .entry {
+    display: grid;
+    grid-template-columns: 2.5rem 5rem minmax(0, 1fr);
+    align-items: baseline;
+  }
+  .entry .d { color: var(--ink-muted); }
+  /* the same day again: the number once, as the work ledger does with its dates */
+  .entry .d.again { opacity: 0; }
+  .entry .k { color: var(--ink-muted); font-weight: 500; }
+  .entry .what { line-height: 1.35; text-wrap: pretty; }
+  .entry .t { font-size: var(--fs-lit); font-weight: 500; letter-spacing: -0.005em; margin-right: 0.6rem; }
+  a.t { text-decoration-color: var(--hairline); text-underline-offset: 0.18em; }
+  a.t:hover { text-decoration-color: currentColor; }
+  .entry .x { color: var(--ink-muted); margin-right: 0.6rem; white-space: nowrap; }
+
+  /* the kind filter, by CSS: the current link, then everything not of that kind goes */
+  .kinds a[aria-current],
+  .all:not(:has(.tgt:target)) .kinds a[data-k='all'],
+  .all:has(#writing:target) .kinds a[data-k='writing'],
+  .all:has(#work:target) .kinds a[data-k='work'],
+  .all:has(#now:target) .kinds a[data-k='now'],
+  .all:has(#films:target) .kinds a[data-k='films'] {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: var(--accent);
+  }
+  .all:has(#writing:target) :is(.entry:not([data-kind='writing']), .month:not([data-kinds~='writing'])),
+  .all:has(#work:target) :is(.entry:not([data-kind='work']), .month:not([data-kinds~='work'])),
+  .all:has(#now:target) :is(.entry:not([data-kind='now']), .month:not([data-kinds~='now'])),
+  .all:has(#films:target) :is(.entry:not([data-kind='films']), .month:not([data-kinds~='films'])) {
+    display: none;
+  }
+  /* filtered, a day's first line may be gone: every number shows */
+  .all:has(.tgt:target) .entry .d.again { opacity: 1; }
+
+  @media (max-width: 719px) {
+    .entry { grid-template-columns: 1.75rem minmax(0, 1fr); column-gap: 0.25rem; }
+    .entry .k { grid-column: 2; grid-row: 1; font-size: 0.8125rem; }
+    .entry .what { grid-column: 2; }
+    .entry .d { grid-row: 1 / 3; font-size: 0.8125rem; }
+    .entries { gap: 1rem; }
+  }
+</style>

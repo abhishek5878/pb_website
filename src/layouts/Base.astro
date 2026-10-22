@@ -112,6 +112,8 @@ const person = {
         } catch (e) {}
       })();
     </script>
+    <!-- a page's own structured data (a post's BlogPosting, a project's dates) -->
+    <slot name="head" />
   </head>
   <body>
     <div class="glow on" id="glow-a" aria-hidden="true"></div>
@@ -157,6 +159,8 @@ const person = {
           <p class="mono">v.I · Oct 2026</p>
           <nav aria-label="For readers and their agents" class="small">
             <a href="/start/" class="quiet">Start here</a>
+            <a href="/now/" class="quiet" aria-current={path.startsWith('/now/') ? 'page' : undefined}>Now</a>
+            <a href="/log/" class="quiet" aria-current={path.startsWith('/log/') ? 'page' : undefined}>Log</a>
             <a href={links.substack} class="quiet" rel="me">Subscribe</a>
             <a href="/2am/" class="quiet">2am</a>
             <a href="/llms.txt" class="quiet">llms.txt</a>
@@ -269,6 +273,7 @@ const person = {
   .five + .row { margin-top: var(--gap-block); }
   .foot nav { display: flex; flex-wrap: wrap; gap: 1.25rem; }
   .foot nav a { color: var(--ink-muted); }
-  .foot nav a:hover { color: var(--ink); }
+  .foot nav a:hover,
+  .foot nav a[aria-current='page'] { color: var(--ink); }
   .foot .mono { color: var(--ink-muted); }
 </style>

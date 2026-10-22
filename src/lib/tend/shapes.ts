@@ -198,7 +198,7 @@ const Work = z
   })
   .strict();
 
-const Now = z.object({ verb: line(60), short: line(200), what: line(500) }).strict();
+export const Now = z.object({ verb: line(60), short: line(200), what: line(500) }).strict();
 
 const Project = z
   .object({
@@ -212,6 +212,8 @@ const Project = z
     href: url.optional(),
   })
   .strict();
+
+export type ProjectRow = z.infer<typeof Project>;
 
 const unique = (key: string) => (items: Record<string, unknown>[]) => new Set(items.map((i) => i[key])).size === items.length;
 
@@ -229,4 +231,85 @@ export function validateData(path: string, text: string): string {
   if (!Array.isArray(raw)) throw new Error('not a list');
   const data = shape.parse(raw.map((item) => (item && typeof item === 'object' ? compact(item) : item)));
   return JSON.stringify(data, null, 2) + '\n';
+}
+
+/* ---------- the records (docs/design/living.md): written by the server, never sent by the client ---------- */
+
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(validDate, 'not a date');
+
+/** Where /now is written from: a city, one line. Control characters and runs of space collapse. */
+export const Place = z
+  .string()
+  .max(200)
+  .transform((s) => s.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim())
+  .pipe(z.string().min(1).max(60));
+
+/** src/data/now-history/YYYY-MM-DD.json: /now on the day it changed. */
+export const Snapshot = z.object({ date: isoDate, place: Place, rows: z.array(Now).max(12) }).strict();
+export type Snapshot = z.infer<typeof Snapshot>;
+
+export const LOG_KINDS = ['project', 'now', 'page'] as const;
+/**
+ * One line of src/data/log.json. The text is built by the server from names
+ * and statuses (records.ts); the shape holds it to one plain line, and the
+ * link to /now/, /work/ or a project's page.
+ */
+export const LogEntry = z
+  .object({
+    date: isoDate,
+    kind: z.enum(LOG_KINDS),
+    text: z.string().min(1).max(300).regex(/^[^\u0000-\u001f\u007f]+$/),
+    href: z.string().regex(/^\/(now\/|work\/([a-z0-9-]+\/)?)$/),
+  })
+  .strict();
+export type LogEntry = z.infer<typeof LogEntry>;
+export const Log = z.array(LogEntry).max(5000);
+
+/**
+ * One film in src/data/films-archive.json, in the key order films.mjs writes.
+ * Its link must be Letterboxd's own (the feed is outside input).
+ */
+const ArchiveFilm = z
+  .object({
+    title: z.string().min(1).max(300).regex(/^[^\u0000-\u001f\u007f]+$/),
+    year: z.string().regex(/^\d{4}$/).nullable(),
+    rating: z
+      .number()
+      .min(0.5)
+      .max(5)
+      .refine((r) => Number.isInteger(r * 2), 'halves only')
+      .nullable(),
+    liked: z.boolean(),
+    rewatch: z.boolean(),
+    watched: isoDate.nullable(),
+    url: z
+      .string()
+      .max(500)
+      .regex(/^https:\/\/(letterboxd\.com|boxd\.it)\/[^\s"'<>\\]*$/),
+    review: z.string().max(20_000).nullable(),
+  })
+  .strict();
+const filmKey = (f: { url: string; watched: string | null }) => `${f.url.replace(/\/+$/, '').toLowerCase()}|${f.watched ?? ''}`;
+export const Archive = z
+  .array(ArchiveFilm)
+  .max(20_000)
+  .refine((films) => new Set(films.map(filmKey)).size === films.length, 'entries repeat');
+
+const HISTORY_FILE = /^src\/data\/now-history\/(\d{4}-\d{2}-\d{2})\.json$/;
+
+/**
+ * A record file's canonical bytes, after its strict shape: a snapshot (whose
+ * date must be its file name's), the log, or the film archive. Throws on anything off.
+ */
+export function validateRecord(path: string, data: unknown): string {
+  let out: unknown;
+  const day = HISTORY_FILE.exec(path)?.[1];
+  if (day) {
+    const snap = Snapshot.parse(data);
+    if (snap.date !== day) throw new Error('snapshot date is not its file name');
+    out = snap;
+  } else if (path === 'src/data/log.json') out = Log.parse(data);
+  else if (path === 'src/data/films-archive.json') out = Archive.parse(data);
+  else throw new Error('no record shape for ' + path);
+  return JSON.stringify(out, null, 2) + '\n';
 }

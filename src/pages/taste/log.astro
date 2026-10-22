@@ -1,0 +1,313 @@
+---
+/**
+ * The film diary: every film he has logged on Letterboxd, kept
+ * (src/data/films-archive.json; docs/design/living.md). After sive.rs/book and
+ * bookshelf.invertedpassion.com: text only, no posters.
+ *
+ * By year, newest first, with the years to jump to. With JavaScript the list
+ * re-sorts by his rating (grouped 5/5, 4.5/5, …) and back; the hash (#rating)
+ * keeps the choice. Without it, the plain list by date.
+ *
+ * A row whose title is a work on the /taste/ shelf (taste.json, matched by
+ * title) carries that work's light: pointing at it relights the page through
+ * the engine (src/scripts/relight.js: `.strip a[data-light]`), and its title
+ * is underlined in its swatch's stripes. Presets live in light.css; the swatch-only works' page
+ * palettes in taste-lights.css.
+ *
+ * His words only: titles, his ratings, his reviews (line breaks kept). UI words:
+ * "Film diary", "logged since", "By date", "By rating", "rewatch", "liked",
+ * "Undated", "Unrated", "Letterboxd".
+ */
+import Base from '../../layouts/Base.astro';
+import '../../styles/taste-lights.css';
+import { links } from '../../data/me';
+import { works, type Work } from '../../data/taste';
+import archive from '../../data/films-archive.json';
+import { fmtDay, fmtMonth } from '../../lib/posts';
+
+type Film = { title: string; year: string | null; rating: number | null; liked: boolean; rewatch: boolean; watched: string | null; url: string; review: string | null };
+
+const films = (archive as Film[]).filter((f) => f && f.title && f.url);
+
+/* the shelf's films and shows, by title, for the rows that can relight */
+const fold = (s: string) => s.normalize('NFKC').toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' ').trim();
+const shelf = new Map(works.filter((w) => w.kind === 'film' || w.kind === 'show').map((w) => [fold(w.title), w]));
+const lightOf = (w?: Work) => (w ? (w.light ?? (w.swatch.length ? `t-${w.id}` : undefined)) : undefined);
+/** A swatch colour too dark to see on the night background (Michael's black), left out of the underline only. */
+const visible = (c: string) => {
+  const n = parseInt(c.slice(1), 16);
+  return ((n >> 16) + ((n >> 8) & 255) + (n & 255)) / 3 > 48;
+};
+/** The swatch as equal hard stripes, left to right (the home strip's bars, as an underline). */
+const stripes = (swatch: string[]) => {
+  const sw = swatch.filter(visible).length ? swatch.filter(visible) : swatch;
+  return `linear-gradient(90deg, ${sw.map((c, i) => `${c} ${((i / sw.length) * 100).toFixed(1)}% ${(((i + 1) / sw.length) * 100).toFixed(1)}%`).join(', ')})`;
+};
+
+/* by year watched, newest first; undated last */
+const groups: { id: string; label: string; items: Film[] }[] = [];
+for (const f of films) {
+  const id = f.watched ? f.watched.slice(0, 4) : 'undated';
+  const g = groups.find((x) => x.id === id);
+  if (g) g.items.push(f);
+  else groups.push({ id, label: id === 'undated' ? 'Undated' : id, items: [f] });
+}
+groups.sort((a, b) => (a.id === 'undated' ? 1 : b.id === 'undated' ? -1 : b.id.localeCompare(a.id)));
+
+const dated = films.filter((f) => f.watched).map((f) => f.watched!).sort();
+const since = dated.length ? fmtMonth(new Date(dated[0] + 'T00:00:00Z')) : undefined;
+const day = (s: string) => new Date(s + 'T00:00:00Z');
+const rated = films.some((f) => f.rating != null);
+---
+
+<Base title="Film diary" description={`Film diary: ${films.length} films logged on Letterboxd${since ? ` since ${since}` : ''}, with ratings and reviews.`}>
+  <section class="wrap diary" aria-labelledby="diary-h">
+    <div class="open">
+      <h1 id="diary-h" class="word display">Film diary</h1>
+      <p class="slate small">
+        <span><span class="mono">{films.length}</span> logged{since && <> since {since}</>}</span>
+        <a href={links.letterboxd} class="quiet" rel="me external">Letterboxd →</a>
+      </p>
+    </div>
+
+    <div class="tools">
+      <nav class="years" aria-label="Years">
+        {groups.map((g) => (
+          <a href={`#y-${g.id}`} class:list={{ mono: g.id !== 'undated' }}>{g.label}</a>
+        ))}
+      </nav>
+      <!-- sorting needs JavaScript; without it this stays hidden and the list is by date -->
+      {rated && (
+        <p class="sort small" hidden>
+          <button type="button" class="textbtn" data-by="date" aria-pressed="true">By date</button>
+          <button type="button" class="textbtn" data-by="rating" aria-pressed="false">By rating</button>
+        </p>
+      )}
+    </div>
+
+    <!-- .strip/.bars: the relight engine's contract, so a row on the shelf lights the room -->
+    <div class="strip" id="diary">
+      <div class="bars">
+        <div id="by-date">
+          {groups.map((g) => (
+            <section class="year" id={`y-${g.id}`} aria-labelledby={`y-${g.id}-h`}>
+              <h2 class:list={['year-label', { mono: g.id !== 'undated' }]} id={`y-${g.id}-h`}>{g.label}</h2>
+              <ol class="entries" role="list">
+                {g.items.map((f) => {
+                  const w = shelf.get(fold(f.title));
+                  const light = lightOf(w);
+                  return (
+                    <li class="film" data-rating={f.rating ?? ''}>
+                      {f.watched ? (
+                        <time class="d mono" datetime={f.watched}>
+                          {fmtDay(day(f.watched))}
+                          <span class="yr"> {f.watched.slice(0, 4)}</span>
+                        </time>
+                      ) : (
+                        <span class="d" />
+                      )}
+                      <div class="what">
+                        <p class="head">
+                          <a
+                            href={f.url}
+                            class:list={['t', { shelved: light && w && w.swatch.length > 0 }]}
+                            rel="external"
+                            data-light={light}
+                            style={light && w && w.swatch.length > 0 ? `--sw: ${stripes(w.swatch)}` : undefined}
+                          >
+                            {f.title}
+                          </a>
+                          {(f.year || f.rating != null || f.rewatch || f.liked) && (
+                            <span class="meta">
+                              {f.year && <span class="y mono">{f.year}</span>}
+                              {f.rating != null && <span class="r mono">{f.rating}/5</span>}
+                              {f.rewatch && <span class="tag">rewatch</span>}
+                              {f.liked && <span class="tag">liked</span>}
+                            </span>
+                          )}
+                        </p>
+                        {f.review && <p class="review">{f.review}</p>}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          ))}
+        </div>
+        <div id="by-rating" hidden></div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  /* Sort by his rating and back. The rows are moved, not copied: the same nodes,
+     regrouped under 5/5, 4.5/5 … Unrated, newest first within each; back to the
+     years in their first order. #rating keeps the choice across a reload. */
+  const sort = document.querySelector<HTMLElement>('.sort');
+  const byDate = document.getElementById('by-date');
+  const byRating = document.getElementById('by-rating');
+  const years = document.querySelector<HTMLElement>('.years');
+  if (sort && byDate && byRating) {
+    const rows = [...byDate.querySelectorAll<HTMLLIElement>('li.film')];
+    const home = new Map(rows.map((li) => [li, li.parentElement!]));
+    const buttons = [...sort.querySelectorAll<HTMLButtonElement>('button[data-by]')];
+
+    const section = (label: string, items: HTMLLIElement[]) => {
+      const s = document.createElement('section');
+      s.className = 'year';
+      const h = document.createElement('h2');
+      h.className = /\d/.test(label) ? 'year-label mono' : 'year-label'; /* mono for numbers only */
+      h.textContent = label;
+      const ol = document.createElement('ol');
+      ol.className = 'entries';
+      ol.setAttribute('role', 'list');
+      ol.append(...items);
+      s.append(h, ol);
+      return s;
+    };
+
+    function show(by: 'date' | 'rating') {
+      if (by === 'rating') {
+        const groups = new Map<string, HTMLLIElement[]>();
+        for (const li of rows) {
+          const r = li.dataset.rating || '';
+          if (!groups.has(r)) groups.set(r, []);
+          groups.get(r)!.push(li);
+        }
+        const keys = [...groups.keys()].sort((a, b) => (a === '' ? 1 : b === '' ? -1 : Number(b) - Number(a)));
+        byRating!.replaceChildren(...keys.map((k) => section(k === '' ? 'Unrated' : `${k}/5`, groups.get(k)!)));
+      } else {
+        for (const li of rows) home.get(li)!.append(li);
+        byRating!.replaceChildren();
+      }
+      byDate!.hidden = by === 'rating';
+      byRating!.hidden = by !== 'rating';
+      byRating!.classList.toggle('on', by === 'rating');
+      if (years) years.hidden = by === 'rating';
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.by === by));
+    }
+
+    for (const b of buttons) {
+      b.addEventListener('click', () => {
+        const by = b.dataset.by === 'rating' ? 'rating' : 'date';
+        history.replaceState(null, '', by === 'rating' ? '#rating' : location.pathname);
+        show(by);
+      });
+    }
+    sort.hidden = false;
+    if (location.hash === '#rating') show('rating');
+  }
+</script>
+
+<style>
+  /* pinned left like /taste/ and /now/: the name at the margin, the list a reading width beside the empty right */
+  .diary > .tools,
+  .diary > .strip { max-width: 880px; }
+  .open { padding-top: clamp(1.5rem, 4vw, 3.5rem); }
+  .word { margin-left: -0.03em; }
+  .slate {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin-top: clamp(0.75rem, 1.2vw, 1.25rem);
+    color: var(--ink-muted);
+    font-weight: 500;
+  }
+  .slate .mono { color: var(--ink); }
+  .slate a { color: var(--ink-muted); }
+  .slate a:hover { color: var(--ink); }
+
+  .tools {
+    margin-top: var(--gap-block);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem 2rem;
+  }
+  .years { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; }
+  .years[hidden] { display: none; }
+  .years a { font-size: var(--fs-small); color: var(--ink-muted); text-decoration-color: var(--hairline); }
+  .years a:hover { color: var(--ink); text-decoration-color: currentColor; }
+  .sort { display: flex; gap: 1.25rem; }
+  .sort[hidden] { display: none; }
+  .sort button[aria-pressed='true'] {
+    color: var(--ink);
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: var(--accent);
+  }
+
+  .diary :global(.year) { margin-top: var(--gap-block); scroll-margin-top: 1.5rem; }
+  .tools + .strip :global(.year:first-child) { margin-top: 2.5rem; }
+  .diary :global(.year-label) {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--hairline);
+    color: var(--ink-muted);
+    font-weight: 400;
+    font-size: var(--fs-small);
+  }
+  .diary :global(.entries) { margin-top: 1.25rem; display: grid; gap: 1.6rem; }
+
+  /* a row: the day in the rail; the title, its year, his rating; his review beneath */
+  .film {
+    display: grid;
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+    align-items: baseline;
+  }
+  .d { color: var(--ink-muted); }
+  .yr { display: none; }
+  #by-rating.on .film { grid-template-columns: 7.25rem minmax(0, 1fr); }
+  #by-rating.on .yr { display: inline; }
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.75rem;
+    line-height: 1.35;
+  }
+  .t {
+    font-size: var(--fs-lit);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    text-decoration-color: var(--hairline);
+    text-underline-offset: 0.18em;
+    transition: text-decoration-color var(--d-hover) var(--ease-hover), color var(--d-hover) var(--ease-hover);
+  }
+  .t:hover { text-decoration-color: currentColor; }
+  /* the year, his rating and the marks move to the next line together, never one alone */
+  .meta { display: inline-flex; align-items: baseline; gap: 0.75rem; white-space: nowrap; }
+  .y { color: var(--ink-muted); }
+  .r { color: var(--ink); }
+  /* under its own rating heading the row doesn't say it again */
+  #by-rating.on .r { display: none; }
+  .tag { font-size: var(--fs-small); color: var(--ink-muted); }
+  /* a film on the shelf: its underline is the work's own swatch, striped like the home strip's bars */
+  .t.shelved {
+    text-decoration: none;
+    padding-bottom: 0.12em;
+    background: var(--sw) left bottom / 100% 2px no-repeat;
+  }
+  .t.shelved:hover,
+  .t.shelved:global(.on) { background-size: 100% 3px; }
+  .review {
+    margin-top: 0.4rem;
+    max-width: 34em;
+    font-family: var(--serif);
+    font-size: var(--fs-body);
+    font-weight: 400;
+    line-height: 1.55;
+    font-optical-sizing: auto;
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 719px) {
+    .film { grid-template-columns: 3.4rem minmax(0, 1fr); }
+    #by-rating.on .film { grid-template-columns: 1fr; }
+    #by-rating.on .d { margin-bottom: 0.15rem; }
+    .d { font-size: 0.75rem; }
+    .diary :global(.entries) { gap: 1.4rem; }
+  }
+</style>

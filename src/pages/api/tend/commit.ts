@@ -7,15 +7,23 @@
  *          [{ path, sha }]                       an image already uploaded as a blob
  *   deletes: [path]                              post paths, and images beside a project's page
  *
+ *   now.json's entry may carry `place` (a city, one line; default: the last snapshot's, else Bangalore).
+ *
  * Every path is checked against the allowlist, at most 40 per commit
  * (tend-spec, Security 3–4). A project page may only name screenshots that
  * are beside it after this commit. One commit on main; `url` is the page that changed.
+ *
+ * The records ride in the same commit (records.ts, docs/design/living.md): a
+ * Now save adds today's snapshot and a log line; a project save adds log lines.
+ * The client never names a record path (they aren't in its allowlist) and never
+ * sends log text: the server builds both from the validated files above.
  */
 import type { APIRoute } from 'astro';
 import { guard } from '../../../lib/tend/auth';
 import { Refused, fail, json, readJson, refuse } from '../../../lib/tend/http';
-import { MAX_FILES, isData, isDeletable, isPostImage, isPostText, isWorkImage, isWorkText, pageFor, workSlug } from '../../../lib/tend/paths';
-import { Fields, WorkFields, compact, markdown, validateData, workMarkdown } from '../../../lib/tend/shapes';
+import { MAX_FILES, NOW_PATH, isAllowed, isData, isDeletable, isPostImage, isPostText, isRecord, isWorkImage, isWorkText, pageFor, workSlug } from '../../../lib/tend/paths';
+import { Fields, Place, WorkFields, compact, markdown, validateData, workMarkdown } from '../../../lib/tend/shapes';
+import { recordsFor } from '../../../lib/tend/records';
 import { store, type CommitFile } from '../../../lib/tend/store';
 
 export const prerender = false;
@@ -48,11 +56,18 @@ export const POST: APIRoute = async ({ request }) => {
     const seen = new Set<string>();
     const out: CommitFile[] = [];
     const pages: Page[] = [];
+    let place: string | undefined;
     for (const f of files) {
       if (!f || typeof f !== 'object') throw new Refused(400);
       const { path } = f as Record<string, unknown>;
       if (typeof path !== 'string' || seen.has(path)) throw new Refused(400);
       seen.add(path);
+      /* `place` belongs to now.json alone, and is held to one short line */
+      const rawPlace = (f as Record<string, unknown>).place;
+      if (rawPlace !== undefined) {
+        if (path !== NOW_PATH) throw new Refused(400);
+        place = Place.parse(rawPlace);
+      }
       if (isPostText(path)) {
         const post = markdownPart(f as Record<string, unknown>, 'post');
         const fields = Fields.parse(compact(post.fields));
@@ -91,7 +106,14 @@ export const POST: APIRoute = async ({ request }) => {
       if (page.srcs.some((n) => !there.has(page.dir + n))) throw new Refused(400);
     }
 
-    const { commit } = await s.commit(`tend: ${message}`, out, gone);
+    /* the records: built here from the validated files, then held to the same allowlist and cap */
+    const records = await recordsFor(s, out, { place });
+    const all = [...out, ...records];
+    if (all.length + gone.length > MAX_FILES) throw new Refused(400);
+    for (const f of all) if (!isAllowed(f.path) && !isRecord(f.path)) throw new Refused(400);
+    for (const f of records) if (!isRecord(f.path) || f.content === undefined) throw new Refused(400);
+
+    const { commit } = await s.commit(`tend: ${message}`, all, gone);
     const url = out.length ? pageFor(out[0].path) : '/writing/';
     return json({ commit, url });
   } catch (e) {

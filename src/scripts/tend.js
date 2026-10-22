@@ -865,10 +865,11 @@ function editWork(data, w) {
   return view;
 }
 
-/* now: the bubbles */
+/* now: the bubbles, and where they're written from. A save also keeps the day's snapshot for /now/ (the server does it). */
 async function viewNow() {
-  const { data } = await api('read', { path: 'src/data/now.json' });
+  const { data, place: lastPlace } = await api('read', { path: 'src/data/now.json' });
   const rows = data.map((r) => ({ ...r }));
+  const place = input({ value: lastPlace || 'Bangalore', autocapitalize: 'words', maxlength: 60, autocomplete: 'address-level2' });
   const list = h('div', { class: 'rows' });
   const render = () => {
     list.replaceChildren(
@@ -891,12 +892,14 @@ async function viewNow() {
   };
   render();
   const add = h('p', { class: 'addrow' }, h('button', { type: 'button', class: 'textbtn', onClick: () => { rows.push({ verb: '', short: '', what: '' }); render(); list.lastChild?.querySelector('input')?.focus(); } }, 'Add a row'));
-  const view = h('div', { class: 'view' }, crumb('Now'), list, add);
+  const view = h('div', { class: 'view' }, crumb('Now'), h('div', { class: 'form place' }, field('Place', place, { hint: 'The city only.' })), list, add);
   const bar = saveBar('Save', async (say) => {
     const clean = rows.map((r) => ({ verb: r.verb.trim(), short: r.short.trim(), what: r.what.trim() })).filter((r) => r.verb || r.short || r.what);
     if (clean.some((r) => !r.verb || !r.short || !r.what)) throw new Error('Every row needs a verb, a short and a what.');
+    const where = place.value.replace(/\s+/g, ' ').trim();
+    if (!where) throw new Error('A place, please.');
     say('Saving…');
-    const { url } = await api('commit', { message: 'now', files: [{ path: 'src/data/now.json', text: JSON.stringify(clean, null, 2) + '\n' }] });
+    const { url } = await api('commit', { message: 'now', files: [{ path: 'src/data/now.json', text: JSON.stringify(clean, null, 2) + '\n', place: where }] });
     view.replaceChildren(crumb('Now'), done({ url }));
   });
   view.append(bar);
@@ -1113,7 +1116,8 @@ function editProject(data, p, { pages = null, page = null } = {}) {
       ...shots.filter((s) => s.sha).map((s) => ({ path: `${dir}/${s.name}`, sha: s.sha })),
     ];
     const deletes = roll.removed().map((n) => `${dir}/${n}`);
-    if (files.length + deletes.length > 40) throw new Error('Too many files for one save; add fewer screenshots at a time.');
+    /* 40 a commit, one kept for the log line the server adds (records.ts) */
+    if (files.length + deletes.length > 39) throw new Error('Too many files for one save; add fewer screenshots at a time.');
     say('Saving…');
     const { url } = await api('commit', { message: `${isNew ? 'new project' : 'projects'}, ${next.name}`, files, deletes });
     view.replaceChildren(view.firstChild, done({ url, again: '#/projects', againLabel: 'Projects' }));

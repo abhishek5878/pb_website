@@ -1,0 +1,159 @@
+---
+/**
+ * The end of a post or a project page: one compact block after the piece,
+ * centred on the reading column (docs/design/living.md, "Post endings").
+ *
+ * One hairline, then the dates it was written and changed; then, as the
+ * project page lists its links (the kind small on the left, the place on the
+ * right), the thread it walks in and that thread's next stop, and the pages
+ * that link here; then newer and older in its lane or status group. A row
+ * with nothing in it isn't there; a block with nothing in it isn't either.
+ */
+import { fmtDate, iso } from '../lib/posts';
+import type { InThread, Mention } from '../lib/endings';
+
+export type Neighbour = { title: string; href: string; date: string; datetime: string };
+
+interface Props {
+  written?: Date;
+  changed?: Date;
+  threads?: InThread[];
+  mentions?: Mention[];
+  newer?: Neighbour | null;
+  older?: Neighbour | null;
+  /** How the pair is grouped, as words straight after "Newer"/"Older": " in Night", ", also paused". */
+  group?: string;
+  /** What the pair is a pair of, for screen readers: "Other pieces", "Other projects". */
+  navLabel: string;
+}
+
+const { written, changed, threads = [], mentions = [], group, navLabel } = Astro.props;
+const shown = mentions.slice(0, 5);
+const pair = (word: string) => `${word}${group ?? ''}`;
+/* a neighbour that is already the thread's next stop is said once, as the next stop */
+const ahead = new Set(threads.flatMap((t) => t.next.map((s) => s.href)));
+const newer = Astro.props.newer && !ahead.has(Astro.props.newer.href) ? Astro.props.newer : null;
+const older = Astro.props.older && !ahead.has(Astro.props.older.href) ? Astro.props.older : null;
+const has = !!(written || changed || threads.length || shown.length || newer || older);
+---
+
+{has && (
+  <section class="wrap ending" aria-label="After the piece">
+    {(written || changed) && (
+      <p class="dates small">
+        {written && <span>Written <time class="mono" datetime={iso(written)}>{fmtDate(written)}</time></span>}
+        {changed && <span>{written ? 'changed ' : 'Changed '}<time class="mono" datetime={iso(changed)}>{fmtDate(changed)}</time></span>}
+      </p>
+    )}
+
+    {(threads.length > 0 || shown.length > 0) && (
+      <dl class="refs">
+        {threads.map((t) => (
+          <>
+            <div>
+              <dt>Thread</dt>
+              <dd>
+                <a href={`/threads/#${t.thread.id}`}>{t.thread.title}</a>
+                <span class="at small"><span class="mono">{t.at}</span> of <span class="mono">{t.of}</span></span>
+              </dd>
+            </div>
+            {t.next.length > 0 && (
+              <div>
+                <dt>Next stop</dt>
+                <dd>
+                  {t.next.map((s) => (
+                    <span class="item">
+                      <a href={s.href}>{s.title}</a>
+                      {s.kind === 'project' && <span class="kind small">project</span>}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            )}
+          </>
+        ))}
+        {shown.length > 0 && (
+          <div>
+            <dt>Mentioned in</dt>
+            <dd>
+              {shown.map((m) => (
+                <span class="item"><a href={m.href}>{m.title}</a></span>
+              ))}
+            </dd>
+          </div>
+        )}
+      </dl>
+    )}
+
+    {(newer || older) && (
+      <nav class="between" aria-label={navLabel}>
+        {newer && (
+          <p class="n newer">
+            <span class="small muted">{pair('Newer')}</span>
+            <a href={newer.href} class="quiet">{newer.title}</a>
+            <time class="mono muted" datetime={newer.datetime}>{newer.date}</time>
+          </p>
+        )}
+        {older && (
+          <p class="n older">
+            <span class="small muted">{pair('Older')}</span>
+            <a href={older.href} class="quiet">{older.title}</a>
+            <time class="mono muted" datetime={older.datetime}>{older.date}</time>
+          </p>
+        )}
+      </nav>
+    )}
+  </section>
+)}
+
+<style>
+  /* the reading column's width and axis; one hairline above, nothing else divides */
+  .ending {
+    max-width: 680px;
+    margin-top: var(--gap-block);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--hairline);
+    transition: border-color var(--d-relight) var(--ease-standard);
+  }
+  .dates { font-weight: 500; color: var(--ink-muted); }
+  .dates > span + span::before { content: '·'; margin-inline: 0.45em; }
+  .dates .mono { font-size: inherit; font-weight: 400; }
+
+  /* the kind small on the left, the place on the right (the project page's links) */
+  .refs { display: grid; gap: 0.6rem; margin-top: 1.75rem; }
+  .refs > div {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: baseline;
+  }
+  .refs dt { font-size: var(--fs-small); font-weight: 500; color: var(--ink-muted); }
+  .refs dd { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 1.25rem; }
+  .refs a { font-size: var(--fs-body); font-weight: 500; letter-spacing: -0.005em; }
+  .refs a:hover { text-decoration-color: var(--accent); }
+  .refs .item { display: inline-flex; align-items: baseline; gap: 0.5rem; }
+  .refs .kind,
+  .refs .at { color: var(--ink-muted); }
+  .refs .at .mono { font-size: inherit; }
+
+  /* newer / older: the reading room's pair, now within its lane or status group */
+  .between {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--gutter);
+    margin-top: 2.5rem;
+  }
+  .refs + .between,
+  .dates + .between { margin-top: 2rem; }
+  .ending > .between:first-child { margin-top: 0.25rem; }
+  .n { display: grid; gap: 0.25rem; justify-items: start; max-width: 48%; }
+  .n.older { margin-left: auto; justify-items: end; text-align: right; }
+  .n .small { font-weight: 500; }
+  .n a { font-size: var(--fs-body); font-weight: 500; text-wrap: pretty; }
+
+  @media (max-width: 719px) {
+    .refs > div { grid-template-columns: 5.75rem minmax(0, 1fr); gap: 0.75rem; }
+    .between { flex-wrap: wrap; row-gap: 1.75rem; }
+    .n { max-width: none; }
+  }
+</style>

@@ -2,14 +2,16 @@
  * POST /api/tend/read/ { path } →
  *   a post as { path, fields, body, files },
  *   a project's page as { path, fields, body, files, missing }, or
- *   a data file as { path, data }.
- * Only allowlisted text paths (tend-spec, Security 3); never images.
+ *   a data file as { path, data }; now.json also brings `place`, where the last
+ *   snapshot was written from (records.ts), for the Now editor's Place field.
+ * Only allowlisted text paths (tend-spec, Security 3); never images, never the records.
  * A project page that isn't written yet comes back empty with `missing: true`.
  */
 import type { APIRoute } from 'astro';
 import { guard } from '../../../lib/tend/auth';
 import { Refused, fail, json, readJson, refuse } from '../../../lib/tend/http';
-import { isData, isPostText, isWorkText } from '../../../lib/tend/paths';
+import { NOW_PATH, isData, isPostText, isWorkText } from '../../../lib/tend/paths';
+import { latestPlace } from '../../../lib/tend/records';
 import { parseMarkdown } from '../../../lib/tend/shapes';
 import { Missing, store } from '../../../lib/tend/store';
 
@@ -43,7 +45,9 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ path, fields, body, files, missing: false });
     }
     if (isData(path)) {
-      const text = await store().read(path);
+      const s = store();
+      const text = await s.read(path);
+      if (path === NOW_PATH) return json({ path, data: JSON.parse(text), place: await latestPlace(s) });
       return json({ path, data: JSON.parse(text) });
     }
     throw new Refused(400);

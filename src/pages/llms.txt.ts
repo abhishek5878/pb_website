@@ -10,6 +10,7 @@ import { getWriting, label, fmtDate, firstLine, inPost, LANE_LABEL, type Post } 
 import { getCollection } from 'astro:content';
 import { THREADS } from '../data/threads';
 import start from '../data/start.json';
+import { getLog, films, nowSnapshots, ratingText, KIND_LABEL as LOG_KIND } from '../lib/log';
 
 const SITE = 'https://vyas.garden';
 
@@ -35,6 +36,12 @@ export const GET: APIRoute = async () => {
     .map((p) => `- Project: ${p!.name} (${p!.status}): ${p!.line}${page(p!.slug)}`);
   const startThread = THREADS.find((t) => t.id === start.thread);
   const lane = (p: Post) => (p.lane ? ` (${LANE_LABEL[p.lane]})` : '');
+  /* /now with its history, /log, /taste/log: the living record (docs/design/living.md) */
+  const log = await getLog();
+  const diary = films();
+  const latestNow = nowSnapshots()[0];
+  const day = (s: string) => fmtDate(new Date(s));
+  const abs = (href: string) => new URL(href, SITE).href;
   const lines = [
     `# ${me.fullName} (vyas.garden)`,
     '',
@@ -55,6 +62,13 @@ export const GET: APIRoute = async () => {
     '',
     '## Right now',
     ...now.map((n) => `- ${n.verb}: ${n.what}`),
+    latestNow
+      ? `Updated ${day(latestNow.date)}${latestNow.place ? `, from ${latestNow.place}` : ''}. ${SITE}/now/ (earlier versions are kept on the page, newest first).`
+      : `${SITE}/now/`,
+    '',
+    '## Log',
+    `Everything that changed on the site, newest first, by month (posts, films he watched, /now updates, project changes): ${SITE}/log/`,
+    ...log.slice(0, 10).map((l) => `- ${day(l.day)}, ${LOG_KIND[l.kind]}: ${l.text}${l.year || l.rating != null ? ` (${[l.year, l.rating != null ? ratingText(l.rating) : ''].filter(Boolean).join(', ')})` : ''}${l.href ? ` ${abs(l.href)}` : ''}`),
     '',
     '## Everything he has built, unfinished included',
     ...projects.map((p) => `- ${p.name} (${p.status}, ${p.when}; ${p.tags.join(', ')}): ${p.line}${p.href ? ` ${p.href}` : ''}${page(p.slug)}`),
@@ -68,6 +82,14 @@ export const GET: APIRoute = async () => {
     '## What he watches, listens to and reads',
     ...kinds.map((k) => `- ${KIND_LABEL[k]}: ${works.filter((w) => w.kind === k).map((w) => (w.by ? `${w.title} (${w.by})` : w.title)).join('; ')}`),
     `- Places: ${places.map((p) => p.name).join('; ')}`,
+    ...(diary.length
+      ? [
+          `- Film diary: every film he has logged on Letterboxd (${diary.length} so far), by year, with his rating and his review: ${SITE}/taste/log/. Latest: ${diary
+            .slice(0, 5)
+            .map((f) => `${f.title}${f.year ? ` (${f.year})` : ''}, ${day(f.watched)}${typeof f.rating === 'number' ? `, ${ratingText(f.rating)}` : ''}`)
+            .join('; ')}.`,
+        ]
+      : []),
     '',
     '## Writing',
     `Every post by year, filterable by lane: ${SITE}/writing/ (lanes: Night, personal and poems; Signal, venture notes; Build, things he built).`,

@@ -1,0 +1,173 @@
+---
+/**
+ * Now: what he is doing, the day it last changed, and where from
+ * (docs/design/living.md; after sive.rs/now: "Updated <date>, from <place>").
+ *
+ * The rows are now.json (via me.ts), each verb with his longer line. The date
+ * and the place come from the newest snapshot in src/data/now-history/, which
+ * /tend writes on every save of Now that changes something. Older snapshots
+ * sit below as dated layers, newest first; in each, the rows that were
+ * different from the version after it stay in ink, the rest go quiet, so the
+ * history reads as what changed.
+ *
+ * His words only: the rows, and me.whereNext to close. UI words: "Now",
+ * "Updated", "from", "Before". With no snapshot the date line doesn't render;
+ * with one snapshot there are no layers.
+ */
+import Base from '../../layouts/Base.astro';
+import { me, now, type Now } from '../../data/me';
+import { fmtDate } from '../../lib/posts';
+
+type Snapshot = { date: string; place: string; rows: Now[] };
+
+/* every snapshot, newest first; a missing folder is no history */
+const snapshots = Object.values(import.meta.glob<Snapshot>('../../data/now-history/*.json', { eager: true, import: 'default' }))
+  .filter((s) => s && typeof s.date === 'string' && Array.isArray(s.rows))
+  .sort((a, b) => b.date.localeCompare(a.date));
+
+const key = (r: Now) => `${r.verb}|${r.short}|${r.what}`;
+const same = (a: Now[], b: Now[]) => a.length === b.length && a.every((r, i) => key(r) === key(b[i]));
+
+/* the newest snapshot dates the rows when it is them; if now.json moved on without one, it's a layer too */
+const head = snapshots[0];
+const current = head && same(head.rows, now) ? head : undefined;
+const older = current ? snapshots.slice(1) : snapshots;
+const place = current?.place ?? head?.place;
+
+/* each layer against the version that came after it: what was different then */
+const layers = older.map((s, i) => {
+  const after = new Set((i === 0 ? now : older[i - 1].rows).map(key));
+  return { ...s, rows: s.rows.map((r) => ({ ...r, changed: !after.has(key(r)) })) };
+});
+
+const day = (s: string) => fmtDate(new Date(s + 'T00:00:00Z'));
+const description = now.map((n) => `${n.verb} ${n.short}.`).join(' ');
+---
+
+<Base title="Now" description={description}>
+  <!-- the oversized word, pinned left; when and where, bottom-aligned beside it -->
+  <section class="open wrap grid" aria-labelledby="now-h">
+    <h1 id="now-h" class="word display-xl">Now</h1>
+    {(current || place) && (
+      <p class="when small">
+        {current && <>Updated <time class="mono" datetime={current.date}>{day(current.date)}</time></>}{current && place ? ', from ' : place ? 'From ' : ''}{place}
+      </p>
+    )}
+  </section>
+
+  <!-- the rows: the verb in the rail, his line beside it -->
+  <section class="wrap" aria-label="What he is doing">
+    <dl class="rows">
+      {now.map((n) => (
+        <div class="row grid">
+          <dt class="verb small">{n.verb}</dt>
+          <dd class="what title-lit">{n.what}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <!-- the earlier versions, as dated layers -->
+  {layers.length > 0 && (
+    <section class="section wrap" aria-labelledby="before-h">
+      <div class="label-row">
+        <h2 id="before-h">Before</h2>
+      </div>
+      <ol class="layers" role="list">
+        {layers.map((l) => (
+          <li class="layer grid">
+            <p class="stamp small">
+              <time class="mono" datetime={l.date}>{day(l.date)}</time>
+              <span>from {l.place}</span>
+            </p>
+            <ul class="then" role="list">
+              {l.rows.map((r) => (
+                <li class:list={{ changed: r.changed }}>
+                  <span class="v">{r.verb}</span> <span>{r.short}</span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  <section class="section wrap exit">
+    <p class="title">{me.whereNext}</p>
+  </section>
+</Base>
+
+<style>
+  /* the opening: one word, the stamp under it like a title card's */
+  .open {
+    padding-top: clamp(1.5rem, 4vw, 3.5rem);
+    row-gap: clamp(0.75rem, 1.2vw, 1.25rem);
+  }
+  .word { grid-column: 1 / -1; margin-left: -0.04em; }
+  .when {
+    grid-column: 1 / -1;
+    color: var(--ink-muted);
+    font-weight: 500;
+  }
+  .when time { color: var(--ink); }
+
+  /* the rows: a 3/9 split, verb small in the rail, his line in Newsreader */
+  .rows {
+    margin-top: var(--gap-block);
+    display: grid;
+    gap: clamp(1.75rem, 2.4vw, 2.5rem);
+  }
+  .row { align-items: baseline; }
+  .verb {
+    grid-column: 1 / 4;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+  .what {
+    grid-column: 4 / 12;
+    max-width: 24em;
+    text-wrap: pretty;
+  }
+
+  /* the layers: each a date and a place, then that version's rows in a run */
+  .layers {
+    margin-top: var(--gap-block);
+    display: grid;
+    gap: clamp(2rem, 3vw, 3rem);
+  }
+  .layer { align-items: baseline; }
+  .stamp {
+    grid-column: 1 / 4;
+    display: grid;
+    gap: 0.15rem;
+    color: var(--ink-muted);
+  }
+  .stamp time { color: var(--ink); }
+  .then {
+    grid-column: 4 / 12;
+    display: grid;
+    gap: 0.35rem;
+    font-family: var(--serif);
+    font-size: var(--fs-lit);
+    line-height: 1.4;
+    color: var(--ink-muted);
+  }
+  /* the verb in its own short column, so the phrases line up like the rows above */
+  .then li { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-items: baseline; }
+  .then .v { font-family: var(--sans); font-size: var(--fs-small); font-weight: 500; }
+  /* what was different then, in ink */
+  .then .changed { color: var(--ink); }
+
+  .exit .title { max-width: 18em; text-wrap: balance; }
+
+  @media (max-width: 1023px) {
+    .verb, .stamp { grid-column: 1 / 4; }
+    .what, .then { grid-column: 4 / 13; }
+  }
+  @media (max-width: 719px) {
+    .row, .layer { row-gap: 0.35rem; }
+    .verb, .what, .stamp, .then { grid-column: 1 / -1; }
+    .stamp { display: flex; flex-wrap: wrap; gap: 0 0.75rem; }
+  }
+</style>

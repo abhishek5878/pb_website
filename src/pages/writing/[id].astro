@@ -16,15 +16,19 @@ import { render } from 'astro:content';
 import type { ImageMetadata } from 'astro';
 import Photos from '../../components/writing/Photos.astro';
 import { me } from '../../data/me';
-import { getWriting, label, fmtDate, iso, type Post } from '../../lib/posts';
+import { getWriting, label, fmtDate, iso, LANE_LABEL, type Post } from '../../lib/posts';
 import { cardPath, cardAlt, shareDescription } from '../../lib/og/post';
+import Ending from '../../components/Ending.astro';
+import { threadsOf, mentionsOf, changedOn, after } from '../../lib/endings';
 
 export async function getStaticPaths() {
   const local = (await getWriting()).filter((p) => p.source === 'site');
-  return local.map((post, i) => ({
-    params: { id: post.id },
-    props: { post, newer: local[i - 1] ?? null, older: local[i + 1] ?? null },
-  }));
+  /* Newer and older walk the post's own lane (night, signal, build); a post without one walks them all. */
+  return local.map((post) => {
+    const walk = post.lane ? local.filter((p) => p.lane === post.lane) : local;
+    const i = walk.indexOf(post);
+    return { params: { id: post.id }, props: { post, newer: walk[i - 1] ?? null, older: walk[i + 1] ?? null } };
+  });
 }
 
 interface Props { post: Post; newer: Post | null; older: Post | null }
@@ -70,6 +74,33 @@ const hasPhotos = photos.length > 0;
 
 /* A note has no title and needs none: the piece starts under the byline. The h1 stays for readers of the outline. */
 const heading = post.title ?? (post.subject ? label(post) : undefined);
+
+/* ---- the end (src/components/Ending.astro): the thread, who links here, the dates, the lane's pair ---- */
+const threads = await threadsOf({ post: post.id });
+const mentions = await mentionsOf({ post });
+/* changed: the last day his words changed after the post landed here (git; left out when git can't say) */
+const changed = changedOn(entry.filePath);
+const modified = after(changed, post.date) ? changed : undefined;
+const neighbour = (p: Post | null) => (p ? { title: label(p), href: p.href, date: fmtDate(p.date), datetime: iso(p.date) } : null);
+
+/* For agents: the piece as a BlogPosting, with dateModified where git knows it. */
+const SITE = 'https://vyas.garden';
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title ?? label(post),
+  ...(post.subtitle ? { alternativeHeadline: post.subtitle } : {}),
+  url: new URL(post.href, SITE).href,
+  mainEntityOfPage: new URL(post.href, SITE).href,
+  datePublished: iso(post.date),
+  ...(modified ? { dateModified: iso(modified) } : {}),
+  wordCount: words,
+  inLanguage: 'en',
+  image: new URL(cardPath(post), SITE).href,
+  author: { '@type': 'Person', name: me.fullName, url: SITE + '/' },
+  ...(firstPublished ? { isBasedOn: firstPublished } : {}),
+  ...(post.lane ? { articleSection: LANE_LABEL[post.lane] } : {}),
+};
 ---
 
 <Base
@@ -79,6 +110,7 @@ const heading = post.title ?? (post.subject ? label(post) : undefined);
   imageAlt={cardAlt(post)}
   light={post.light}
 >
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(article)} />
   <article class:list={['wrap room', isPoem ? 'poem' : 'essay', { photos: hasPhotos }]}>
     <header class="head col">
       <p class="back small"><a href="/writing/" class="quiet">Writing</a></p>
@@ -119,22 +151,16 @@ const heading = post.title ?? (post.subject ? label(post) : undefined);
     </section>
   )}
 
-  <nav class="wrap between" aria-label="Other pieces">
-    {newer && (
-      <p class="n newer">
-        <span class="small muted">Newer</span>
-        <a href={newer.href} class="quiet">{label(newer)}</a>
-        <time class="mono muted" datetime={iso(newer.date)}>{fmtDate(newer.date)}</time>
-      </p>
-    )}
-    {older && (
-      <p class="n older">
-        <span class="small muted">Older</span>
-        <a href={older.href} class="quiet">{label(older)}</a>
-        <time class="mono muted" datetime={iso(older.date)}>{fmtDate(older.date)}</time>
-      </p>
-    )}
-  </nav>
+  <Ending
+    written={post.date}
+    changed={modified}
+    threads={threads}
+    mentions={mentions}
+    newer={neighbour(newer)}
+    older={neighbour(older)}
+    group={post.lane ? ` in ${LANE_LABEL[post.lane]}` : undefined}
+    navLabel="Other pieces"
+  />
 </Base>
 
 <style>
@@ -365,21 +391,6 @@ const heading = post.title ?? (post.subject ? label(post) : undefined);
   html[data-js] .interlude .verse-line { opacity: 0; transition: opacity var(--d-reveal) var(--ease-out); }
   html[data-js] .interlude[data-on] .verse-line { opacity: 1; }
 
-  /* newer / older, in the text column */
-  .between {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--gutter);
-    max-width: 680px;
-    margin-top: var(--gap-section);
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--hairline);
-  }
-  .n { display: grid; gap: 0.25rem; justify-items: start; }
-  .n.older { margin-left: auto; justify-items: end; text-align: right; }
-  .n .small { font-weight: 500; }
-  .n a { font-size: var(--fs-body); }
-
   /* phone: no dead gaps; the coda sits in the flow with air, not a screen */
   @media (max-width: 719px) {
     .room { padding-top: 1rem; }
@@ -389,6 +400,5 @@ const heading = post.title ?? (post.subject ? label(post) : undefined);
     .body > :global(figure) { margin-block: 1.5em; }
     .interlude .verse-line { grid-column: 1 / -1; }
     .interlude { min-height: 0; margin-top: clamp(4rem, 12vw, 6rem); padding-block: 3rem; }
-    .between { margin-top: clamp(4rem, 12vw, 6rem); flex-wrap: wrap; }
   }
 </style>

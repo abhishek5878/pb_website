@@ -15,6 +15,7 @@ import { getWriting, firstLine, fmtDate, iso } from '../lib/posts';
 import { workEntries, pagePath } from './work/_work';
 import { THREADS } from '../data/threads';
 import start from '../data/start.json';
+import { getLog, KIND_LABEL, ratingText } from '../lib/log';
 
 const writing = await getWriting();
 /** The address only ever appears assembled by JS (Base), so scrapers reading the HTML miss it. */
@@ -31,6 +32,11 @@ const entries = await workEntries();
 const workHref = (p: (typeof projects)[number]) => (entries.has(p.slug) ? pagePath(p.slug) : (p.href ?? `/work/#${p.slug}`));
 
 const img = me.epigraph.image;
+
+/* The log's latest three lines (src/lib/log.ts), beside Explore; the rest is /log/. */
+const log = await getLog();
+const lately = log.slice(0, 3);
+const shortDay = (d: Date) => `${d.getUTCDate()} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()]}`;
 
 /* Explore: the ways in. Counts are computed; the words are UI words. */
 const nWord = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -79,10 +85,32 @@ const doors: { label: string; href: string; n?: number; note?: string; rel?: str
       <h2 id="hello-label">Hello</h2>
     </div>
     <div class="grid hello-row">
+      <div class="left">
       <p class="hi">
         <span class="title name">{me.home.hello}</span>
         <span class="title-lit line">{me.home.line}</span>
       </p>
+      <!-- the log's latest three lines: what that second place last took in -->
+      {lately.length > 0 && (
+        <nav class="lately" aria-labelledby="lately-label">
+          <p class="small muted" id="lately-label"><a href="/log/" class="quiet">Log</a></p>
+          <ol role="list">
+            {lately.map((l) => (
+              <li>
+                <time class="mono" datetime={l.day}>{shortDay(l.date)}</time>
+                <span class="k small">{KIND_LABEL[l.kind]}</span>
+                <span class="w">
+                  {l.href ? <a href={l.href} rel={l.external ? 'external' : undefined}>{l.text}</a> : l.text}
+                  {l.year && <span class="mono x">{l.year}</span>}
+                  {l.rating != null && <span class="mono x">{ratingText(l.rating)}</span>}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <a href="/log/" class="quiet all small">All <span class="mono">{log.length}</span> →</a>
+        </nav>
+      )}
+      </div>
       <nav class="explore" aria-labelledby="explore-label">
         <p class="small muted" id="explore-label">Explore</p>
         <a href="/start/" class="start quiet">
@@ -352,9 +380,29 @@ const doors: { label: string; href: string; n?: number; note?: string; rel?: str
 
   /* 1b. hello: his line left, the ways in right, as a contents page: name left, count right */
   .hello-row { margin-top: var(--gap-block); row-gap: var(--gap-block); align-items: start; }
-  .hi { grid-column: 1 / 7; display: grid; gap: 0.4rem; }
+  /* his line at the top of the left column, the log's latest at its foot, level with Explore's */
+  .left { grid-column: 1 / 7; display: flex; flex-direction: column; justify-content: space-between; gap: 3rem; }
+  .hi { display: grid; gap: 0.4rem; }
   .hi .line { max-width: 15em; text-wrap: balance; }
   .explore { grid-column: 8 / 13; }
+  /* the log's latest: under his line, the explore column's quiet register; dates mono, his titles in ink */
+  .lately { max-width: 30rem; }
+  .lately > p a { color: inherit; }
+  /* one grid across the three lines, so the dates, the kinds and the titles each keep a column */
+  .lately ol { margin-top: 0.75rem; display: grid; grid-template-columns: max-content max-content minmax(0, 1fr); gap: 0.45rem 1rem; align-items: baseline; }
+  .lately li { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: baseline; }
+  .lately time,
+  .lately .k,
+  .lately .x { color: var(--ink-muted); }
+  .lately time { font-size: var(--fs-small); }
+  .lately .k { font-weight: 500; }
+  .lately .w { font-weight: 500; overflow-wrap: anywhere; }
+  .lately .w a { text-decoration-color: var(--hairline); text-underline-offset: 0.18em; }
+  .lately .w a:hover { text-decoration-color: currentColor; }
+  .lately .x { margin-left: 0.6rem; }
+  .lately .all { display: inline-block; margin-top: 0.9rem; color: var(--ink-muted); }
+  .lately .all:hover { color: var(--ink); }
+  .lately .all .mono { font-size: inherit; }
   .explore a.quiet:hover { text-decoration: none; }
   .explore a { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
   .explore a:hover .t,
@@ -366,7 +414,11 @@ const doors: { label: string; href: string; n?: number; note?: string; rel?: str
   .explore li .t { font-size: var(--fs-lit); font-weight: 500; }
   .explore .n { color: var(--ink-muted); flex: none; }
   @media (max-width: 719px) {
-    .hi, .explore { grid-column: 1 / -1; }
+    /* on a phone the ways in come first; the log follows them */
+    .left { display: contents; }
+    .hi, .explore, .lately { grid-column: 1 / -1; }
+    .lately { order: 3; }
+    .lately ol { column-gap: 0.75rem; }
     .hello-row { margin-top: 2rem; row-gap: 3rem; }
   }
 

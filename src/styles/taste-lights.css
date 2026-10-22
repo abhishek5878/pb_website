@@ -1,0 +1,32 @@
+/*
+ * The page palettes for the works with a swatch but no preset (the t-<id> lights),
+ * for pages other than /taste/ that relight by a work: /taste/log/ (a film row
+ * whose title is a work on the shelf).
+ *
+ * The same 23 lines as the <style is:global> block in src/pages/taste/index.astro,
+ * copied verbatim (contrast-checked there: scratchpad/pages/taste/palettes.py).
+ * That page can import this file and drop its copy; until then, change both.
+ */
+html[data-light='t-eternity'] { --p-bg: oklch(0.17 0.045 40); --p-bg-raised: oklch(0.215 0.045 40); --p-accent: oklch(0.720 0.13 42); --p-glow: oklch(0.78 0.02 75); --p-wash: var(--p-accent); --glow-alpha: 42%; }
+html[data-light='t-michael'] { --p-bg: oklch(0.16 0.02 260); --p-bg-raised: oklch(0.205 0.02 260); --p-accent: oklch(0.660 0.19 18); --p-glow: oklch(0.86 0.03 75); --p-wash: var(--p-glow); --glow-alpha: 40%; }
+html[data-light='t-kiarostami'] { --p-bg: oklch(0.18 0.05 125); --p-bg-raised: oklch(0.225 0.05 125); --p-accent: oklch(0.740 0.08 128); --p-glow: oklch(0.62 0.08 78); --p-wash: var(--p-glow); --glow-alpha: 50%; }
+html[data-light='t-bojack'] { --p-bg: oklch(0.18 0.07 265); --p-bg-raised: oklch(0.225 0.07 265); --p-accent: oklch(0.720 0.16 345); --p-glow: oklch(0.62 0.1 190); --p-wash: var(--p-accent); --glow-alpha: 50%; }
+html[data-light='t-slow-horses'] { --p-bg: oklch(0.17 0.03 130); --p-bg-raised: oklch(0.215 0.03 130); --p-accent: oklch(0.740 0.03 130); --p-glow: oklch(0.6 0.04 88); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+html[data-light='t-breaking-bad'] { --p-bg: oklch(0.17 0.05 150); --p-bg-raised: oklch(0.215 0.05 150); --p-accent: oklch(0.760 0.1 225); --p-glow: oklch(0.5 0.12 150); --p-wash: var(--p-accent); --glow-alpha: 54%; }
+html[data-light='t-daredevil'] { --p-bg: oklch(0.16 0.04 130); --p-bg-raised: oklch(0.205 0.04 130); --p-accent: oklch(0.740 0.12 125); --p-glow: oklch(0.42 0.16 25); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+html[data-light='t-widows-bay'] { --p-bg: oklch(0.18 0.05 230); --p-bg-raised: oklch(0.225 0.05 230); --p-accent: oklch(0.760 0.12 70); --p-glow: oklch(0.72 0.01 150); --p-wash: var(--p-accent); --glow-alpha: 54%; }
+html[data-light='t-ted-lasso'] { --p-bg: oklch(0.18 0.07 262); --p-bg-raised: oklch(0.225 0.07 262); --p-accent: oklch(0.660 0.2 25); --p-glow: oklch(0.5 0.15 262); --p-wash: var(--p-glow); --glow-alpha: 54%; }
+html[data-light='t-shrinking'] { --p-bg: oklch(0.18 0.06 135); --p-bg-raised: oklch(0.225 0.06 135); --p-accent: oklch(0.740 0.11 135); --p-glow: oklch(0.8 0.03 85); --p-wash: var(--p-accent); --glow-alpha: 42%; }
+html[data-light='t-sopranos'] { --p-bg: oklch(0.17 0.015 250); --p-bg-raised: oklch(0.215 0.015 250); --p-accent: oklch(0.640 0.2 25); --p-glow: oklch(0.6 0.01 250); --p-wash: var(--p-accent); --glow-alpha: 45%; }
+html[data-light='t-strokes'] { --p-bg: oklch(0.17 0.06 250); --p-bg-raised: oklch(0.215 0.06 250); --p-accent: oklch(0.680 0.15 30); --p-glow: oklch(0.65 0.1 78); --p-wash: var(--p-accent); --glow-alpha: 48%; }
+html[data-light='t-gambino'] { --p-bg: oklch(0.15 0.04 260); --p-bg-raised: oklch(0.195 0.04 260); --p-accent: oklch(0.780 0.1 230); --p-glow: oklch(0.5 0.19 265); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+html[data-light='t-kanye'] { --p-bg: oklch(0.17 0.07 25); --p-bg-raised: oklch(0.215 0.07 25); --p-accent: oklch(0.720 0.17 50); --p-glow: oklch(0.5 0.2 25); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+html[data-light='t-rafi'] { --p-bg: oklch(0.17 0.06 200); --p-bg-raised: oklch(0.215 0.06 200); --p-accent: oklch(0.780 0.13 350); --p-glow: oklch(0.5 0.09 200); --p-wash: var(--p-accent); --glow-alpha: 54%; }
+html[data-light='t-kishore'] { --p-bg: oklch(0.16 0.05 30); --p-bg-raised: oklch(0.205 0.05 30); --p-accent: oklch(0.660 0.2 28); --p-glow: oklch(0.6 0.18 50); --p-wash: var(--p-glow); --glow-alpha: 54%; }
+html[data-light='t-bollywood-house'] { --p-bg: oklch(0.17 0.07 260); --p-bg-raised: oklch(0.215 0.07 260); --p-accent: oklch(0.750 0.1 260); --p-glow: oklch(0.66 0.12 70); --p-wash: var(--p-glow); --glow-alpha: 50%; }
+html[data-light='t-frankl'] { --p-bg: oklch(0.17 0.06 235); --p-bg-raised: oklch(0.215 0.06 235); --p-accent: oklch(0.740 0.08 235); --p-glow: oklch(0.8 0.03 85); --p-wash: var(--p-accent); --glow-alpha: 42%; }
+html[data-light='t-sisyphus'] { --p-bg: oklch(0.17 0.0 0); --p-bg-raised: oklch(0.215 0.0 0); --p-accent: oklch(0.850 0.0 0); --p-glow: oklch(0.8 0.0 0); --p-wash: var(--p-glow); --glow-alpha: 30%; }
+html[data-light='t-tiny-experiments'] { --p-bg: oklch(0.17 0.05 190); --p-bg-raised: oklch(0.215 0.05 190); --p-accent: oklch(0.740 0.11 185); --p-glow: oklch(0.85 0.01 90); --p-wash: var(--p-accent); --glow-alpha: 36%; }
+html[data-light='t-carson'] { --p-bg: oklch(0.17 0.05 235); --p-bg-raised: oklch(0.215 0.05 235); --p-accent: oklch(0.660 0.17 28); --p-glow: oklch(0.65 0.07 225); --p-wash: var(--p-glow); --glow-alpha: 50%; }
+html[data-light='t-gervais'] { --p-bg: oklch(0.17 0.02 240); --p-bg-raised: oklch(0.215 0.02 240); --p-accent: oklch(0.840 0.02 80); --p-glow: oklch(0.7 0.01 240); --p-wash: var(--p-glow); --glow-alpha: 45%; }
+html[data-light='t-kohli'] { --p-bg: oklch(0.16 0.02 0); --p-bg-raised: oklch(0.205 0.02 0); --p-accent: oklch(0.640 0.19 25); --p-glow: oklch(0.38 0.14 25); --p-wash: var(--p-glow); --glow-alpha: 60%; }

@@ -156,7 +156,10 @@ const record = said.filter((s) => s.id !== rest?.id);
   <section class="section wrap" aria-labelledby="said-label">
     <div class="label-row">
       <h2 id="said-label">In his words</h2>
-      <a href={links.letterboxd} class="quiet" rel="me external">Letterboxd →</a>
+      <p class="said-links">
+        <a href="/taste/log/" class="quiet">Film diary →</a>
+        <a href={links.letterboxd} class="quiet" rel="me external">Letterboxd →</a>
+      </p>
     </div>
     <ol class="said grid" role="list">
       {record.map((s, i) => (
@@ -230,6 +233,9 @@ const record = said.filter((s) => s.id !== rest?.id);
 </style>
 
 <style>
+  /* the record's two ways out: his whole film diary here, and Letterboxd */
+  .said-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.25rem 1.25rem; }
+
   /* the opening: the line pinned left, the lead right, bottom-aligned */
   .open {
     padding-top: clamp(1.5rem, 4vw, 3.5rem);

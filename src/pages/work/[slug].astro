@@ -16,15 +16,18 @@ import Base from '../../layouts/Base.astro';
 import { render } from 'astro:content';
 import { Image } from 'astro:assets';
 import type { Project } from '../../data/me';
-import { fmtDate, iso } from '../../lib/posts';
+import { iso } from '../../lib/posts';
 import { sortedProjects, workEntries, pagePath, isRunning, whenISO, type WorkEntry } from './_work';
+import Ending from '../../components/Ending.astro';
+import { threadsOf, mentionsOf, addedOn, after, statusGroup } from '../../lib/endings';
 
 export async function getStaticPaths() {
   const list = sortedProjects();
   const entries = await workEntries();
-  /* Previous / next walk the ledger, but only through projects with a page worth reading. */
+  /* Newer / older walk the ledger within the project's status group, only through projects with a page worth reading. */
   const nearest = (from: number, step: 1 | -1) => {
-    for (let j = from + step; j >= 0 && j < list.length; j += step) if (entries.has(list[j].slug)) return list[j];
+    const g = statusGroup(list[from]);
+    for (let j = from + step; j >= 0 && j < list.length; j += step) if (statusGroup(list[j]) === g && entries.has(list[j].slug)) return list[j];
     return null;
   };
   return list.map((project, i) => ({
@@ -55,9 +58,35 @@ const links = d
 const examples = d?.examples ?? [];
 const host = (u: string) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 const stoppedLabel = p.status === 'paused' ? 'Why it paused' : 'Why it stopped';
+
+/* ---- the end (src/components/Ending.astro): the thread, who links here, the dates, the group's pair ---- */
+const threads = await threadsOf({ project: p.slug });
+const mentions = await mentionsOf({ project: p.slug });
+/* written: the day the page landed here (git; unknown in a shallow clone); changed: its `updated` */
+const written = addedOn(entry?.filePath);
+const changed = d?.updated && (!written || after(d.updated, written)) ? d.updated : undefined;
+const neighbour = (x: Project | null) => (x ? { title: x.name, href: pagePath(x.slug), date: x.when, datetime: whenISO(x.when) } : null);
+const group = `, also ${statusGroup(p)}`;
+
+/* For agents: the project, with when it started and when the page last changed. */
+const SITE = 'https://vyas.garden';
+const work = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: p.name,
+  description: summary,
+  url: new URL(pagePath(p.slug), SITE).href,
+  dateCreated: whenISO(p.when),
+  ...(d?.updated ? { dateModified: iso(d.updated) } : {}),
+  creativeWorkStatus: p.status,
+  keywords: p.tags.join(', '),
+  author: { '@type': 'Person', name: 'Abhishek Vyas', url: SITE + '/' },
+  ...(links.length ? { sameAs: links.map((l) => l.url) } : {}),
+};
 ---
 
 <Base title={p.name} description={summary}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(work)} />
   <article class:list={['wrap room', { bare: !Content }]} data-status={p.status} data-run={run ? '' : undefined}>
     <header class="head col">
       <p class="back small"><a href={`/work/#${p.slug}`} class="quiet">Work</a></p>
@@ -123,30 +152,18 @@ const stoppedLabel = p.status === 'paused' ? 'Why it paused' : 'Why it stopped';
         <p>{d.stopped}</p>
       </aside>
     )}
-
-    {d?.updated && (
-      <p class="updated small col">Updated <time class="mono" datetime={iso(d.updated)}>{fmtDate(d.updated)}</time></p>
-    )}
   </article>
 
-  {(prev || next) && (
-    <nav class="wrap between" aria-label="Other projects">
-      {prev && (
-        <p class="n prev">
-          <span class="small muted">Previous</span>
-          <a href={pagePath(prev.slug)} class="quiet">{prev.name}</a>
-          <time class="mono muted" datetime={whenISO(prev.when)}>{prev.when}</time>
-        </p>
-      )}
-      {next && (
-        <p class="n next">
-          <span class="small muted">Next</span>
-          <a href={pagePath(next.slug)} class="quiet">{next.name}</a>
-          <time class="mono muted" datetime={whenISO(next.when)}>{next.when}</time>
-        </p>
-      )}
-    </nav>
-  )}
+  <Ending
+    written={written}
+    changed={changed}
+    threads={threads}
+    mentions={mentions}
+    newer={neighbour(prev)}
+    older={neighbour(next)}
+    group={group}
+    navLabel="Other projects"
+  />
 </Base>
 
 <style>
@@ -338,29 +355,9 @@ const stoppedLabel = p.status === 'paused' ? 'Why it paused' : 'Why it stopped';
     text-wrap: pretty;
   }
 
-  /* the reading room's "First published on…" place: small, centred under the piece */
-  .updated { margin-top: var(--gap-block); color: var(--ink-muted); text-align: center; }
-  .updated .mono { font-size: inherit; }
-
-  /* previous / next, in the text column, as the reading room does it */
-  .between {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--gutter);
-    max-width: 680px;
-    margin-top: var(--gap-section);
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--hairline);
-  }
-  .n { display: grid; gap: 0.25rem; justify-items: start; }
-  .n.next { margin-left: auto; justify-items: end; text-align: right; }
-  .n .small { font-weight: 500; }
-  .n a { font-size: var(--fs-body); font-weight: 500; }
-
   @media (max-width: 719px) {
     .room { padding-top: 1rem; }
     .name { margin-top: 1.5rem; }
     .links li { grid-template-columns: 3.75rem minmax(0, 1fr); gap: 0.75rem; }
-    .between { margin-top: clamp(4rem, 12vw, 6rem); }
   }
 </style>

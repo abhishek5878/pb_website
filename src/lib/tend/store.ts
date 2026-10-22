@@ -200,12 +200,18 @@ function github(): Store {
   const fromBase64 = (s: string) => Buffer.from(s.replace(/\n/g, ''), 'base64').toString('utf8');
 
   async function readAt(path: string): Promise<string> {
-    let file: { content?: string; encoding?: string };
+    let file: { content?: string; encoding?: string; sha?: string };
     try {
       file = await api(`/contents/${path}?ref=${encodeURIComponent(ref)}`);
     } catch (e) {
       if (e instanceof GitHubError && e.status === 404) throw new Missing(path);
       throw e;
+    }
+    /* over 1MB the contents API leaves the content out (encoding "none"); the blob has it (the film archive, one day) */
+    if (file.encoding === 'none' && typeof file.sha === 'string' && /^[0-9a-f]{40}$/.test(file.sha)) {
+      const blob = await api<{ content: string; encoding: string }>(`/git/blobs/${file.sha}`);
+      if (blob.encoding !== 'base64' || typeof blob.content !== 'string') throw new Error('unexpected blob payload');
+      return fromBase64(blob.content);
     }
     if (file.encoding !== 'base64' || typeof file.content !== 'string') throw new Error('unexpected contents payload');
     return fromBase64(file.content);
