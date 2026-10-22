@@ -56,7 +56,10 @@ const img = me.epigraph.image;
       <a href="/taste/" class="quiet">All <span class="mono">{works.length}</span> →</a>
     </div>
     <div class="grid taste-row">
-      <p class="lead title consume">{me.consume}</p>
+      <figure class="consume">
+        <blockquote class="lead title">“{me.tasteLead.text}”</blockquote>
+        <figcaption class="small muted">{me.tasteLead.by}</figcaption>
+      </figure>
       <Circle class="moon" />
     </div>
   </section>
@@ -287,7 +290,9 @@ const img = me.epigraph.image;
 
   /* 2. taste: the line left, the moon right */
   .taste-row { align-items: start; }
-  .consume { grid-column: 1 / 9; max-width: 26ch; }
+  .consume { grid-column: 1 / 9; margin: 0; }
+  .consume blockquote { margin: 0; max-width: 24ch; text-wrap: pretty; }
+  .consume figcaption { margin-top: 1rem; }
   .taste-row :global(.moon) { grid-column: 9 / 13; justify-self: end; margin-top: var(--gap-block); width: clamp(180px, min(22vw, 320px), 320px); }
   @media (max-width: 719px) {
     .consume { grid-column: 1 / -1; }

@@ -11,7 +11,7 @@
  * (contrast-checked: scratchpad/pages/taste/palettes.py); the four with no
  * researched swatch respond in ink only and keep the house light.
  *
- * His words only: lines from src/data/taste.ts, me.consume, me.music, and his
+ * His words only: lines from src/data/taste.ts, me.tasteLead (Jarmusch, his pick), me.music, and his
  * own Letterboxd reviews in src/data/films.json. UI words: "All of it.",
  * "In his words", "Last watched", "Letterboxd".
  */
@@ -93,11 +93,14 @@ const rest = works.find((w) => w.light === REST);
 const record = said.filter((s) => s.id !== rest?.id);
 ---
 
-<Base title="Taste" description={me.consume} light={REST}>
+<Base title="Taste" description={`${me.tasteLead.text} – ${me.tasteLead.by}`} light={REST}>
   <!-- the oversized line and the lead, 7/5 -->
   <section class="open wrap grid" aria-label="Taste">
     <h1 class="all display-xl">All of it.</h1>
-    <p class="consume title-lit">{me.consume}</p>
+    <figure class="consume">
+      <blockquote class="title-lit">“{me.tasteLead.text}”</blockquote>
+      <figcaption class="small muted">{me.tasteLead.by}</figcaption>
+    </figure>
   </section>
 
   <!-- the shelf: one row of spines standing on a hairline, kind labels beneath. a scroller on the phone -->
@@ -231,7 +234,10 @@ const record = said.filter((s) => s.id !== rest?.id);
     grid-column: 9 / 13;
     max-width: 18em;
     padding-bottom: 0.35em;
+    margin: 0;
   }
+  .consume blockquote { margin: 0; }
+  .consume figcaption { margin-top: 0.75rem; }
   @media (max-width: 1023px) {
     .all { grid-column: 1 / 8; }
     .consume { grid-column: 8 / 13; }

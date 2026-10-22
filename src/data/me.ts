@@ -47,6 +47,15 @@ export const me = {
   simple: 'This is simple. Anyone can do.',
   /** Q11. */
   consume: 'I want to consume things and then build things as well.',
+  /**
+   * Leads Taste on the homepage and /taste/. His pick (22 Oct 2026), replacing `consume`.
+   * Jim Jarmusch, rule #5 of his golden rules, MovieMaker magazine, Jan 2004. Trimmed
+   * to its first two sentences.
+   */
+  tasteLead: {
+    text: 'Nothing is original. Steal from anywhere that resonates with inspiration or fuels your imagination.',
+    by: 'Jim Jarmusch',
+  },
   obsession: 'Every quarter I pick up a new obsession.',
   /**
    * Q33, verbatim from "is more about my life…", split for the Writing page:
