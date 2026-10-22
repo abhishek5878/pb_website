@@ -12,7 +12,8 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     guard(request, { session: false });
     const body = await readJson(request, 10_000);
-    const given = typeof body.passphrase === 'string' ? body.passphrase : '';
+    // trim: a pasted passphrase often brings a space or newline with it
+    const given = typeof body.passphrase === 'string' ? body.passphrase.trim() : '';
     if (given.length === 0 || given.length > 1000 || !passphraseMatches(given)) {
       await sleep(1000);
       return fail(401);
