@@ -23,9 +23,9 @@ and to the question would they notice if I stopped performing? I think they shou
 > so start with yourself ”  
 > ~ Abhishek Vyas
 
-you started behaving/acting in a way by your own choice, fuck other reasons, at end of the day by sheer logic of survival you started acting a certain way but now there’s no need to do that anymore, the desire to be seen is ultimately has to pass by fear of being seen, so what do you choose today?  
+you started behaving/acting in a way by your own choice, fuck other reasons, at end of the day by sheer logic of survival you started acting a certain way but now there’s no need to do that anymore, the desire to be seen ultimately has to pass by fear of being seen, so what do you choose today?  
 
 fear of being seen or desire of being seen????  
-spoiler alert, in my opinion, both of them are wrong answers, choose yourself, rest fear or desire becomes irrelevant, so enough yapping for the day, back to try to built out this startup.
+spoiler alert, in my opinion, both of them are wrong answers, choose yourself, rest fear or desire becomes irrelevant, so enough yapping for the day, back to try to build out this startup.
 
 ![Black-and-white painting of people in evening wear toasting at a bar, under handwritten text repeating: I feel important. Do you feel important? Yes, I feel important.](./image-02.jpg)

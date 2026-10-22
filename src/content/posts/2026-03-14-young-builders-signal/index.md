@@ -2,7 +2,7 @@
 kind: essay
 date: 2026-03-14
 title: "Young Builders Signal"
-subtitle: "Four Operators Under the Radar(or maybe not)"
+subtitle: "Four Operators Under the Radar (or maybe not)"
 publication: wasp
 canonical: https://waspsignal.substack.com/p/young-builders-signal
 ---
@@ -31,7 +31,7 @@ Why it hits: While others chase apps, Arnav owns the infra layer that decides wh
 **4\. Shrey Tyagi - myjobb.ai**  
 Full-stack founder running everything at myjobb AI  
 The play: AI Job Copilot that delivers relevant openings in seconds. Upload resume → let jobs find you. “10x smarter, 100x faster” than manual search.  
-Signal: Public launch push (Google/LinkedIn sign-up flow), aggressive iteration posts, clear pain-point attack (”finding a job shouldn’t be a full-time job”). Early traction via user shares and podcast features.  
+Signal: Public launch push (Google/LinkedIn sign-up flow), aggressive iteration posts, clear pain-point attack (“finding a job shouldn’t be a full-time job”). Early traction via user shares and podcast features.  
 Why it hits: Direct vertical strike on Naukri/LinkedIn India’s broken portal model. Solves high-volume, soul-crushing consumer pain with relevance + speed. Classic Indian AI wrapper → mastery play.
 
 **Pattern emerging**  

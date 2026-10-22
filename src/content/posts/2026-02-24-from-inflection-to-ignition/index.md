@@ -8,7 +8,7 @@ canonical: https://waspsignal.substack.com/p/from-inflection-to-ignition
 ---
 
 <!-- Imported verbatim from Substack (https://waspsignal.substack.com/p/from-inflection-to-ignition), first published 2026-02-24T05:04:54.847Z. -->
-I kept reading CRED mafia, Razorpay Founders, I wondered what led to these people inflect and starting building their own startups!!  
+I kept reading CRED mafia, Razorpay Founders, I wondered what led to these people inflect and start building their own startups!!  
 The golden growth phase isn’t career fuel.  
 It’s founder bootcamp.
 

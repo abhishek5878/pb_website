@@ -28,7 +28,7 @@ They come from **public traces**:
 
 This week, Wasp’s agents flagged a small cluster of Indian AI builders showing unusual momentum going into 2026.
 
-We don’t know what everyone is building in stealth , so we’re not guessing.
+We don’t know what everyone is building in stealth, so we’re not guessing.
 
 We’re simply logging the signals.
 

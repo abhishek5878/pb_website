@@ -10,7 +10,7 @@ canonical: https://abhishekvyas02032001.substack.com/p/what-reddit-tells-us-abou
 <!-- Imported verbatim from Substack (https://abhishekvyas02032001.substack.com/p/what-reddit-tells-us-about-the-future), first published 2025-09-27T07:00:15.441Z. -->
 Every pitch deck says VCs are in the business of backing founders. But scroll through the right corners of Reddit, and you’ll see another story: small VCs drowning in emails, founders slipping through cracks, and partners juggling admin work that should’ve died with Excel 2003.  
 
-The truth is blunt : small VCs don’t have the bandwidth of Sequoia or a16z. They run lean, sometimes with just a GP and an analyst. Yet, the *volume* of dealflow is relentless.
+The truth is blunt: small VCs don’t have the bandwidth of Sequoia or a16z. They run lean, sometimes with just a GP and an analyst. Yet, the *volume* of dealflow is relentless.
 
 ### Dealflow Deluge: 1,000 Decks, 10 Investments
 
@@ -32,7 +32,7 @@ The answers revealed:
 - A few outsource research to consultants or unpaid interns.
 
 
-##### This creates a weird paradox : VCs demand meticulous data rooms from founders, yet behind the curtain their own diligence is patchy at best.  
+##### This creates a weird paradox: VCs demand meticulous data rooms from founders, yet behind the curtain their own diligence is patchy at best.  
 
 
 ### Enter AI (and the Hype)

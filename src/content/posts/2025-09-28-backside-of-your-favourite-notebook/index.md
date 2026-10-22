@@ -8,7 +8,7 @@ canonical: https://abhishekvyas02032001.substack.com/p/backside-of-your-favourit
 ---
 
 <!-- Imported verbatim from Substack (https://abhishekvyas02032001.substack.com/p/backside-of-your-favourite-notebook), first published 2025-09-28T10:25:41.958Z. -->
-Everyone would that one notebook in their school time which was meant to be classwork/homework notebook but fate and you had different plans.  
+Everyone would have that one notebook in their school time which was meant to be classwork/homework notebook but fate and you had different plans.  
 You started to fill it with random games, gibberish, random communication between the classes, exchanging jokes, playing ‘BOLLYWOOD’, playing ‘X O’ , keeping up the CKT (hand-cricket) score tally on who’s leading and sometimes just you and your thoughts.
 
 Recently I was in my hometown, went to my study room which first got converted into my sister’s study room which became the current ‘me-time’ room for my father, I saw an old notebook and at first I saw some formula, some equations and suddenly it turned all FUN, scribbling random convos between coaching lectures, random game that we invented of who could draw the longest with their non dominant hand, ahhh the simpler times.  

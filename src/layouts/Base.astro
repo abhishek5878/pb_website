@@ -27,10 +27,11 @@ interface Props {
 }
 
 const SITE = 'https://vyas.garden';
-/* Michael Scott on the home and section pages: the whiteboard is the default description and card.
+/* Michael Scott on the home and section pages: the whiteboard is the default card; the default
+   description is his own one-liner, so search results say who he is.
    Each post brings its own card (src/pages/og/[id].png.ts). */
 const scott = me.epigraph.image;
-const { title, description = me.epigraph.lines.join(' '), image = scott.jpg, light = 'lalaland', canonical: canonicalProp } = Astro.props;
+const { title, description = `${me.name}. ${me.interests} ${me.where}`, image = scott.jpg, light = 'lalaland', canonical: canonicalProp } = Astro.props;
 const isScott = image === scott.jpg;
 const imageSize = Astro.props.imageSize ?? (isScott ? { width: scott.width, height: scott.height } : { width: 1200, height: 630 });
 const imageAlt = Astro.props.imageAlt ?? (isScott ? scott.alt : undefined);
