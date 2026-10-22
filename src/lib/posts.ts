@@ -17,6 +17,7 @@ export type Post = {
   kind: Kind;
   date: Date;
   title?: string;
+  subtitle?: string;
   subject?: string;
   by?: string;
   year?: number;
@@ -69,6 +70,7 @@ export async function getPosts(): Promise<Post[]> {
       kind: d.kind,
       date: d.date,
       title: d.title,
+      subtitle: d.subtitle,
       subject: d.subject,
       by: d.by,
       year: d.year,
@@ -83,6 +85,7 @@ export async function getPosts(): Promise<Post[]> {
       pull: d.pull,
       light: d.light,
       source: 'site',
+      sourceName: d.publication === 'wasp' ? 'WASP Signal' : undefined,
       href: `/writing/${e.id}/`,
       external: false,
       raw: e,

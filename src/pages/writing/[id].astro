@@ -52,6 +52,7 @@ const { Content } = html ? { Content: null } : await render(entry);
 
     <header class="head">
       <h1 class:list={[isPoem ? 'title-poem' : 'title']}>{post.title}</h1>
+      {post.subtitle && <p class="subtitle">{post.subtitle}</p>}
     </header>
 
     <div class="body">
@@ -60,7 +61,7 @@ const { Content } = html ? { Content: null } : await render(entry);
 
     {canonical && (
       <p class="first small">
-        <a href={canonical} class="quiet" rel="external">First published on Substack</a>
+        <a href={canonical} class="quiet" rel="external">First published on {post.sourceName ?? 'Substack'}</a>
       </p>
     )}
   </article>
@@ -136,7 +137,35 @@ const { Content } = html ? { Content: null } : await render(entry);
   .essay .body :global(ul),
   .essay .body :global(ol) { margin: 1.3em 0; padding-left: 1.5em; }
   .essay .body :global(li + li) { margin-top: 0.4em; }
-  .essay .body :global(img) { margin: 2em 0; }
+  .subtitle {
+    margin-top: 0.75rem;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--fs-lit);
+    line-height: 1.35;
+    color: var(--ink-muted);
+    font-optical-sizing: auto;
+  }
+  /* images and video from the original post, in place, captions beneath */
+  .body :global(img),
+  .body :global(video) { display: block; max-width: 100%; height: auto; margin: 2em 0 0; }
+  .body :global(p:has(> img:only-child)) { margin: 0; }
+  .body :global(video) { width: 100%; background: var(--bg-raised); }
+  .body :global(.caption) {
+    margin-top: 0.6em;
+    font-family: var(--sans);
+    font-size: var(--fs-small);
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--ink-muted);
+  }
+  .body :global(img + .caption),
+  .body :global(p:has(> img) + .caption) { margin-bottom: 2em; }
+  .body :global(sup) { font-size: 0.6em; line-height: 0; }
+  .essay .body :global(h1),
+  .essay .body :global(h4),
+  .essay .body :global(h5) { font-family: var(--sans); font-weight: 600; font-size: var(--fs-lit); line-height: 1.25; margin-top: 2.2em; }
   .essay .body :global(hr) { border: 0; border-top: 1px solid var(--hairline); margin: 2.5em 0; }
 
   /* verse: 22em, ragged, left; a wrapped line hangs; his indents hold */

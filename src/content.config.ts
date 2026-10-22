@@ -41,6 +41,10 @@ const posts = defineCollection({
       kind: z.enum(KINDS),
       date: z.coerce.date(),
       title: z.string().optional(),
+      /** The line under the title (Substack's subtitle). */
+      subtitle: z.string().optional(),
+      /** For posts brought over from Substack: which one. WASP Signal posts take the venture-notes voice. */
+      publication: z.enum(['personal', 'wasp']).optional(),
       /** The thing being reviewed or listened to, and who made it. */
       subject: z.string().optional(),
       by: z.string().optional(),
