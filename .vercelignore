@@ -1,0 +1,14 @@
+# Never upload personal reference files.
+*.xlsx
+*.pdf
+.DS_Store
+/_parked/
+/node_modules/
+/dist/
+/.astro/
+/media/
+/about-me.md
+/projects-draft.md
+/day-one-posts.md
+.env*
+/docs/

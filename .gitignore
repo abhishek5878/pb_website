@@ -1,0 +1,36 @@
+node_modules/
+dist/
+.astro/
+.vercel/
+.DS_Store
+*.log
+.env
+.env.*
+
+# src/data/*.json is committed on purpose: it's the fallback when a feed fetch
+# fails, and CI has no prior copy of an ignored file.
+
+# Personal documents dropped in here for reference. Never publish.
+Profile-*.pdf
+*resume*.pdf
+*cv*.pdf
+feral_existence.xlsx
+*.xlsx
+.vercel
+.env*
+
+# Answers to the site questionnaire. Personal input, not for the repo.
+about-me.md
+projects-draft.md
+day-one-posts.md
+
+# Raw photos and videos he dropped in. Only processed, approved files go in public/.
+/media/
+
+# Switzer is fetched at build time (ITF licence forbids redistributing the files).
+/public/fonts/switzer/
+
+# Local only: the parked garden build (other photos, personal data) and the design
+# notes, which quote his private answers. This repo is public.
+/_parked/
+/docs/

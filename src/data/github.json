@@ -1,0 +1,47 @@
+{
+  "user": "abhishek5878",
+  "generatedAt": "2026-10-22T07:38:19.587Z",
+  "active": [],
+  "repos": [
+    {
+      "name": "rocky",
+      "url": "https://github.com/abhishek5878/rocky",
+      "description": null,
+      "language": "HTML",
+      "stars": 0,
+      "pushedAt": "2026-08-18T12:58:57Z"
+    },
+    {
+      "name": "indiastox_agent",
+      "url": "https://github.com/abhishek5878/indiastox_agent",
+      "description": null,
+      "language": "Python",
+      "stars": 0,
+      "pushedAt": "2026-05-25T01:55:56Z"
+    },
+    {
+      "name": "simul2design",
+      "url": "https://github.com/abhishek5878/simul2design",
+      "description": null,
+      "language": "Python",
+      "stars": 0,
+      "pushedAt": "2026-04-28T11:33:36Z"
+    },
+    {
+      "name": "fewwords",
+      "url": "https://github.com/abhishek5878/fewwords",
+      "description": "Deterministic trajectory contracts for AI agents - pre-execution guard, sub-millisecond, MIT.",
+      "language": "Python",
+      "stars": 2,
+      "pushedAt": "2026-04-28T00:49:39Z"
+    },
+    {
+      "name": "calibration_apriori",
+      "url": "https://github.com/abhishek5878/calibration_apriori",
+      "description": null,
+      "language": "Python",
+      "stars": 0,
+      "pushedAt": "2026-04-23T14:16:06Z"
+    }
+  ]
+}

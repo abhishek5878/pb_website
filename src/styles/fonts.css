@@ -1,0 +1,37 @@
+/*
+ * Three families, one job each (docs/design/type-colour.md):
+ *   Switzer     his voice: display and UI (Helvetica Bold energy)
+ *   Newsreader  writing and poems (optical sizes, holds up on dark)
+ *   Plex Mono   dates and numbers only, never uppercase captions
+ * Hindi: Tiro Devanagari Hindi for poems, Mukta for display. Both load only
+ * when Devanagari appears on the page (unicode-range).
+ */
+
+@import '@fontsource-variable/newsreader/opsz.css';
+@import '@fontsource-variable/newsreader/opsz-italic.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+@import '@fontsource/tiro-devanagari-hindi/devanagari-400.css';
+@import '@fontsource/tiro-devanagari-hindi/devanagari-400-italic.css';
+@import '@fontsource/mukta/devanagari-500.css';
+@import '@fontsource/mukta/devanagari-800.css';
+
+/* Fetched at build by scripts/fetch-fonts.mjs; Fontshare's CDN is the fallback. */
+@font-face {
+  font-family: 'Switzer';
+  src:
+    url('/fonts/switzer/Switzer-Variable.woff2') format('woff2'),
+    url('https://cdn.fontshare.com/wf/HJHZ26OECMTXRH7JXPFC7EVIHDSLT2RA/LJRNLR7WCPF3PY3SZ7B2LHNUTQMFNCHL/4MCJYGQDIOOXHWSIIB2OYNDBEALJSOGN.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Switzer';
+  src:
+    url('/fonts/switzer/Switzer-VariableItalic.woff2') format('woff2'),
+    url('https://cdn.fontshare.com/wf/KDSQNRHYYJCWSLSNMQTKJOY7QNC2IBLM/HGYBIGJ4X7DYUETLTGW4BIVO3FCWLJUR/AFY5UJBPUVSDM77Q42DSHPT5JUNR7N4Y.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
