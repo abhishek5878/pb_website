@@ -7,11 +7,14 @@ import type { APIRoute } from 'astro';
 import { me, charter, now, projects, proud, jobs, links, places } from '../data/me';
 import { works, KIND_LABEL, type Kind } from '../data/taste';
 import { getWriting, label, fmtDate } from '../lib/posts';
+import { getCollection } from 'astro:content';
 
 const SITE = 'https://vyas.garden';
 
 export const GET: APIRoute = async () => {
   const writing = await getWriting();
+  const pages = new Set((await getCollection('work')).map((e) => e.id));
+  const page = (slug: string) => (pages.has(slug) ? ` Page: ${SITE}/work/${slug}/` : '');
   const kinds = Object.keys(KIND_LABEL) as Kind[];
   const lines = [
     `# ${me.fullName} (vyas.garden)`,
@@ -28,7 +31,7 @@ export const GET: APIRoute = async () => {
     ...now.map((n) => `- ${n.verb}: ${n.what}`),
     '',
     '## Everything he has built, unfinished included',
-    ...projects.map((p) => `- ${p.name} (${p.status}, ${p.when}; ${p.tags.join(', ')}): ${p.line}${p.href ? ` ${p.href}` : ''}`),
+    ...projects.map((p) => `- ${p.name} (${p.status}, ${p.when}; ${p.tags.join(', ')}): ${p.line}${p.href ? ` ${p.href}` : ''}${page(p.slug)}`),
     '',
     '## Proudest of',
     ...proud.map((p) => `- ${p.name}: ${p.line}`),
@@ -42,6 +45,11 @@ export const GET: APIRoute = async () => {
     '',
     '## Writing',
     ...writing.slice(0, 20).map((p) => `- ${fmtDate(p.date)}: ${label(p)} ${new URL(p.href, SITE).href}`),
+    '',
+    '## Threads',
+    `Ideas his writing and work keep coming back to, in order: ${SITE}/threads/`,
+    '- Being seen without performing: the desire to be seen → Perform!!! → Seven minutes → Rocky, Signal Spark → the charter.',
+    '- Credit: A Piece of Plastic and Curious Case of CRED (2024) → a credit score for India (2026).',
     '',
     '## What he lives by',
     ...charter.map((c) => `> ${c}`),

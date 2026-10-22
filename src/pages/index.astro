@@ -12,8 +12,11 @@ import Strip from '../components/Strip.astro';
 import { me, links, projects, ask } from '../data/me';
 import { works } from '../data/taste';
 import { getWriting, firstLine, fmtDate, iso } from '../lib/posts';
+import { workEntries, pagePath } from './work/_work';
 
 const writing = await getWriting();
+/** The address only ever appears assembled by JS (Base), so scrapers reading the HTML miss it. */
+const [mailUser, mailDomain] = me.email.split('@');
 /** His own pieces, first lines; Substack subtitles aren't first lines. */
 const pieces = writing.filter((p) => p.source === 'site').slice(0, 2);
 const poem = writing.find((p) => p.kind === 'poem' && p.pull.length > 0);
@@ -21,6 +24,9 @@ const poem = writing.find((p) => p.kind === 'poem' && p.pull.length > 0);
 /** The running work: live, in use, building. Five at most; the rest is /work/. */
 const RUNNING: readonly string[] = ['live', 'in use', 'building'];
 const running = projects.filter((p) => RUNNING.includes(p.status)).slice(0, 5);
+/** A running name opens its own page once the writer's entry exists; until then, its place on /work/. */
+const entries = await workEntries();
+const workHref = (p: (typeof projects)[number]) => (entries.has(p.slug) ? pagePath(p.slug) : (p.href ?? `/work/#${p.slug}`));
 
 const img = me.epigraph.image;
 ---
@@ -76,7 +82,7 @@ const img = me.epigraph.image;
         {running.map((p) => (
           <li>
             <p class="head">
-              <a href={p.href ?? `/work/#${p.slug}`} class="quiet name">{p.name}</a>
+              <a href={workHref(p)} class="quiet name">{p.name}</a>
               <span class="small muted">{p.status}</span>
               <span class="mono muted">{p.when}</span>
             </p>
@@ -106,6 +112,13 @@ const img = me.epigraph.image;
         </article>
       ))}
     </div>
+    <!-- The one way into /threads/: where the work and the writing meet. -->
+    <p class="threads small">
+      <a href="/threads/" class="quiet lead-in">
+        <svg class="zig" viewBox="0 0 30 14" aria-hidden="true" focusable="false"><polyline points="2,2 2,5.5 28,9 28,12" /><circle cx="2" cy="2" r="2" /><circle cx="28" cy="12" r="2" /></svg>Threads →</a>
+      <a href="/threads/#seen" class="quiet">Being seen without performing</a>
+      <a href="/threads/#credit" class="quiet">Credit</a>
+    </p>
   </section>
 
   <!-- 5. Interlude: one poem, full screen, lit by its own cold light -->
@@ -129,13 +142,13 @@ const img = me.epigraph.image;
     <div class="say">
       <p class="title">{me.sameDoor}</p>
       <p class="address">
-        <a href={`mailto:${me.email}`}>{me.email}</a>
-        <a href={`mailto:${me.email}`} class="quiet muted">send a dm →</a>
+        <a href="#dm" hidden data-u={mailUser} data-d={mailDomain} data-show></a>
+        <a href="#dm" data-u={mailUser} data-d={mailDomain} class="quiet muted">send a dm →</a>
         {links.care && <a href={links.care} class="quiet muted">care slots →</a>}
       </p>
     </div>
     <!-- Posts to Web3Forms (src/data/me.ts `ask`); works without JS, and with it stays on the page. -->
-    <form class="ask" action={ask.endpoint} method="POST" data-mailto={`mailto:${me.email}`}>
+    <form class="ask" action={ask.endpoint} method="POST" data-u={mailUser} data-d={mailDomain}>
       <input type="hidden" name="access_key" value={ask.accessKey} />
       <input type="hidden" name="subject" value={ask.subject} />
       <input type="hidden" name="from_name" value="vyas.garden" />
@@ -164,7 +177,7 @@ const img = me.epigraph.image;
   if (form) {
     const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
     const status = form.querySelector<HTMLElement>('.status')!;
-    const mailto = form.dataset.mailto || '';
+    const mailto = form.dataset.u ? `mailto:${form.dataset.u}@${form.dataset.d}` : '';
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
@@ -328,6 +341,26 @@ const img = me.epigraph.image;
   @media (max-width: 719px) {
     .piece.l, .piece.r { grid-column: 1 / -1; }
   }
+  /* threads: one quiet line under the two first lines, the titles as the only words */
+  .threads {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 1.5rem;
+    margin-top: var(--gap-block);
+    font-weight: 500;
+  }
+  .threads a { color: var(--ink-muted); }
+  .threads a:hover { color: var(--ink); }
+  .threads .lead-in { color: var(--ink); display: inline-flex; align-items: baseline; gap: 0.6rem; }
+  /* the threads page in miniature: a stop, the walk, the next stop */
+  .zig { width: 2.4rem; height: auto; align-self: center; overflow: visible; }
+  .zig polyline { fill: none; stroke: var(--ink-muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  @media (max-width: 719px) {
+    .threads { gap: 0.6rem 1.25rem; }
+    .threads .lead-in { flex-basis: 100%; }
+  }
+  .zig circle { fill: var(--accent); transition: fill var(--d-relight) var(--ease-standard); }
 
   /* 5. interlude: a full screen, the verse alone, lit by its own cold light */
   .interlude {

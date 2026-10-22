@@ -6,19 +6,24 @@
  * His life is set in Newsreader; the venture notes (WASP Signal) in Switzer,
  * pushed to the right like margin notes. One river, by date, no tabs.
  * Older pieces fade toward old paper, so time reads as colour.
- * Every line here is his: first lines verbatim, titles, dates.
+ * Every line here is his: first lines verbatim (a WASP issue's subtitle), titles, dates.
  */
 import Base from '../../layouts/Base.astro';
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import { me, links } from '../../data/me';
 import { getWriting, firstLine, label, fmtDate, iso, type Post } from '../../lib/posts';
+import { isWasp } from '../../lib/og/post';
 
 const pieces = await getWriting();
 
+/** The preview line: his first line, except a WASP Signal issue, whose subtitle is the line
+    that differs (every issue opens on the same template sentence). */
+const preview = (p: Post) => (isWasp(p) && p.subtitle ? p.subtitle : firstLine(p));
+
 /** A post with photos and no first line shows its first photo, small, with the title. */
 const thumbOf = (p: Post): ImageMetadata | undefined => {
-  if (firstLine(p)) return undefined;
+  if (preview(p)) return undefined;
   const img = p.images.find((i) => typeof i.src !== 'string');
   return img ? (img.src as ImageMetadata) : undefined;
 };
@@ -74,7 +79,7 @@ for (const p of pieces) {
                   </a>
                 ) : (
                   <a href={p.href} class="quiet" rel={p.external ? 'external' : undefined}>
-                    <p class="line">{firstLine(p)}</p>
+                    <p class="line">{preview(p)}</p>
                   </a>
                 )}
                 <p class="small label">

@@ -68,4 +68,52 @@ const posts = defineCollection({
     }),
 });
 
-export const collections = { posts };
+/**
+ * Work. One folder per project, src/content/work/<slug>/index.md, images beside
+ * it; <slug> is the project's slug in src/data/projects.json. The contract is
+ * docs/design/work-pages.md. Folders starting with _ are ignored (fixtures).
+ * The folder may not exist yet: the loader then yields no entries and every
+ * project page still renders from projects.json.
+ */
+const work = defineCollection({
+  loader: glob({
+    pattern: examples ? ['**/index.md'] : ['**/index.md', '!**/_*/**'],
+    base: './src/content/work',
+    // "rocky/index.md" (or "_fixture/rocky/index.md") becomes "rocky".
+    generateId: ({ entry }) =>
+      entry
+        .replace(/\/index\.md$/, '')
+        .split('/')
+        .pop()!,
+  }),
+  schema: ({ image }) =>
+    z.object({
+      /** One line, his voice. Overrides projects.json `line` on the project page only. */
+      summary: z.string().optional(),
+      /** Every one curl-checked 200, public. */
+      links: z
+        .array(
+          z.object({
+            label: z.string(),
+            url: z.string().url(),
+            kind: z.enum(['live', 'demo', 'repo', 'paper', 'post', 'page']),
+          })
+        )
+        .default([]),
+      /** Screenshots of public pages, or figures from his public repos and papers. */
+      examples: z
+        .array(
+          z.object({
+            src: image(),
+            caption: z.string(),
+            url: z.string().url().optional(),
+          })
+        )
+        .default([]),
+      /** One line on why it stopped or paused, from the evidence. Omitted if running or unknown. */
+      stopped: z.string().optional(),
+      updated: z.coerce.date().optional(),
+    }),
+});
+
+export const collections = { posts, work };

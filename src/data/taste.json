@@ -85,15 +85,11 @@
     "light": "hailmary"
   },
   {
-    "id": "kiarostami",
-    "title": "Kiarostami",
+    "id": "aftersun",
+    "title": "Aftersun",
     "kind": "film",
-    "line": "It will help me understand movies better, emotions better, humans better.",
-    "swatch": [
-      "#C9A96E",
-      "#7E8A5C",
-      "#E9E2D0"
-    ]
+    "line": "mubi subscription was worth it",
+    "swatch": []
   },
   {
     "id": "better-call-saul",
@@ -351,6 +347,18 @@
       "#A8322D",
       "#24506B",
       "#7FA6B8"
+    ]
+  },
+  {
+    "id": "kiarostami",
+    "title": "Abbas Kiarostami",
+    "kind": "person",
+    "by": "director",
+    "line": "It will help me understand movies better, emotions better, humans better.",
+    "swatch": [
+      "#C9A96E",
+      "#7E8A5C",
+      "#E9E2D0"
     ]
   },
   {

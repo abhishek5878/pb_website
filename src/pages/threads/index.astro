@@ -1,0 +1,279 @@
+---
+/**
+ * Threads: the same ideas, met again in another format. The site is filed by
+ * format (Work, Writing, About); a thread walks across them in order.
+ *
+ * The idea: a path the eye walks, the Kiarostami zigzag from the research
+ * (type-colour.md §2, "alternate sides so the eye zigzags"). Each stop sits
+ * on alternating sides; one hairline runs down its left edge and crosses the
+ * gap on a diagonal to the next, so the eye is led, stop to stop, the way the
+ * boy runs the zigzag path up the hill in Where Is the Friend's House?
+ *
+ * Words: the thread titles and UI words only. Every quoted line is his,
+ * verbatim, from that post or from src/data/me.ts, and the build checks the
+ * post quotes against the post text (a trimmed start or end is marked "…").
+ * Nothing here interprets him.
+ */
+import Base from '../../layouts/Base.astro';
+import { charter, projects } from '../../data/me';
+import { getWriting, fmtMonth, iso, type Post } from '../../lib/posts';
+import { workEntries, projectHref, whenISO } from '../work/_work';
+
+type Ref =
+  | { post: string; quote: string }
+  | { project: string }
+  | { charter: number };
+type Stop = {
+  refs: Ref[];
+  /** Left edge and width, % of the path, on a wide screen and on a phone. */
+  at: [number, number];
+  phone: [number, number];
+  /** A longer walk to the next stop. */
+  far?: boolean;
+};
+type Thread = { id: string; title: string; stops: Stop[] };
+
+const THREADS: Thread[] = [
+  {
+    id: 'seen',
+    title: 'Being seen without performing',
+    stops: [
+      { refs: [{ post: '2025-09-26-the-desire-to-be-seen', quote: '…we all just want to be SEEN.' }], at: [0, 42], phone: [0, 90] },
+      { refs: [{ post: '2026-03-09-perform-this-is-gtm-dude', quote: 'But I’m done performing.' }], at: [34, 42], phone: [10, 90] },
+      { refs: [{ post: '2026-10-22-seven-minutes', quote: 'Who in my brain is editing this?' }], at: [8, 42], phone: [0, 90] },
+      { refs: [{ project: 'rocky' }, { project: 'signal-spark' }], at: [42, 42], phone: [10, 90] },
+      { refs: [{ charter: 0 }], at: [16, 42], phone: [0, 90] },
+    ],
+  },
+  {
+    id: 'credit',
+    title: 'Credit',
+    stops: [
+      {
+        refs: [
+          { post: '2024-03-14-a-piece-of-plastic', quote: '…with just 3% of people possessing a formal credit card.' },
+          { post: '2024-03-18-curious-case-of-cred', quote: '…the user needs to have a CIBIL score greater than 750…' },
+        ],
+        at: [0, 42],
+        phone: [0, 90],
+        far: true,
+      },
+      { refs: [{ project: 'credit' }], at: [42, 42], phone: [10, 90] },
+    ],
+  },
+];
+
+/* ---- resolve each reference to what the page shows ---- */
+type Item = { kind: string; title: string; href: string; date?: string; datetime?: string; quote: string };
+
+const writing = await getWriting();
+const entries = await workEntries();
+const SITE = 'https://vyas.garden';
+
+/** Text as it reads: markdown emphasis and escapes gone, whitespace collapsed. */
+const flat = (s: string) => s.replace(/[*_\\]/g, '').replace(/\s+/g, ' ').trim();
+/**
+ * True when the quote is in the post word for word. If he edits that sentence
+ * (from /tend), the stop falls back to the post's subtitle or title instead of
+ * failing the build, so publishing never breaks; the build log says so.
+ */
+function verbatim(post: Post, quote: string): boolean {
+  const body = post.raw?.body ?? '';
+  const source = flat([post.title, post.subtitle, body, ...post.pull].filter(Boolean).join('\n'));
+  const ok = source.includes(flat(quote.replace(/^…|…$/g, '')));
+  if (!ok) console.warn(`[threads] the quote "${quote}" is no longer in ${post.id}; showing its subtitle/title instead.`);
+  return ok;
+}
+
+function resolve(ref: Ref): Item {
+  if ('post' in ref) {
+    const post = writing.find((p) => p.id === ref.post);
+    if (!post) throw new Error(`/threads/: no post ${ref.post}`);
+    const quote = verbatim(post, ref.quote) ? ref.quote : (post.subtitle ?? post.title ?? post.id);
+    return { kind: 'Post', title: post.title ?? post.id, href: post.href, date: fmtMonth(post.date), datetime: iso(post.date), quote };
+  }
+  if ('project' in ref) {
+    const p = projects.find((x) => x.slug === ref.project);
+    if (!p) throw new Error(`/threads/: no project ${ref.project}`);
+    return { kind: 'Project', title: p.name, href: projectHref(p, entries), date: p.when, datetime: whenISO(p.when), quote: p.line };
+  }
+  return { kind: 'Charter', title: 'About', href: '/about/#charter-label', quote: charter[ref.charter] };
+}
+
+/**
+ * The walk from one stop to the next: a box under the stop, from its left edge
+ * to the next stop's left edge, in % of this stop's width; the line inside runs
+ * corner to corner, mirrored when the path turns back left.
+ */
+function step(a: [number, number], b: [number, number]) {
+  const lo = Math.min(a[0], b[0]);
+  return {
+    left: ((lo - a[0]) / a[1]) * 100,
+    width: (Math.abs(b[0] - a[0]) / a[1]) * 100,
+    flip: b[0] < a[0] ? -1 : 1,
+  };
+}
+const r = (n: number) => `${Math.round(n * 1000) / 1000}%`;
+
+const threads = THREADS.map((t) => ({
+  ...t,
+  stops: t.stops.map((s, i) => {
+    const next = t.stops[i + 1];
+    const d = next ? step(s.at, next.at) : null;
+    const m = next ? step(s.phone, next.phone) : null;
+    const style = [
+      `--x:${s.at[0]}%`, `--w:${s.at[1]}%`, `--xm:${s.phone[0]}%`, `--wm:${s.phone[1]}%`,
+      d && m ? `--sl:${r(d.left)};--sw:${r(d.width)};--sf:${d.flip};--slm:${r(m.left)};--swm:${r(m.width)};--sfm:${m.flip}` : '',
+    ].filter(Boolean).join(';');
+    return { ...s, items: s.refs.map(resolve), style, last: !next };
+  }),
+}));
+---
+
+<Base title="Threads" description={THREADS.map((t) => t.title).join(' · ')}>
+  <section class="wrap" aria-labelledby="threads-label">
+    <div class="label-row">
+      <h1 id="threads-label">Threads</h1>
+      <nav aria-label="Threads" class="jump">
+        {THREADS.map((t) => <a href={`#${t.id}`} class="quiet">{t.title}</a>)}
+      </nav>
+    </div>
+  </section>
+
+  {threads.map((t, ti) => (
+    <section class:list={['wrap thread', { first: ti === 0 }]} id={t.id} aria-labelledby={`${t.id}-title`}>
+      <h2 class="display name" id={`${t.id}-title`}>{t.title}</h2>
+      <ol class="path" role="list">
+        {t.stops.map((s) => (
+          <li class:list={['stop', { last: s.last, far: s.far, pair: s.items.length > 1 }]} style={s.style}>
+            {s.items.map((it) => (
+              <div class="item">
+                <p class="meta small">
+                  {it.date && <time class="mono" datetime={it.datetime}>{it.date}</time>}
+                  <span>{it.kind}</span>
+                </p>
+                <blockquote class="q" cite={new URL(it.href, SITE).href}>
+                  <p>{it.quote}</p>
+                </blockquote>
+                <p class="src"><a href={it.href}>{it.title}</a></p>
+              </div>
+            ))}
+            {!s.last && (
+              <svg class="walk" aria-hidden="true" focusable="false">
+                <line x1="0" y1="0" x2="100%" y2="100%" />
+              </svg>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+</Base>
+
+<style>
+  .jump { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; }
+
+  .thread { margin-top: var(--gap-block); }
+  .thread:not(.first) { margin-top: var(--gap-section); }
+  .thread { scroll-margin-top: 2rem; }
+  .name { max-width: 11.5em; text-wrap: balance; }
+
+  /* ---- the path: stops on alternating sides, one hairline walking between them ---- */
+  .path {
+    --o: 4px; /* the line's x inside a stop: the dot's centre */
+    --gap: clamp(5rem, 3rem + 6vw, 9.5rem);
+    --line: var(--hairline-strong);
+    margin-top: var(--gap-block);
+    position: relative;
+  }
+  .stop {
+    position: relative;
+    margin-left: var(--x);
+    width: var(--w);
+    padding-left: 2.25rem;
+    display: grid;
+    gap: 2.75rem;
+  }
+  .stop:not(.last) { margin-bottom: var(--gap); }
+  .stop.far:not(.last) { margin-bottom: calc(var(--gap) * 1.6); }
+
+  /* the hairline down the stop's left edge: from the dot (first stop) or the top, to the bottom (or the dot, last) */
+  .stop::before {
+    content: '';
+    position: absolute;
+    left: var(--o);
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+    transition: background-color var(--d-relight) var(--ease-standard);
+  }
+  .stop:first-child::before { top: 0.75rem; }
+  .stop.last::before { bottom: auto; height: 0.75rem; }
+  .stop:first-child.last::before { display: none; }
+
+  /* the dot: one per stop, the room's accent, the only colour on the path */
+  .stop::after {
+    content: '';
+    position: absolute;
+    left: calc(var(--o) - 4px);
+    top: calc(0.75rem - 4px);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: background-color var(--d-relight) var(--ease-standard);
+  }
+
+  /* the walk: corner to corner across the gap, mirrored when the path turns back */
+  .walk {
+    position: absolute;
+    top: 100%;
+    left: calc(var(--sl) + var(--o));
+    width: max(1px, var(--sw));
+    height: var(--gap);
+    overflow: visible;
+    transform: scaleX(var(--sf));
+    pointer-events: none;
+  }
+  .far > .walk { height: calc(var(--gap) * 1.6); }
+  .walk line {
+    stroke: var(--line);
+    stroke-width: 1;
+    transition: stroke var(--d-relight) var(--ease-standard);
+  }
+
+  /* ---- one stop: when, what kind; his line; where it lives ---- */
+  .meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0 0.9rem;
+    line-height: 1.5rem;
+    color: var(--ink-muted);
+    font-weight: 500;
+  }
+  .meta .mono { font-size: inherit; font-weight: 400; }
+  .q { margin-top: 0.85rem; }
+  .q p {
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 1.2rem + 1.05vw, 2.2rem);
+    font-weight: 300;
+    line-height: 1.18;
+    font-optical-sizing: auto;
+    text-wrap: pretty;
+  }
+  /* the quote marks hang, so the words keep the stop's edge */
+  .q p::before { content: '“'; margin-left: -0.42em; display: inline-block; width: 0.42em; }
+  .q p::after { content: '”'; }
+  .src { margin-top: 1rem; font-weight: 500; }
+  .src a { text-decoration-color: var(--hairline-strong); }
+  .src a:hover { text-decoration-color: var(--accent); }
+  .src a::after { content: ' →'; color: var(--ink-muted); }
+
+  @media (max-width: 719px) {
+    .path { --gap: 3.5rem; }
+    .stop { margin-left: var(--xm); width: var(--wm); padding-left: 1.6rem; gap: 2rem; }
+    .walk { left: calc(var(--slm) + var(--o)); width: max(1px, var(--swm)); transform: scaleX(var(--sfm)); }
+    .jump { display: none; }
+  }
+</style>

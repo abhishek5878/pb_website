@@ -6,41 +6,26 @@
  * running (live, in use, building) is set large, in full ink, with the one
  * green dot; what stopped or paused is the same index in grey, smaller, still
  * dated, still here. Nothing is a card and nothing carries a tag row: the tags
- * filter once, at the top. Without JavaScript every project shows; with it a
- * tag filters in place and the hash keeps the filter.
+ * filter once, at the top, as five groups. Without JavaScript every project
+ * shows; with it a group filters in place and the hash keeps the filter. A
+ * name links to its own page once the writer's entry for it exists.
  *
  * Every sentence is his, from src/data/me.ts.
  */
 import Base from '../../layouts/Base.astro';
-import { me, projects, proud, links, type Project, type Status } from '../../data/me';
+import { me, projects, proud, links } from '../../data/me';
+import { sortedProjects, workEntries, pagePath, isRunning, whenISO, GROUPS, groupsOf } from './_work';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-/** "Oct 2026" → months since year 0; a bare "2026" counts as the start of that year. */
-function key(when: string): number {
-  const m = when.match(/^([A-Z][a-z]{2}) (\d{4})$/);
-  if (m) return Number(m[2]) * 12 + MONTHS.indexOf(m[1]);
-  const y = when.match(/^(\d{4})$/);
-  return y ? Number(y[1]) * 12 : 0;
-}
-function datetime(when: string): string {
-  const m = when.match(/^([A-Z][a-z]{2}) (\d{4})$/);
-  if (m) return `${m[2]}-${String(MONTHS.indexOf(m[1]) + 1).padStart(2, '0')}`;
-  return when;
-}
-
-const RUNNING: Status[] = ['live', 'in use', 'building'];
-const sorted: Project[] = [...projects].sort((a, b) => key(b.when) - key(a.when));
+const sorted = sortedProjects();
+const entries = await workEntries();
 const total = projects.length;
 
-/** Tags by how often they appear, then by name. */
-const tagCount = new Map<string, number>();
-for (const p of projects) for (const t of p.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
-const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-const slug = (t: string) => t.replace(/\s+/g, '-');
+/** Five groups, mapped from the tags in code (./_work.ts); a group nothing falls in stays hidden. */
+const groups = GROUPS.map((g) => ({ ...g, n: projects.filter((p) => groupsOf(p).includes(g.id)).length })).filter((g) => g.n > 0);
 
-/** A number as a graphic where his line gives one: "top 30 companies" → 30. */
+/** A number as a graphic where his line gives one: "top 30 companies" → 30, with a label that says only what his line says. */
 const numberIn = (line: string) => line.match(/top (\d+)/)?.[1];
+const numberLabel: Record<string, string[]> = { Torch: ['top 30 companies,', 'US market, 1 year forward'] };
 const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.wasp };
 ---
 
@@ -52,28 +37,30 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
     <p class="lead display obsession">{me.allTheWork}</p>
     <p class="stopped-note">{me.stopped}</p>
 
-    <!-- The tags, once. Each is a plain link; JS makes it a filter. -->
-    <nav class="tags" aria-label="Filter by tag">
+    <!-- The groups, once. Each is a plain link; JS makes it a filter. -->
+    <nav class="tags" aria-label="Filter">
       <a href="#all" aria-current="true">All <span class="n mono">{total}</span></a>
-      {tags.map(([t, n]) => (
-        <a href={`#${slug(t)}`}>{t} <span class="n mono">{n}</span></a>
+      {groups.map((g) => (
+        <a href={`#${g.id}`}>{g.label} <span class="n mono">{g.n}</span></a>
       ))}
       <span class="count small" id="count" aria-live="polite"></span>
     </nav>
 
     <ol class="index" id="index" role="list">
       {sorted.map((p, i) => {
-        const run = RUNNING.includes(p.status);
+        const run = isRunning(p);
         const showWhen = i === 0 || sorted[i - 1].when !== p.when;
+        const page = entries.has(p.slug);
         return (
           <li
             class="row"
-            data-tags={p.tags.map(slug).join(' ')}
+            id={p.slug}
+            data-tags={groupsOf(p).join(' ')}
             data-status={p.status}
             data-run={run ? '' : undefined}
           >
             <div class="rail">
-              <time class:list={['when', 'mono', { vh: !showWhen }]} datetime={datetime(p.when)} data-when={p.when}>
+              <time class:list={['when', 'mono', { vh: !showWhen }]} datetime={whenISO(p.when)} data-when={p.when}>
                 {p.when}
               </time>
               <p class="status">
@@ -83,7 +70,13 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
             </div>
             <div class="what">
               <h2 class="name">
-                {p.href ? <a href={p.href} rel="external">{p.name}</a> : p.name}
+                {page ? (
+                  <a href={pagePath(p.slug)}>{p.name}</a>
+                ) : p.href ? (
+                  <a href={p.href} rel="external">{p.name}</a>
+                ) : (
+                  p.name
+                )}
               </h2>
               <p class="line">{p.line}</p>
               {p.why && <p class="why">{p.why}</p>}
@@ -105,7 +98,14 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
         const href = proudHref[p.name];
         return (
           <article class="moment grid">
-            {num && <p class="num" aria-hidden="true">{num}</p>}
+            {num && (
+              <div class="figure" aria-hidden="true">
+                <p class="num">{num}</p>
+                {numberLabel[p.name] && (
+                  <p class="num-label small">{numberLabel[p.name].map((l) => <span>{l}</span>)}</p>
+                )}
+              </div>
+            )}
             <div class="text">
               <p class="q">{p.line}</p>
               <p class="small who">
@@ -209,6 +209,8 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
   .row[data-run] + .row:not([data-run]) { padding-top: 1.25rem; }
   .row:not([data-run]) + .row[data-run] { margin-top: 1rem; }
   .row[hidden] { display: none; }
+  /* back from a project page (/work/#slug): the row lands with air above it */
+  .row { scroll-margin-top: clamp(4rem, 12vh, 8rem); }
   /* the left rail is the slate: the date, and beneath it the status, said plainly */
   .rail { grid-column: 1 / 3; display: grid; gap: 0.3rem; }
   .when { color: var(--ink-muted); }
@@ -229,7 +231,8 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
     letter-spacing: -0.015em;
     color: var(--ink-muted);
   }
-  .name a { text-decoration-color: var(--hairline); }
+  /* every name opens its page: the underline is there, but only just, so 23 of them don't stripe the ledger */
+  .name a { text-decoration-color: var(--hairline); text-decoration-thickness: 1px; text-underline-offset: 0.12em; }
   .name a:hover { text-decoration-color: currentColor; }
   .line {
     margin-top: 0.3rem;
@@ -296,8 +299,8 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
   /* proudest of: the number in the slot, his line beside it, the name and his note beneath */
   .moments { margin-top: var(--gap-block); display: grid; row-gap: var(--gap-block); }
   .moment { align-items: start; }
+  .moment .figure { grid-column: 1 / 4; }
   .moment .num {
-    grid-column: 1 / 4;
     font-size: var(--fs-display-xl);
     font-weight: 700;
     line-height: 0.85;
@@ -305,6 +308,13 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
     font-variant-numeric: tabular-nums;
     margin-top: -0.04em;
   }
+  /* the number's label: what the 30 counts, in his line's own terms; small, under the figure */
+  .moment .num-label {
+    margin-top: 0.9rem;
+    color: var(--ink-muted);
+    font-weight: 500;
+  }
+  .moment .num-label span { display: block; white-space: nowrap; }
   .moment .text { grid-column: 4 / 12; }
   .moment .q {
     font-family: var(--serif);
@@ -318,7 +328,9 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
   .who { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
   .who .name { font-size: var(--fs-small); font-weight: 500; color: var(--ink); letter-spacing: 0; }
   @media (max-width: 719px) {
-    .moment .num { grid-column: 1 / -1; font-size: clamp(4rem, 3rem + 6vw, 6rem); margin-bottom: 0.5rem; }
+    .moment .figure { grid-column: 1 / -1; margin-bottom: 1rem; }
+    .moment .num { font-size: clamp(4rem, 3rem + 6vw, 6rem); }
+    .moment .num-label { margin-top: 0.5rem; }
     .moment .text { grid-column: 1 / -1; }
   }
 

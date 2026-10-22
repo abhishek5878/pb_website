@@ -8,7 +8,7 @@
  * engine (src/scripts/relight.js, by its DOM contract: .strip, .bars,
  * a[data-light], #lit). The ten works with a preset use light.css; the 23 with
  * a swatch but no preset use page-scoped palettes derived from the swatch
- * (contrast-checked: scratchpad/pages/taste/palettes.py); the four with no
+ * (contrast-checked: scratchpad/pages/taste/palettes.py); the five with no
  * researched swatch respond in ink only and keep the house light.
  *
  * His words only: lines from src/data/taste.ts, me.tasteLead (Jarmusch, his pick), me.music, and his
@@ -84,7 +84,10 @@ for (const g of groups) {
   if (g.kind === 'music') said.push({ text: me.music, label: KIND_LABEL.music });
 }
 if (last?.review) {
-  said.push({ kicker: 'Last watched', text: last.review, label: `${last.title}, ${last.year}`, href: last.url, when: last.watched, rating: last.rating });
+  /* the last film he logged may already stand on the shelf (Aftersun): mark that one, don't say it twice */
+  const shelved = said.find((s) => s.id && logged(works.find((w) => w.id === s.id)!) === last);
+  if (shelved) shelved.kicker = 'Last watched';
+  else said.push({ kicker: 'Last watched', text: last.review, label: `${last.title}, ${last.year}`, href: last.url, when: last.watched, rating: last.rating });
 }
 const place = ['a', 'b', 'c'];
 

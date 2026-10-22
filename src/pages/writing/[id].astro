@@ -16,7 +16,8 @@ import { render } from 'astro:content';
 import type { ImageMetadata } from 'astro';
 import Photos from '../../components/writing/Photos.astro';
 import { me } from '../../data/me';
-import { getWriting, firstLine, label, fmtDate, iso, type Post } from '../../lib/posts';
+import { getWriting, label, fmtDate, iso, type Post } from '../../lib/posts';
+import { cardPath, cardAlt, shareDescription } from '../../lib/og/post';
 
 export async function getStaticPaths() {
   const local = (await getWriting()).filter((p) => p.source === 'site');
@@ -29,7 +30,9 @@ export async function getStaticPaths() {
 interface Props { post: Post; newer: Post | null; older: Post | null }
 const { post, newer, older } = Astro.props;
 const entry = post.raw!;
-const canonical = entry.data.canonical;
+/* Where it was first published (Substack, WASP Signal). Credited at the foot of the piece;
+   the canonical URL is this page, so vyas.garden is the post's home. */
+const firstPublished = entry.data.canonical;
 const pull = post.pull[0];
 const isPoem = post.kind === 'poem';
 
@@ -69,7 +72,13 @@ const hasPhotos = photos.length > 0;
 const heading = post.title ?? (post.subject ? label(post) : undefined);
 ---
 
-<Base title={post.title ?? label(post)} description={firstLine(post) || undefined} light={post.light} canonical={canonical}>
+<Base
+  title={post.title ?? label(post)}
+  description={shareDescription(post)}
+  image={cardPath(post)}
+  imageAlt={cardAlt(post)}
+  light={post.light}
+>
   <article class:list={['wrap room', isPoem ? 'poem' : 'essay', { photos: hasPhotos }]}>
     <header class="head col">
       <p class="back small"><a href="/writing/" class="quiet">Writing</a></p>
@@ -93,9 +102,9 @@ const heading = post.title ?? (post.subject ? label(post) : undefined);
     <!-- PHOTOS: the rest of the roll (Photos.astro) -->
     {hasPhotos && <Photos photos={photos} part="roll" />}
 
-    {canonical && (
+    {firstPublished && (
       <p class="first small col">
-        <a href={canonical} class="quiet" rel="external">First published on {post.sourceName ?? 'Substack'}</a>
+        <a href={firstPublished} class="quiet" rel="external">First published on {post.sourceName ?? 'Substack'}</a>
       </p>
     )}
   </article>

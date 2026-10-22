@@ -8,7 +8,8 @@
     "tags": [
       "mental health",
       "product"
-    ]
+    ],
+    "href": "https://signal-spark-eta.vercel.app"
   },
   {
     "slug": "priya",
@@ -19,7 +20,8 @@
     "tags": [
       "voice",
       "agents"
-    ]
+    ],
+    "href": "https://apriori.work"
   },
   {
     "slug": "credit",
@@ -93,7 +95,7 @@
   {
     "slug": "sizing",
     "name": "Audience sizing",
-    "line": "Sizing lender and insurer audiences, live.",
+    "line": "Audience sizing from a spec, not a one-off script.",
     "status": "shipped",
     "when": "Jun 2026",
     "tags": [
@@ -138,7 +140,7 @@
   {
     "slug": "life-agent",
     "name": "life_agent",
-    "line": "A WhatsApp +1 that finishes household tasks.",
+    "line": "A +1 in the family WhatsApp group. Designed, never piloted.",
     "status": "stopped",
     "when": "May 2026",
     "tags": [
@@ -191,12 +193,13 @@
     "slug": "indiastox",
     "name": "IndiaStox",
     "line": "A market data layer built for agents.",
-    "status": "stopped",
+    "status": "shipped",
     "when": "May 2026",
     "tags": [
       "finance",
       "agents"
-    ]
+    ],
+    "href": "https://indiastox.vercel.app"
   },
   {
     "slug": "devflow",

@@ -68,6 +68,7 @@ const grain =
     <div class="wrap grid">
       <div class="label-row full">
         <h2 id="charter-label">Charter</h2>
+        <a href="/threads/" class="quiet">Threads →</a>
       </div>
       <blockquote class="reading">
         {charter.map((line, i) => (
@@ -208,6 +209,12 @@ const grain =
 
   /* 3. the charter: a reading, right of centre, the first line larger */
   .band .full { grid-column: 1 / -1; }
+  /* the way to /threads/: pink underline on the green, his pairing, as the homepage band does it */
+  .band .label-row a {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.3em;
+  }
   .reading {
     grid-column: 5 / 13;
     margin-top: var(--gap-block);

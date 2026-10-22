@@ -14,24 +14,37 @@ import { me, links } from '../data/me';
 interface Props {
   title?: string;
   description?: string;
+  /** The share card. Default: Michael Scott's whiteboard (600×315). A post passes its own (/og/<id>.png). */
   image?: string;
+  /** The card's size, when it isn't the 1200×630 a post card is. */
+  imageSize?: { width: number; height: number };
+  /** What the card shows, for people who can't see it. */
+  imageAlt?: string;
   /** The light the page ships in (src/styles/light.css). The room is never dark. */
   light?: string;
-  /** Where the piece was first published, if not here (Substack). Defaults to this page. */
+  /** Rarely needed: the canonical URL, if not this page. Imported posts are canonical here. */
   canonical?: string;
 }
 
 const SITE = 'https://vyas.garden';
-/* Michael Scott everywhere: the whiteboard is the description and the card image site-wide. */
-const { title, description = me.epigraph.lines.join(' '), image = me.epigraph.image.jpg, light = 'lalaland', canonical: firstPublished } = Astro.props;
-const imageSize = image === me.epigraph.image.jpg ? me.epigraph.image : { width: 1200, height: 630 };
+/* Michael Scott on the home and section pages: the whiteboard is the default description and card.
+   Each post brings its own card (src/pages/og/[id].png.ts). */
+const scott = me.epigraph.image;
+const { title, description = me.epigraph.lines.join(' '), image = scott.jpg, light = 'lalaland', canonical: canonicalProp } = Astro.props;
+const isScott = image === scott.jpg;
+const imageSize = Astro.props.imageSize ?? (isScott ? { width: scott.width, height: scott.height } : { width: 1200, height: 630 });
+const imageAlt = Astro.props.imageAlt ?? (isScott ? scott.alt : undefined);
+const imageUrl = new URL(image, SITE).href;
+/* The address never sits in the HTML whole: Base's script joins the halves into a mailto. */
+const [mailUser, mailDomain] = me.email.split('@');
 /* first-paint theme colour per rest light; relight.js keeps it current after that */
 const THEME: Record<string, string> = { lalaland: '#0A1328', saul: '#130E0B', office: '#0F1519', karwaan: '#071510', kida: '#0D1012', inrainbows: '#0E0A09', currents: '#15091E', znmd: '#05162C', realpain: '#0C140F', hailmary: '#070B14', hospital: '#0A1418' };
 const themeColor = THEME[light] ?? '#0A0F13';
 const pageTitle = title ? `${title} · ${me.name}` : me.name;
 const path = Astro.url.pathname;
 const self = new URL(path, SITE).href;
-const canonical = firstPublished ?? self;
+const canonical = canonicalProp ?? self;
+const isHome = path === '/';
 
 const nav = [
   ['Work', '/work/'],
@@ -46,7 +59,7 @@ const person = {
   name: me.fullName,
   givenName: me.name,
   url: SITE + '/',
-  email: `mailto:${me.email}`,
+  /* no email here: it would put the whole address in every page's HTML */
   description: me.interests,
   address: { '@type': 'PostalAddress', addressLocality: 'Bangalore', addressCountry: 'IN' },
   alumniOf: { '@type': 'CollegeOrUniversity', name: me.alumniOf },
@@ -72,11 +85,13 @@ const person = {
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={self} />
-    <meta property="og:image" content={new URL(image, SITE).href} />
+    <meta property="og:image" content={imageUrl} />
     <meta property="og:image:width" content={String(imageSize.width)} />
     <meta property="og:image:height" content={String(imageSize.height)} />
+    {imageAlt && <meta property="og:image:alt" content={imageAlt} />}
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content={new URL(image, SITE).href} />
+    <meta name="twitter:image" content={imageUrl} />
+    {imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
     <script type="application/ld+json" set:html={JSON.stringify(person)} />
     <!-- Pre-paint: the hour (00:00–04:59 is late), a stored night preference, and
          the once-per-visit hero. window.__HOUR fakes the hour for screenshots. -->
@@ -108,7 +123,8 @@ const person = {
           {nav.map(([label, href]) => (
             <a href={href} class="quiet" aria-current={path.startsWith(href) ? 'page' : undefined}>{label}</a>
           ))}
-          <a href={`mailto:${me.email}`} class="dm">send a dm</a>
+          <!-- JS joins data-u and data-d into the mailto; without JS it opens the ask box on the homepage -->
+          <a href="/#dm" class="dm" data-u={mailUser} data-d={mailDomain}>send a dm</a>
         </nav>
       </div>
     </header>
@@ -119,13 +135,17 @@ const person = {
 
     <footer class="foot">
       <div class="wrap">
-        <!-- Q10, "three words": he gave five. The count delivers it. -->
-        <p class="small muted three">Three words</p>
-        <ol class="five" role="list">
-          {me.friends.map((w, i) => (
-            <li><span class="mono">{i + 1}</span> {w}</li>
-          ))}
-        </ol>
+        {isHome && (
+          <>
+            <!-- Q10, "three words": he gave five. The count delivers it. The homepage's deadpan only. -->
+            <p class="small muted three">Three words</p>
+            <ol class="five" role="list">
+              {me.friends.map((w, i) => (
+                <li><span class="mono">{i + 1}</span> {w}</li>
+              ))}
+            </ol>
+          </>
+        )}
         <div class="row">
           <p class="mono">v.I · Oct 2026</p>
           <nav aria-label="For readers and their agents" class="small">
@@ -143,6 +163,17 @@ const person = {
       </div>
     </footer>
 
+    <!-- The address, put back together. Any link with data-u and data-d becomes a mailto;
+         with data-show it also writes the address as its text and comes out of `hidden`.
+         Scrapers reading the HTML find neither half next to an @. Without JS each link
+         keeps its fallback href (the ask box), and a data-show link stays hidden. -->
+    <script is:inline>
+      document.querySelectorAll('a[data-u][data-d]').forEach(function (a) {
+        var addr = a.dataset.u + '@' + a.dataset.d;
+        a.href = 'mailto:' + addr;
+        if (a.hasAttribute('data-show')) { a.textContent = addr; a.hidden = false; }
+      });
+    </script>
     <script src="../scripts/relight.js"></script>
   </body>
 </html>
@@ -208,9 +239,9 @@ const person = {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem clamp(2rem, 5vw, 5rem);
-    margin-top: var(--gap-block);
     align-items: baseline;
   }
+  .five + .row { margin-top: var(--gap-block); }
   .foot nav { display: flex; flex-wrap: wrap; gap: 1.25rem; }
   .foot nav a { color: var(--ink-muted); }
   .foot nav a:hover { color: var(--ink); }
