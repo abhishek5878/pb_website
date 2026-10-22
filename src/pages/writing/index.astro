@@ -1,0 +1,158 @@
+---
+/**
+ * Writing: the index, read as a reading room, not a table.
+ *
+ * The one idea: one typeface per voice (House of Leaves, from his shelf).
+ * His life is set in Newsreader; the venture notes (WASP Signal) in Switzer,
+ * pushed to the right like margin notes. One river, by date, no tabs.
+ * Older pieces fade toward old paper, so time reads as colour.
+ * Every line here is his: first lines verbatim, titles, dates.
+ */
+import Base from '../../layouts/Base.astro';
+import { me, links } from '../../data/me';
+import { getWriting, firstLine, label, fmtDate, iso, type Post } from '../../lib/posts';
+
+const pieces = await getWriting();
+
+/* Q33: what the writing is about. The long setup, then the turn. */
+const { setup, punch } = me.writesAbout;
+
+/* time as colour: 100% ink for the newest, old paper for the oldest */
+const newest = pieces[0]?.date.getTime() ?? 0;
+const oldest = pieces[pieces.length - 1]?.date.getTime() ?? 0;
+const span = Math.max(1, newest - oldest);
+const inkPct = (p: Post) => Math.round((1 - (newest - p.date.getTime()) / span) * 100);
+
+/* two voices: his life (site + personal Substack) and the venture notes (WASP Signal) */
+const voice = (p: Post) => (p.sourceName === 'WASP Signal' ? 'note' : 'life');
+const where = (p: Post) => (p.sourceName === 'WASP Signal' ? 'on WASP Signal' : 'on Substack');
+
+/* grouped by year, newest first, in order */
+const years: [number, Post[]][] = [];
+for (const p of pieces) {
+  const y = p.date.getUTCFullYear();
+  const last = years[years.length - 1];
+  if (last && last[0] === y) last[1].push(p);
+  else years.push([y, [p]]);
+}
+---
+
+<Base title="Writing" description={`${setup} ${punch}`}>
+  <section class="wrap index" aria-labelledby="writing-label">
+    <div class="label-row">
+      <h1 id="writing-label">Writing</h1>
+      <p class="elsewhere">
+        <a href={links.substack} class="quiet" rel="me">Substack</a>
+        <a href={links.wasp} class="quiet" rel="me">WASP Signal</a>
+      </p>
+    </div>
+
+    <!-- the long setup, then the turn: his answer to what the writing is about -->
+    <p class="setup muted">{setup}</p>
+    <p class="punch display">{punch}</p>
+
+    <div class="river">
+      {years.map(([year, items]) => (
+        <section class="year" aria-label={String(year)}>
+          <p class="year-label"><time class="mono" datetime={String(year)}>{year}</time></p>
+          <ol class="pieces" role="list">
+            {items.map((p) => (
+              <li class:list={['piece', voice(p)]} style={`--ink-age: ${inkPct(p)}%`}>
+                <a href={p.href} class="quiet" rel={p.external ? 'external' : undefined}>
+                  <p class="line">{firstLine(p)}</p>
+                </a>
+                <p class="small label">
+                  <span class="t">{label(p)}</span>
+                  <time class="mono" datetime={iso(p.date)}>{fmtDate(p.date)}</time>
+                  {p.external && <span class="src">{where(p)}</span>}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .index { padding-top: 0.5rem; }
+  .label-row h1 { font: 500 var(--fs-small) / 1.45 var(--sans); }
+  .elsewhere { display: flex; gap: 1.25rem; color: var(--ink-muted); }
+  .elsewhere a:hover { color: var(--ink); }
+
+  /* the setup in the margin voice, the turn at display size, pinned left */
+  .setup {
+    margin-top: var(--gap-block);
+    max-width: 34em;
+    text-wrap: pretty;
+  }
+  .punch {
+    margin-top: 0.75rem;
+    margin-left: -0.04em;
+  }
+
+  /* the river: years as the only apparatus, one hairline each */
+  .river { margin-top: var(--gap-section); }
+  .year + .year { margin-top: var(--gap-section); }
+  .year-label {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--hairline);
+    color: var(--ink-muted);
+  }
+  .pieces {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: var(--gap-block);
+    margin-top: var(--gap-block);
+  }
+
+  /* one typeface per voice; the notes sit right, like marginalia */
+  .piece { --old: oklch(0.68 0.025 60); }
+  .piece.life { grid-column: 1 / 9; }
+  .piece.note { grid-column: 5 / 13; }
+  .line {
+    font-size: var(--fs-title);
+    color: color-mix(in oklab, var(--ink) var(--ink-age), var(--old));
+    text-wrap: pretty;
+  }
+  .life .line {
+    font-family: var(--serif);
+    font-weight: 300;
+    line-height: 1.2;
+    font-optical-sizing: auto;
+    hanging-punctuation: first;
+    max-width: 24em;
+  }
+  .note .line {
+    font-family: var(--sans);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    max-width: 20em;
+  }
+  .piece a.quiet:hover { text-decoration: none; }
+  .piece a.quiet:hover .line {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.12em;
+    text-decoration-color: var(--hairline-strong);
+  }
+  .piece .label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: 0.875rem;
+    color: var(--ink-muted);
+  }
+  .piece .t { font-weight: 500; }
+  .piece .mono { flex: none; }
+
+  @media (max-width: 719px) {
+    .piece.life { grid-column: 1 / -1; }
+    .piece.note { grid-column: 1 / -1; padding-left: 2.5rem; }
+    .river { margin-top: clamp(4rem, 12vw, 6rem); }
+    .year + .year { margin-top: clamp(4rem, 12vw, 6rem); }
+  }
+</style>

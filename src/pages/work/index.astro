@@ -1,0 +1,326 @@
+---
+/**
+ * Work: everything he has built, unfinished included (Q17: "I'm all the work").
+ *
+ * One dated ledger, newest first. The idea: status is saturation. What is
+ * running (live, in use, building) is set large, in full ink, with the one
+ * green dot; what stopped or paused is the same index in grey, smaller, still
+ * dated, still here. Nothing is a card and nothing carries a tag row: the tags
+ * filter once, at the top. Without JavaScript every project shows; with it a
+ * tag filters in place and the hash keeps the filter.
+ *
+ * Every sentence is his, from src/data/me.ts.
+ */
+import Base from '../../layouts/Base.astro';
+import { me, projects, proud, links, type Project, type Status } from '../../data/me';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "Oct 2026" → months since year 0; a bare "2026" counts as the start of that year. */
+function key(when: string): number {
+  const m = when.match(/^([A-Z][a-z]{2}) (\d{4})$/);
+  if (m) return Number(m[2]) * 12 + MONTHS.indexOf(m[1]);
+  const y = when.match(/^(\d{4})$/);
+  return y ? Number(y[1]) * 12 : 0;
+}
+function datetime(when: string): string {
+  const m = when.match(/^([A-Z][a-z]{2}) (\d{4})$/);
+  if (m) return `${m[2]}-${String(MONTHS.indexOf(m[1]) + 1).padStart(2, '0')}`;
+  return when;
+}
+
+const RUNNING: Status[] = ['live', 'in use', 'building'];
+const sorted: Project[] = [...projects].sort((a, b) => key(b.when) - key(a.when));
+const total = projects.length;
+
+/** Tags by how often they appear, then by name. */
+const tagCount = new Map<string, number>();
+for (const p of projects) for (const t of p.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+const slug = (t: string) => t.replace(/\s+/g, '-');
+
+/** A number as a graphic where his line gives one: "top 30 companies" → 30. */
+const numberIn = (line: string) => line.match(/top (\d+)/)?.[1];
+const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.wasp };
+---
+
+<Base title="Work">
+  <section class="wrap" aria-labelledby="work-label">
+    <div class="label-row">
+      <h1 id="work-label">Work</h1>
+    </div>
+    <p class="lead display obsession">{me.allTheWork}</p>
+    <p class="stopped-note">{me.stopped}</p>
+
+    <!-- The tags, once. Each is a plain link; JS makes it a filter. -->
+    <nav class="tags" aria-label="Filter by tag">
+      <a href="#all" aria-current="true">All <span class="n mono">{total}</span></a>
+      {tags.map(([t, n]) => (
+        <a href={`#${slug(t)}`}>{t} <span class="n mono">{n}</span></a>
+      ))}
+      <span class="count small" id="count" aria-live="polite"></span>
+    </nav>
+
+    <ol class="index" id="index" role="list">
+      {sorted.map((p, i) => {
+        const run = RUNNING.includes(p.status);
+        const showWhen = i === 0 || sorted[i - 1].when !== p.when;
+        return (
+          <li
+            class="row"
+            data-tags={p.tags.map(slug).join(' ')}
+            data-status={p.status}
+            data-run={run ? '' : undefined}
+          >
+            <div class="rail">
+              <time class:list={['when', 'mono', { vh: !showWhen }]} datetime={datetime(p.when)} data-when={p.when}>
+                {p.when}
+              </time>
+              <p class="status">
+                {(run || p.status === 'paused') && <span class="dot" aria-hidden="true"></span>}
+                {p.status}
+              </p>
+            </div>
+            <div class="what">
+              <h2 class="name">
+                {p.href ? <a href={p.href} rel="external">{p.name}</a> : p.name}
+              </h2>
+              <p class="line">{p.line}</p>
+              {p.why && <p class="why">{p.why}</p>}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  </section>
+
+  <!-- His two proudest, in his words. The number is a graphic where his line gives one. -->
+  <section class="section wrap" aria-labelledby="proud-label">
+    <div class="label-row">
+      <h2 id="proud-label">Proudest of</h2>
+    </div>
+    <div class="moments">
+      {proud.map((p) => {
+        const num = numberIn(p.line);
+        const href = proudHref[p.name];
+        return (
+          <article class="moment grid">
+            {num && <p class="num" aria-hidden="true">{num}</p>}
+            <div class="text">
+              <p class="q">{p.line}</p>
+              <p class="small who">
+                <span class="name">{href ? <a href={href} rel="external">{p.name}</a> : p.name}</span>
+                <span class="muted">{p.note}</span>
+              </p>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  </section>
+
+  <section class="section wrap exit">
+    <p class="title">{me.oneMoreTime}</p>
+  </section>
+</Base>
+
+<script>
+  /* Filter in place by hash; the hash keeps the filter across reloads and links.
+     No motion: a list filter is a frequent action. */
+  const list = document.getElementById('index');
+  const count = document.getElementById('count');
+  const rows = list ? ([...list.querySelectorAll('li')] as HTMLLIElement[]) : [];
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.tags a')];
+  const known = new Set(links.map((a) => a.getAttribute('href')!.slice(1)));
+
+  function apply() {
+    let tag = decodeURIComponent(location.hash.slice(1));
+    if (!known.has(tag)) tag = 'all';
+    let n = 0;
+    let last: string | undefined;
+    for (const r of rows) {
+      const on = tag === 'all' || (r.dataset.tags ?? '').split(' ').includes(tag);
+      r.hidden = !on;
+      if (!on) continue;
+      n++;
+      const t = r.querySelector<HTMLElement>('.when');
+      if (t) {
+        t.classList.toggle('vh', t.dataset.when === last);
+        last = t.dataset.when;
+      }
+    }
+    for (const a of links) {
+      if (a.getAttribute('href') === '#' + tag) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    }
+    if (count) count.textContent = tag === 'all' ? '' : `${n} of ${rows.length}`;
+  }
+  addEventListener('hashchange', apply);
+  apply();
+</script>
+
+<style>
+  .label-row h1,
+  .label-row h2 {
+    font-size: var(--fs-small);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+  .obsession { max-width: 24ch; }
+  .stopped-note { margin: 1.5rem 0 0; max-width: 34em; color: var(--ink-muted); }
+
+  /* the tags, once */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+    margin-top: var(--gap-block);
+    font-size: var(--fs-small);
+    font-weight: 500;
+  }
+  .tags a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    text-underline-offset: 0.3em;
+    transition: color var(--d-hover) var(--ease-hover);
+  }
+  .tags a:hover { color: var(--ink); }
+  .tags a[aria-current] {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: var(--accent);
+  }
+  .tags .n { color: var(--ink-muted); font-weight: 400; }
+  .tags a[aria-current] .n { color: var(--ink); }
+  .count { color: var(--ink-muted); margin-left: auto; }
+
+  /* the ledger: date, the thing, its status. rows are grids; no dividers */
+  .index { margin-top: var(--gap-block); }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    align-items: baseline;
+    padding-block: 0.6rem;
+  }
+  .row[data-run] { padding-block: 1.75rem; }
+  .row[data-run] + .row:not([data-run]) { padding-top: 1.25rem; }
+  .row:not([data-run]) + .row[data-run] { margin-top: 1rem; }
+  .row[hidden] { display: none; }
+  /* the left rail is the slate: the date, and beneath it the status, said plainly */
+  .rail { grid-column: 1 / 3; display: grid; gap: 0.3rem; }
+  .when { color: var(--ink-muted); }
+  .what { grid-column: 3 / 12; }
+  .status {
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .row[data-run] .status { color: var(--ink); }
+
+  /* the grey timeline: stopped, paused, shipped */
+  .name {
+    font-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.9rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    color: var(--ink-muted);
+  }
+  .name a { text-decoration-color: var(--hairline); }
+  .name a:hover { text-decoration-color: currentColor; }
+  .line {
+    margin-top: 0.3rem;
+    font-size: var(--fs-small);
+    color: var(--ink-muted);
+    max-width: 44em;
+  }
+  .row[data-status='shipped'] .name,
+  .row[data-status='shipped'] .line { color: var(--ink); }
+
+  /* the colour flashes: live, in use, building */
+  .row[data-run] .name {
+    font-size: clamp(2.25rem, 1.45rem + 2.7vw, 3.9rem);
+    font-weight: 700;
+    line-height: 0.96;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .row[data-run] .line {
+    margin-top: 0.75rem;
+    font-size: var(--fs-body);
+    color: var(--ink);
+    max-width: 34em;
+  }
+  .why {
+    margin-top: 0.35rem;
+    font-size: var(--fs-small);
+    color: var(--ink-muted);
+  }
+
+  /* the one dot: filled when running, a ring while building, grey when paused */
+  .dot {
+    display: inline-block;
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    margin-right: 0.5em;
+    vertical-align: 0.05em;
+    background: var(--status);
+  }
+  .row[data-status='building'] .dot { background: transparent; border: 1.5px solid var(--status); }
+  .row[data-status='paused'] .dot { background: transparent; border: 1.5px solid var(--hairline-strong); }
+
+  @media (max-width: 719px) {
+    .row {
+      grid-template-columns: 1fr;
+      row-gap: 0.25rem;
+      padding-block: 0.9rem;
+    }
+    .row[data-run] { padding-block: 1.5rem; }
+    .rail { grid-column: 1; display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+    .what { grid-column: 1; }
+    .when.vh {
+      position: static;
+      width: auto;
+      height: auto;
+      clip: auto;
+      visibility: hidden;
+    }
+    .tags { gap: 0.4rem 1.1rem; }
+    .count { margin-left: 0; flex-basis: 100%; }
+  }
+
+  /* proudest of: the number in the slot, his line beside it, the name and his note beneath */
+  .moments { margin-top: var(--gap-block); display: grid; row-gap: var(--gap-block); }
+  .moment { align-items: start; }
+  .moment .num {
+    grid-column: 1 / 4;
+    font-size: var(--fs-display-xl);
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    margin-top: -0.04em;
+  }
+  .moment .text { grid-column: 4 / 12; }
+  .moment .q {
+    font-family: var(--serif);
+    font-size: var(--fs-title);
+    font-weight: 300;
+    line-height: 1.2;
+    font-optical-sizing: auto;
+    max-width: 26em;
+    text-wrap: pretty;
+  }
+  .who { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+  .who .name { font-size: var(--fs-small); font-weight: 500; color: var(--ink); letter-spacing: 0; }
+  @media (max-width: 719px) {
+    .moment .num { grid-column: 1 / -1; font-size: clamp(4rem, 3rem + 6vw, 6rem); margin-bottom: 0.5rem; }
+    .moment .text { grid-column: 1 / -1; }
+  }
+
+  .exit .title { max-width: 27ch; }
+</style>

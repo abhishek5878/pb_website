@@ -8,15 +8,34 @@
 
 export const me = {
   name: 'Abhishek',
+  /** Only in structured data and llms.txt, so agents know which Abhishek. His OK, 22 Oct 2026. */
+  fullName: 'Abhishek Vyas',
+  alumniOf: 'IIT Delhi',
   email: 'abhishekvyasiitdelhi@gmail.com',
-  /** The first thing anyone reads. Q9. */
-  hello: ['I love to think', 'and overthink about things.'],
-  hello2: 'And by things I mean everything. Art, music, AI, tech, brain rot, anything.',
+  /**
+   * The first thing anyone reads, everywhere: Michael Scott's whiteboard from
+   * The Office. His pick (22 Oct 2026): "Michael Scott everywhere." Two beats:
+   * the quote and its Gretzky credit land first, then "– Michael Scott" lands late.
+   * Don't bring back "I love to think and overthink about things." He cut it.
+   */
+  epigraph: {
+    lines: ['“You miss 100% of the shots you don’t take. – Wayne Gretzky”', '– Michael Scott'],
+    by: 'Michael Scott',
+    image: {
+      webp: '/media/scott.webp',
+      jpg: '/media/scott.jpg',
+      width: 600,
+      height: 315,
+      alt: 'Michael Scott in The Office, sitting under a whiteboard that reads: “You miss 100% of the shots you don’t take. – Wayne Gretzky” – Michael Scott',
+    },
+  },
+  /** Q9, the end of his answer. */
+  interests: 'Art, music, AI, tech, brain rot, anything.',
   feral: 'It is a curious curiosity filled feral existence which I have been living.',
   where: 'Bangalore, for now.',
   whereNext: 'The idea and the vision is to never be in one place.',
   origin: [
-    'Middle class boy from Jaipur.',
+    'Boy from Jaipur.',
     'Then somehow reach IIT Delhi.',
     'Then somehow survived two years in Delhi NCR.',
     'Then had the idea and the courage to just start up and reach Bangalore.',
@@ -29,6 +48,17 @@ export const me = {
   /** Q11. */
   consume: 'I want to consume things and then build things as well.',
   obsession: 'Every quarter I pick up a new obsession.',
+  /**
+   * Q33, verbatim from "is more about my life…", split for the Writing page:
+   * the long setup, then the turn.
+   */
+  writesAbout: {
+    setup: 'My life, what I want to do, what I’m thinking, what should be there. Human life, politics, God, religion, heartbreak, pain, grief, damage, I don’t know,',
+    punch: 'so many things.',
+  },
+  /** Q17. */
+  allTheWork: 'I’m all the work.',
+  stopped: 'There is a lot of projects which I stopped say midway or in the middle, and I will complete that too.',
   /** Q12. */
   oneMoreTime: 'All I need to do right now is to try one more time.',
   /** Q13. The whole answer. */
@@ -58,14 +88,18 @@ export const charter = [
   'This is something I want to pursue wholeheartedly.',
 ];
 
-/** What's happening now. His Q11, Q18, Q20, Q28 answers, cut down. */
+/**
+ * What's happening now. His Q11, Q18, Q20, Q28 answers, cut down.
+ * `short` is the same line trimmed further, for the bubbles in the hero:
+ * read as one phrase, "Building a score for lending in India".
+ */
 export const now = [
-  { verb: 'Building', what: 'A score for lending in India, apart from the current CIBIL and Experian score.' },
-  { verb: 'Writing', what: 'My poetry book. My fiction book. My short stories.' },
-  { verb: 'Learning', what: 'To DJ, properly. As Wet Tissues, music for the sad and the horny people.' },
-  { verb: 'Joining', what: 'A VC firm, in January.' },
-  { verb: 'Planning', what: 'Stories of India. Local stories, voice notes from strangers.' },
-  { verb: 'Obsessed with', what: 'Space. Project Hail Mary reignited my spark.' },
+  { verb: 'Building', short: 'a score for lending in India', what: 'A score for lending in India, apart from the current CIBIL and Experian score.' },
+  { verb: 'Writing', short: 'my poetry book', what: 'My poetry book. My fiction book. My short stories.' },
+  { verb: 'Learning', short: 'to DJ, as Wet Tissues', what: 'To DJ, properly. As Wet Tissues, music for the sad and the horny people.' },
+  { verb: 'Joining', short: 'a VC firm, in January', what: 'A VC firm, in January.' },
+  { verb: 'Planning', short: 'Stories of India', what: 'Stories of India. Local stories, voice notes from strangers.' },
+  { verb: 'Obsessed with', short: 'space', what: 'Space. Project Hail Mary reignited my spark.' },
 ];
 
 export const links = {
@@ -76,6 +110,17 @@ export const links = {
   linkedin: 'https://www.linkedin.com/in/abhishek5878/',
   /** TODO(abhishek): paste the care-slot booking link. */
   care: '',
+};
+
+/**
+ * The ask-me-anything box posts to Web3Forms, which emails me.email.
+ * The access key is public by design (Web3Forms: "safe to use in client-side code").
+ * Form "vyas.garden ask", created 22 Oct 2026. Free plan: 250 messages a month.
+ */
+export const ask = {
+  endpoint: 'https://api.web3forms.com/submit',
+  accessKey: '6a341c91-2ada-444a-a9a9-f2ed50937847',
+  subject: 'Someone asked you something on vyas.garden',
 };
 
 export type Status = 'live' | 'in use' | 'building' | 'paused' | 'stopped' | 'shipped';

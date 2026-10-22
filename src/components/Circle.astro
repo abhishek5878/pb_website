@@ -1,0 +1,111 @@
+---
+/**
+ * The site's moon: the night circle video, clipped to a circle, no border.
+ * A 1px ring of ink/12% and an inner vignette dissolve the edge; one static
+ * grain layer sits on top (shared with the gallery photo so they are one emulsion).
+ * Autoplay muted, looped; a pause control (WCAG 2.2.2); poster under reduced motion.
+ */
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+const grain =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
+---
+
+<figure class:list={['circle-wrap', cls]}>
+  <div class="circle" style={`--grain: url("${grain}")`}>
+    <video
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      poster="/media/circle-poster.jpg"
+      disablepictureinpicture
+      aria-label="A circular projection: figures in tall grass, looking up at one star."
+    >
+      <source src="/media/circle-720.webm" type="video/webm" />
+      <source src="/media/circle-720.mp4" type="video/mp4" />
+    </video>
+    <span class="wash" aria-hidden="true"></span>
+  </div>
+  <button type="button" class="textbtn pause" aria-pressed="false" hidden>pause</button>
+</figure>
+
+<script>
+  const wrap = document.querySelector('.circle-wrap');
+  const v = wrap?.querySelector('video');
+  const b = wrap?.querySelector('.pause') as HTMLButtonElement | null;
+  if (v && b) {
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const show = (playing: boolean) => {
+      b.hidden = false;
+      b.textContent = playing ? 'pause' : 'play';
+      b.setAttribute('aria-pressed', String(!playing));
+    };
+    if (reduced) {
+      v.removeAttribute('autoplay');
+      v.pause();
+      show(false);
+    } else {
+      const p = v.play();
+      if (p && p.then) p.then(() => show(true)).catch(() => show(false));
+      else show(!v.paused);
+    }
+    b.addEventListener('click', () => {
+      if (v.paused) v.play().then(() => show(true)).catch(() => show(false));
+      else { v.pause(); show(false); }
+    });
+  }
+</script>
+
+<style>
+  .circle-wrap {
+    margin: 0;
+    width: clamp(220px, min(30vw, 50svh), 480px);
+    display: grid;
+    gap: 0.5rem;
+    justify-items: end;
+  }
+  .circle {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    clip-path: circle(50% at 50% 50%);
+    background: var(--bg);
+  }
+  .circle video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* inner vignette and the hairline ring */
+  .circle::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, transparent 58%, rgb(6 9 13 / 0.9) 100%);
+    box-shadow: inset 0 0 0 1px rgb(239 236 231 / 0.12);
+    pointer-events: none;
+  }
+  /* static grain, overlay, 7% */
+  .circle::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--grain);
+    background-size: 240px 240px;
+    mix-blend-mode: overlay;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+  .circle .wash { z-index: 1; border-radius: 50%; }
+  .circle::after { z-index: 2; }
+  .pause { justify-self: end; }
+  /* the control shows itself only when wanted, on pointers that can hover; always on touch */
+  @media (hover: hover) and (pointer: fine) {
+    .pause { opacity: 0; transition: opacity var(--d-hover) var(--ease-hover), color var(--d-hover) var(--ease-hover); }
+    .circle-wrap:hover .pause,
+    .circle-wrap:focus-within .pause { opacity: 1; }
+  }
+</style>

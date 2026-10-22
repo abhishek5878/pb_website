@@ -1,0 +1,57 @@
+/*
+ * Relight. type-colour.md §3's ten palettes, pushed after critique-1 so a relight
+ * lights the room instead of tinting the wall: bg chroma 0.06–0.08 (ink at L 0.94
+ * stays > 13:1), glow alpha ×1.5, radius 110vmax, and a wash colour the photos
+ * take through `.wash` (base.css). bg-raised = bg + 0.045 L.
+ *
+ * No yellow: nothing in hue 85–110 above chroma 0.04 (he dislikes yellow).
+ * The name in data-light matches `light` in src/data/taste.ts. `hospital` is the
+ * eleventh: the interlude light for the hospital poem, cold fluorescent blue-green.
+ *
+ * Two fixed glow layers crossfade on the compositor (motion.md §B1); the page
+ * background itself is one solid fill transitioning on <html>.
+ */
+html[data-light='lalaland']   { --p-bg: oklch(0.19 0.07 265);  --p-bg-raised: oklch(0.24 0.045 165);  --p-accent: oklch(0.68 0.18 355);  --p-glow: oklch(0.65 0.11 172);  --p-wash: var(--p-glow);          --glow-alpha: 36%; }
+html[data-light='saul']       { --p-bg: oklch(0.17 0.06 60);   --p-bg-raised: oklch(0.215 0.06 60);   --p-accent: oklch(0.72 0.16 60);   --p-glow: oklch(0.42 0.13 305);  --p-wash: var(--p-accent);        --glow-alpha: 60%; }
+html[data-light='office']     { --p-bg: oklch(0.19 0.05 240);  --p-bg-raised: oklch(0.235 0.05 240);  --p-accent: oklch(0.74 0.045 240); --p-glow: oklch(0.78 0.035 90);  --p-wash: var(--p-accent);        --glow-alpha: 30%; }
+html[data-light='karwaan']    { --p-bg: oklch(0.18 0.04 170);  --p-bg-raised: oklch(0.225 0.04 170);  --p-accent: oklch(0.73 0.1 160);   --p-glow: oklch(0.55 0.1 230);   --p-wash: var(--p-glow);          --glow-alpha: 48%; }
+html[data-light='kida']       { --p-bg: oklch(0.17 0.02 250);  --p-bg-raised: oklch(0.215 0.02 250);  --p-accent: oklch(0.63 0.2 28);    --p-glow: oklch(0.4 0.14 28);    --p-wash: oklch(0.8 0.02 240);    --glow-alpha: 60%; }
+html[data-light='inrainbows'] { --p-bg: oklch(0.15 0.06 40);   --p-bg-raised: oklch(0.195 0.06 40);   --p-accent: oklch(0.69 0.17 45);   --p-glow: oklch(0.55 0.094 195); --p-wash: var(--p-accent);        --glow-alpha: 48%; }
+html[data-light='currents']   { --p-bg: oklch(0.17 0.08 310);  --p-bg-raised: oklch(0.215 0.08 310);  --p-accent: oklch(0.8 0.065 315);  --p-glow: oklch(0.52 0.19 20);   --p-wash: var(--p-accent);        --glow-alpha: 48%; }
+html[data-light='znmd']       { --p-bg: oklch(0.2 0.08 255);   --p-bg-raised: oklch(0.245 0.08 255);  --p-accent: oklch(0.67 0.19 32);   --p-glow: oklch(0.58 0.14 250);  --p-wash: var(--p-glow);          --glow-alpha: 51%; }
+html[data-light='realpain']   { --p-bg: oklch(0.18 0.05 160);  --p-bg-raised: oklch(0.225 0.05 160);  --p-accent: oklch(0.66 0.11 40);   --p-glow: oklch(0.4 0.06 160);   --p-wash: var(--p-glow);          --glow-alpha: 60%; }
+html[data-light='hailmary']   { --p-bg: oklch(0.15 0.07 265);  --p-bg-raised: oklch(0.195 0.07 265);  --p-accent: oklch(0.78 0.12 350);  --p-glow: oklch(0.45 0.18 295);  --p-wash: var(--p-accent);        --glow-alpha: 60%; }
+html[data-light='hospital']   { --p-bg: oklch(0.17 0.035 200); --p-bg-raised: oklch(0.215 0.035 200); --p-accent: oklch(0.8 0.06 200);   --p-glow: oklch(0.72 0.08 190);  --p-wash: var(--p-glow);          --glow-alpha: 40%; }
+
+/* late keeps the palette but dims the lamp */
+html[data-hour='late'][data-light] { --glow-alpha: 22%; }
+
+/* the lamp: two layers, opacity only */
+.glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+  background: radial-gradient(
+    110vmax circle at var(--gx) var(--gy),
+    color-mix(in oklab, var(--g, var(--glow)) var(--glow-alpha), transparent),
+    transparent 70%
+  );
+  transition: opacity calc(var(--d-relight) * 0.625) var(--ease-standard);
+}
+.glow.on {
+  opacity: 1;
+  transition-duration: var(--d-relight);
+}
+html[data-interlude] .glow.on { transition-duration: var(--d-interlude); }
+
+/* everything that carries a relit token fades, never snaps */
+html {
+  background-color: var(--bg);
+  transition: background-color var(--d-relight) var(--ease-standard);
+}
+html[data-interlude] { transition-duration: var(--d-interlude); }
+.band { transition: background-color var(--d-relight) var(--ease-standard); }
+.mark .dot { fill: var(--accent); transition: fill calc(var(--d-relight) * 0.56) var(--ease-standard); }

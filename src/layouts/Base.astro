@@ -1,0 +1,218 @@
+---
+/**
+ * Every page. Head (meta, OG, JSON-LD Person, theme-color, the pre-paint hour
+ * script, view-transition CSS), the header (mark, four nouns, send a dm), the
+ * two glow layers, the footer. Reads fine with JavaScript off.
+ */
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/light.css';
+import Mark from '../components/Mark.astro';
+import { me, links } from '../data/me';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  /** The light the page ships in (src/styles/light.css). The room is never dark. */
+  light?: string;
+  /** Where the piece was first published, if not here (Substack). Defaults to this page. */
+  canonical?: string;
+}
+
+const SITE = 'https://vyas.garden';
+/* Michael Scott everywhere: the whiteboard is the description and the card image site-wide. */
+const { title, description = me.epigraph.lines.join(' '), image = me.epigraph.image.jpg, light = 'lalaland', canonical: firstPublished } = Astro.props;
+const imageSize = image === me.epigraph.image.jpg ? me.epigraph.image : { width: 1200, height: 630 };
+/* first-paint theme colour per rest light; relight.js keeps it current after that */
+const THEME: Record<string, string> = { lalaland: '#0A1328', saul: '#130E0B', office: '#0F1519', karwaan: '#071510', kida: '#0D1012', inrainbows: '#0E0A09', currents: '#15091E', znmd: '#05162C', realpain: '#0C140F', hailmary: '#070B14', hospital: '#0A1418' };
+const themeColor = THEME[light] ?? '#0A0F13';
+const pageTitle = title ? `${title} · ${me.name}` : me.name;
+const path = Astro.url.pathname;
+const self = new URL(path, SITE).href;
+const canonical = firstPublished ?? self;
+
+const nav = [
+  ['Work', '/work/'],
+  ['Writing', '/writing/'],
+  ['Taste', '/taste/'],
+  ['About', '/about/'],
+];
+
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: me.fullName,
+  givenName: me.name,
+  url: SITE + '/',
+  email: `mailto:${me.email}`,
+  description: me.interests,
+  address: { '@type': 'PostalAddress', addressLocality: 'Bangalore', addressCountry: 'IN' },
+  alumniOf: { '@type': 'CollegeOrUniversity', name: me.alumniOf },
+  sameAs: [links.substack, links.wasp, links.letterboxd, links.github, links.linkedin],
+};
+---
+
+<!doctype html>
+<html lang="en" data-hour="day" data-light={light || undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={themeColor} />
+    <meta name="color-scheme" content="dark" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={me.name} href="/rss.xml" />
+    <link rel="preload" href="/fonts/switzer/Switzer-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <meta property="og:type" content={path === '/' ? 'website' : 'article'} />
+    <meta property="og:site_name" content={me.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={self} />
+    <meta property="og:image" content={new URL(image, SITE).href} />
+    <meta property="og:image:width" content={String(imageSize.width)} />
+    <meta property="og:image:height" content={String(imageSize.height)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={new URL(image, SITE).href} />
+    <script type="application/ld+json" set:html={JSON.stringify(person)} />
+    <!-- Pre-paint: the hour (00:00–04:59 is late), a stored night preference, and
+         the once-per-visit hero. window.__HOUR fakes the hour for screenshots. -->
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        var h = window.__HOUR != null ? Number(window.__HOUR) : new Date().getHours();
+        var late = h >= 0 && h < 5;
+        try { if (localStorage.getItem('vg-late') === '1') late = true; } catch (e) {}
+        d.dataset.hour = late ? 'late' : 'day';
+        if (late) { var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = '#07090c'; }
+        try {
+          if (!sessionStorage.getItem('vg-hero') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            d.dataset.hero = 'play';
+            sessionStorage.setItem('vg-hero', '1');
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="glow on" id="glow-a" aria-hidden="true"></div>
+    <div class="glow" id="glow-b" aria-hidden="true"></div>
+
+    <header class="top">
+      <div class="wrap row">
+        <a href="/" class="mark quiet" aria-label="Abhishek, home"><Mark /></a>
+        <nav aria-label="Site">
+          {nav.map(([label, href]) => (
+            <a href={href} class="quiet" aria-current={path.startsWith(href) ? 'page' : undefined}>{label}</a>
+          ))}
+          <a href={`mailto:${me.email}`} class="dm">send a dm</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <!-- Q10, "three words": he gave five. The count delivers it. -->
+        <p class="small muted three">Three words</p>
+        <ol class="five" role="list">
+          {me.friends.map((w, i) => (
+            <li><span class="mono">{i + 1}</span> {w}</li>
+          ))}
+        </ol>
+        <div class="row">
+          <p class="mono">v.I · Oct 2026</p>
+          <nav aria-label="For readers and their agents" class="small">
+            <a href="/2am/" class="quiet">2am</a>
+            <a href="/llms.txt" class="quiet">llms.txt</a>
+            <a href="/rss.xml" class="quiet">rss</a>
+          </nav>
+          <nav aria-label="Elsewhere" class="small">
+            <a href={links.substack} class="quiet" rel="me">Substack</a>
+            <a href={links.letterboxd} class="quiet" rel="me">Letterboxd</a>
+            <a href={links.github} class="quiet" rel="me">GitHub</a>
+            <a href={links.linkedin} class="quiet" rel="me">LinkedIn</a>
+          </nav>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../scripts/relight.js"></script>
+  </body>
+</html>
+
+<style>
+  .top {
+    position: relative;
+    z-index: 2;
+    height: var(--top);
+  }
+  .top .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    gap: var(--gutter);
+  }
+  .mark {
+    display: block;
+    color: var(--ink);
+    padding-block: 0.5rem;
+  }
+  .top nav {
+    display: flex;
+    gap: clamp(1rem, 2.2vw, 2rem);
+    font-size: var(--fs-small);
+    font-weight: 500;
+  }
+  .top nav a[aria-current='page'] { text-decoration: underline; text-decoration-color: currentColor; }
+  .top nav .dm {
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1.5px;
+    transition: text-decoration-color calc(var(--d-relight) * 0.56) var(--ease-standard);
+  }
+  .top nav .dm:hover { text-decoration-color: var(--accent); color: var(--accent); }
+  /* during a poem interlude the header leaves the screen and the tab order */
+  .top { transition: opacity var(--d-ui) var(--ease-standard), visibility 0s linear 0s; }
+  html[data-interlude] .top { opacity: 0; visibility: hidden; transition-delay: 0s, var(--d-ui); }
+  @media (max-width: 479px) {
+    .top { height: auto; }
+    .top .row { flex-direction: column; align-items: flex-start; padding-block: 1rem 0.25rem; gap: 0.75rem; }
+    .top nav { gap: 1.1rem; flex-wrap: wrap; }
+  }
+
+  .foot {
+    position: relative;
+    z-index: 1;
+    margin-top: var(--gap-section);
+    padding-block: var(--gap-block) clamp(2rem, 4vw, 4rem);
+  }
+  .foot .wrap { border-top: 1px solid var(--hairline); padding-top: var(--gap-block); }
+  .three { font-weight: 500; }
+  .five {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+    margin-top: 0.75rem;
+    font-size: var(--fs-lit);
+    font-weight: 500;
+  }
+  .five .mono { color: var(--ink-muted); margin-right: 0.35rem; }
+  .foot .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem clamp(2rem, 5vw, 5rem);
+    margin-top: var(--gap-block);
+    align-items: baseline;
+  }
+  .foot nav { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+  .foot nav a { color: var(--ink-muted); }
+  .foot nav a:hover { color: var(--ink); }
+  .foot .mono { color: var(--ink-muted); }
+</style>

@@ -1,5 +1,389 @@
 ---
-// Placeholder until the G build lands.
-import { me } from '../data/me';
+/**
+ * Home. docs/design/spec.md, "Homepage, screen by screen".
+ * The first screen is the lit room: the page ships lit by La La Land, the strip
+ * sits in the hero with its slot already filled, and the three-beat reveal is
+ * quote → "– Michael Scott" → the whiteboard as the receipt.
+ * Every sentence is his, from src/data/me.ts, src/data/taste.ts or his posts.
+ */
+import Base from '../layouts/Base.astro';
+import Circle from '../components/Circle.astro';
+import Strip from '../components/Strip.astro';
+import { me, links, projects, ask } from '../data/me';
+import { works } from '../data/taste';
+import { getWriting, firstLine, fmtDate, iso } from '../lib/posts';
+
+const writing = await getWriting();
+/** His own pieces, first lines; Substack subtitles aren't first lines. */
+const pieces = writing.filter((p) => p.source === 'site').slice(0, 2);
+const poem = writing.find((p) => p.kind === 'poem' && p.pull.length > 0);
+
+/** The running work: live, in use, building. Five at most; the rest is /work/. */
+const RUNNING: readonly string[] = ['live', 'in use', 'building'];
+const running = projects.filter((p) => RUNNING.includes(p.status)).slice(0, 5);
+
+const img = me.epigraph.image;
 ---
-<html lang="en"><head><meta charset="utf-8"><title>{me.name}</title></head><body><h1>{me.hello.join(' ')}</h1></body></html>
+
+<Base>
+  <!-- 1. The lit room: slate, whiteboard + quote, the strip with its slot filled -->
+  <section class="hero wrap grid" aria-label="Hello">
+    <h1 class="vh">{me.name}</h1>
+    <p class="slate small">
+      <span>{me.where}</span>
+      <span>{me.interests}</span>
+      <a href="/2am/" class="late-link quiet">2am →</a>
+    </p>
+    <figure class="board">
+      <picture>
+        <source srcset={img.webp} type="image/webp" />
+        <img src={img.jpg} width={img.width} height={img.height} alt={img.alt} decoding="async" fetchpriority="high" />
+      </picture>
+      <span class="wash" aria-hidden="true"></span>
+    </figure>
+    <!-- Michael Scott everywhere. Three beats: the quote, the second credit, then the receipt. -->
+    <blockquote class="epigraph">
+      <p class="l1"><span class="in">{me.epigraph.lines[0].split(' – ')[0]} <span class="nb">– {me.epigraph.lines[0].split(' – ').slice(1).join(' – ')}</span></span></p>
+      <p class="l2">{me.epigraph.lines[1]}</p>
+    </blockquote>
+    <Strip class="hero-strip" />
+  </section>
+
+  <!-- 2. Taste: the line and the moon -->
+  <section class="section wrap" aria-labelledby="taste-label">
+    <div class="label-row">
+      <h2 id="taste-label">Taste</h2>
+      <a href="/taste/" class="quiet">All <span class="mono">{works.length}</span> →</a>
+    </div>
+    <div class="grid taste-row">
+      <p class="lead title consume">{me.consume}</p>
+      <Circle class="moon" />
+    </div>
+  </section>
+
+  <!-- 3. Work: the band -->
+  <section class="section band" aria-labelledby="work-label">
+    <div class="wrap">
+      <div class="label-row">
+        <h2 id="work-label">Work</h2>
+        <a href="/work/" class="quiet">All <span class="mono">{projects.length}</span> →</a>
+      </div>
+      <p class="lead title obsession">{me.obsession.replace('pick up', 'pick up')}</p>
+      <ol class="running grid" role="list">
+        {running.map((p) => (
+          <li>
+            <p class="head">
+              <a href={p.href ?? `/work/#${p.slug}`} class="quiet name">{p.name}</a>
+              <span class="small muted">{p.status}</span>
+              <span class="mono muted">{p.when}</span>
+            </p>
+            <p class="lit line">{p.line}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- 4. Writing: his first lines, not titles -->
+  <section class="section wrap" aria-labelledby="writing-label">
+    <div class="label-row">
+      <h2 id="writing-label">Writing</h2>
+      <a href="/writing/" class="quiet">All of it →</a>
+    </div>
+    <div class="pieces grid">
+      {pieces.map((p, i) => (
+        <article class:list={['piece', i % 2 ? 'r' : 'l']}>
+          <a href={p.href} class="quiet">
+            <p class="title-lit">{firstLine(p)}</p>
+          </a>
+          <p class="small label">
+            <span class="muted">{p.title}</span>
+            <time class="mono" datetime={iso(p.date)}>{fmtDate(p.date)}</time>
+          </p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- 5. Interlude: one poem, full screen, lit by its own cold light -->
+  {poem && (
+    <section class="interlude" aria-label="Poem" data-interlude data-light={poem.light}>
+      <div class="wrap grid">
+        <blockquote class="verse">
+          <p>{poem.pull[0]}</p>
+        </blockquote>
+        <p class="small label">
+          <a href={poem.href} class="quiet">{poem.title}</a>
+          <time class="mono" datetime={iso(poem.date)}>{fmtDate(poem.date)}</time>
+          <a href={poem.href} class="quiet">Read →</a>
+        </p>
+      </div>
+    </section>
+  )}
+
+  <!-- 6. The door -->
+  <section class="section door wrap grid" aria-label="Say hi" id="dm">
+    <div class="say">
+      <p class="title">{me.sameDoor}</p>
+      <p class="address">
+        <a href={`mailto:${me.email}`}>{me.email}</a>
+        <a href={`mailto:${me.email}`} class="quiet muted">send a dm →</a>
+        {links.care && <a href={links.care} class="quiet muted">care slots →</a>}
+      </p>
+    </div>
+    <!-- Posts to Web3Forms (src/data/me.ts `ask`); works without JS, and with it stays on the page. -->
+    <form class="ask" action={ask.endpoint} method="POST" data-mailto={`mailto:${me.email}`}>
+      <input type="hidden" name="access_key" value={ask.accessKey} />
+      <input type="hidden" name="subject" value={ask.subject} />
+      <input type="hidden" name="from_name" value="vyas.garden" />
+      <input type="checkbox" name="botcheck" class="vh visually-hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <label>
+        <span>Name <span class="muted">(optional)</span></span>
+        <input name="name" autocomplete="name" />
+      </label>
+      <label>
+        <span>Email <span class="muted">(optional)</span></span>
+        <input type="email" name="email" autocomplete="email" />
+      </label>
+      <label>
+        <span>Message</span>
+        <textarea name="message" rows="4" required></textarea>
+      </label>
+      <button type="submit" class="btn">Send</button>
+      <p class="status small" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+</Base>
+
+<script>
+  /* With JS the form stays on the page: fetch, then a quiet "Sent." in place. */
+  const form = document.querySelector<HTMLFormElement>('form.ask');
+  if (form) {
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const status = form.querySelector<HTMLElement>('.status')!;
+    const mailto = form.dataset.mailto || '';
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+      if (data.email) data.replyto = data.email;
+      button.disabled = true;
+      status.textContent = 'Sending…';
+      let res: Response;
+      try {
+        res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } catch {
+        /* Blocked before it was sent: Web3Forms sits behind Cloudflare, which can
+           challenge scripted requests. A plain form post is a page load, which a
+           browser can get through, so send it that way instead. */
+        HTMLFormElement.prototype.submit.call(form);
+        return;
+      }
+      try {
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok || !out.success) throw new Error(out.message || res.statusText);
+        const done = document.createElement('p');
+        done.className = 'sent';
+        done.setAttribute('role', 'status');
+        done.textContent = 'Sent.';
+        form.replaceWith(done);
+      } catch {
+        button.disabled = false;
+        status.innerHTML = '';
+        status.append('Didn’t send. ');
+        const a = document.createElement('a');
+        a.href = mailto;
+        a.textContent = 'Email instead →';
+        status.append(a);
+      }
+    });
+  }
+</script>
+
+<style>
+  /* 1. the lit room: slate; whiteboard left, quote right, bottom-aligned; the strip beneath */
+  .hero {
+    grid-template-rows: auto auto auto;
+    padding-top: 0.5rem;
+    padding-bottom: clamp(1rem, 2vw, 2rem);
+    align-items: start;
+  }
+  .slate {
+    grid-column: 1 / 13;
+    grid-row: 1;
+    color: var(--ink-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    padding: 0.5rem 0 1rem;
+  }
+  .late-link { display: none; color: var(--ink); }
+  html[data-hour='late'] .late-link { display: inline; }
+  .board {
+    grid-column: 1 / 7;
+    grid-row: 2;
+    position: relative;
+    margin: 0;
+    width: 100%;
+    max-width: 600px; /* a 600×315 grab; never upscaled */
+  }
+  .board img { width: 100%; height: auto; }
+  .epigraph {
+    grid-column: 7 / 13;
+    grid-row: 2;
+    align-self: end;
+    margin: 0;
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 0.96;
+    letter-spacing: -0.03em;
+    max-width: 14ch;
+  }
+  .epigraph p { margin: 0; }
+  .epigraph .l1 { overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+  .epigraph .in { display: block; }
+  .epigraph .nb { white-space: nowrap; }
+  .epigraph .l2 { margin-top: 0.1em; }
+  .hero :global(.hero-strip) {
+    grid-column: 1 / 13;
+    grid-row: 3;
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  /* first sight, once per visit: the quote rises, one beat, the second credit; then the receipt and the strip */
+  html[data-hero='play'] .epigraph .in { animation: rise var(--d-reveal) var(--ease-out) both; }
+  html[data-hero='play'] .epigraph .l2 { animation: land var(--d-ui) linear calc(var(--d-reveal) + var(--d-beat)) both; }
+  html[data-hero='play'] .board,
+  html[data-hero='play'] :global(.hero-strip .bars) { animation: land var(--d-reveal) var(--ease-out) calc(var(--d-reveal) + var(--d-beat) + var(--d-beat)) both; }
+  html[data-hero='play'] :global(.hero-strip .bubble) {
+    animation: bubble var(--d-ui) var(--ease-out) calc(var(--d-reveal) + var(--d-beat) + var(--d-beat) + 160ms + var(--i) * var(--stagger-tight)) both;
+  }
+  @keyframes bubble { from { opacity: 0; transform: translateY(0.35rem); } to { opacity: 1; transform: none; } }
+  html[data-hero='play'] .slate { animation: land var(--d-ui) linear both; }
+  @keyframes rise { from { transform: translateY(110%); } to { transform: translateY(0); } }
+  @keyframes land { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    html[data-hero='play'] .epigraph .in,
+    html[data-hero='play'] .epigraph .l2,
+    html[data-hero='play'] .board,
+    html[data-hero='play'] :global(.hero-strip .bars),
+    html[data-hero='play'] :global(.hero-strip .bubble),
+    html[data-hero='play'] .slate { animation: none; }
+  }
+
+  @media (max-width: 719px) {
+    .hero { grid-template-rows: auto auto auto auto; }
+    .slate { grid-row: 1; grid-column: 1 / -1; }
+    .board { grid-row: 2; grid-column: 1 / -1; }
+    .epigraph { grid-row: 3; grid-column: 1 / -1; margin-top: 1.5rem; font-size: 2.25rem; max-width: none; }
+    .hero :global(.hero-strip) { grid-row: 4; grid-column: 1 / -1; margin-top: 2rem; }
+  }
+  @media (min-width: 720px) and (max-width: 1023px) {
+    .epigraph { font-size: 2.5rem; }
+  }
+
+  /* 2. taste: the line left, the moon right */
+  .taste-row { align-items: start; }
+  .consume { grid-column: 1 / 9; max-width: 26ch; }
+  .taste-row :global(.moon) { grid-column: 9 / 13; justify-self: end; margin-top: var(--gap-block); width: clamp(180px, min(22vw, 320px), 320px); }
+  @media (max-width: 719px) {
+    .consume { grid-column: 1 / -1; }
+    .taste-row :global(.moon) { grid-column: 1 / -1; justify-self: end; width: 200px; margin-top: 2rem; }
+  }
+
+  /* 3. work band: verbs in the left column, his lines in Newsreader, no rules between */
+  .obsession { max-width: 26ch; }
+  .band .label-row a {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    transition: text-decoration-color calc(var(--d-relight) * 0.56) var(--ease-standard), color var(--d-hover) var(--ease-hover);
+  }
+  /* the running work: five pieces in the right 7 columns, no rules between */
+  .running { margin-top: var(--gap-block); row-gap: 1.5rem; }
+  .running li { grid-column: 6 / 13; }
+  .running .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; }
+  .running .name { font-size: var(--fs-lit); font-weight: 600; letter-spacing: -0.01em; }
+  .running .line { margin-top: 0.2rem; max-width: 30em; }
+  @media (max-width: 719px) {
+    .running li { grid-column: 1 / -1; }
+    .running { margin-top: 2rem; row-gap: 1.25rem; }
+  }
+
+  /* 4. writing: two first lines, zigzag */
+  .pieces { margin-top: var(--gap-block); row-gap: var(--gap-block); }
+  .piece.l { grid-column: 1 / 9; }
+  .piece.r { grid-column: 5 / 13; }
+  .piece .label { display: flex; gap: 1rem; margin-top: 1rem; }
+  .piece .mono { color: var(--ink-muted); flex: none; }
+  .piece a.quiet:hover { text-decoration: none; }
+  .piece a.quiet:hover .title-lit { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.12em; text-decoration-color: var(--hairline-strong); }
+  @media (max-width: 719px) {
+    .piece.l, .piece.r { grid-column: 1 / -1; }
+  }
+
+  /* 5. interlude: a full screen, the verse alone, lit by its own cold light */
+  .interlude {
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin-top: var(--gap-section);
+    padding-block: var(--gap-block);
+  }
+  .interlude .verse { grid-column: 2 / 12; }
+  .interlude .verse p {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 1.5rem + 3.6vw, 4.75rem);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    font-optical-sizing: auto;
+    hanging-punctuation: first;
+    max-width: 16em;
+    text-wrap: balance;
+  }
+  .interlude .label { grid-column: 2 / 12; display: flex; gap: 1rem; margin-top: var(--gap-block); }
+  .interlude .mono { color: var(--ink-muted); }
+  html[data-js] .interlude .verse,
+  html[data-js] .interlude .label { opacity: 0; transition: opacity var(--d-reveal) var(--ease-out); }
+  html[data-js] .interlude[data-on] .verse,
+  html[data-js] .interlude[data-on] .label { opacity: 1; }
+  html[data-js] .interlude[data-on] .label { transition-delay: 200ms; }
+  @media (max-width: 719px) {
+    .interlude { min-height: 0; padding-block: 3rem; }
+    .interlude .verse, .interlude .label { grid-column: 1 / -1; }
+    .interlude .label { flex-wrap: wrap; }
+  }
+
+  /* 6. the door: the sentence and the address left, the form right */
+  .door { row-gap: var(--gap-block); }
+  .say { grid-column: 1 / 7; }
+  .say .title { max-width: 22ch; }
+  .address { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+  .ask { grid-column: 8 / 13; display: grid; gap: 1.75rem; align-content: start; }
+  @media (max-width: 1023px) { .say { grid-column: 1 / 7; } .ask { grid-column: 7 / 13; } }
+  @media (max-width: 719px) { .say, .ask { grid-column: 1 / -1; } }
+  .ask label { display: grid; gap: 0.4rem; font-size: var(--fs-small); font-weight: 500; }
+  .ask input,
+  .ask textarea {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--hairline-strong);
+    padding: 0.4rem 0;
+    font-size: var(--fs-body);
+    font-weight: 400;
+    border-radius: 0;
+    transition: border-color var(--d-hover) var(--ease-hover);
+  }
+  .ask input:focus-visible,
+  .ask textarea:focus-visible { outline: none; border-bottom-color: var(--accent); }
+  .ask .btn { justify-self: start; margin-top: 0.25rem; }
+  .ask .btn:disabled { opacity: 0.6; cursor: wait; }
+  .ask .status { min-height: 1.45em; color: var(--ink-muted); }
+  .ask .status:empty { display: none; }
+  .door :global(.sent) { grid-column: 8 / 13; font-size: var(--fs-title); font-weight: 600; letter-spacing: -0.015em; }
+  @media (max-width: 1023px) { .door :global(.sent) { grid-column: 7 / 13; } }
+  @media (max-width: 719px) { .door :global(.sent) { grid-column: 1 / -1; } }
+</style>

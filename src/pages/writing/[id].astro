@@ -1,0 +1,208 @@
+---
+/**
+ * The reading room: one local post. docs/design/spec.md, rules for every page.
+ *
+ * The one idea: the room is lit by the piece. A poem's `light` is the page's
+ * rest light (Base renders it on <html>); essays rest in the site's. One pull line returns
+ * after the piece as a full-screen coda, nav hidden. Prose at 34em, verse at
+ * 22em, ragged, each of his lines a line. The body is his text, untouched.
+ */
+import Base from '../../layouts/Base.astro';
+import { render } from 'astro:content';
+import { getWriting, firstLine, fmtDate, iso, type Post } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const local = (await getWriting()).filter((p) => p.source === 'site');
+  return local.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, newer: local[i - 1] ?? null, older: local[i + 1] ?? null },
+  }));
+}
+
+interface Props { post: Post; newer: Post | null; older: Post | null }
+const { post, newer, older } = Astro.props;
+const entry = post.raw!;
+const canonical = entry.data.canonical;
+const pull = post.pull[0];
+const isPoem = post.kind === 'poem';
+
+/**
+ * Verse: the markdown gives one <p> with his line breaks as <br>. Wrap each
+ * authored line in a span so a wrapped line hangs and his break stays his.
+ * The text itself is not touched; everything else renders as Astro would.
+ */
+function verseLines(html: string): string {
+  return html.replace(/<div class="verse">([\s\S]*?)<\/div>/g, (_, inner: string) => {
+    const lined = inner.replace(/<p>([\s\S]*?)<\/p>/g, (_m, p: string) =>
+      '<p>' + p.split(/<br\s*\/?>\n?/).map((l) => `<span class="l">${l}</span>`).join('\n') + '</p>'
+    );
+    return `<div class="verse">${lined}</div>`;
+  });
+}
+const html = isPoem && entry.rendered?.html ? verseLines(entry.rendered.html) : null;
+const { Content } = html ? { Content: null } : await render(entry);
+---
+
+<Base title={post.title} description={firstLine(post)} light={post.light} canonical={canonical}>
+  <article class:list={['wrap room', isPoem ? 'poem' : 'essay']}>
+    <div class="label-row">
+      <a href="/writing/" class="quiet back">Writing</a>
+      <time class="mono muted" datetime={iso(post.date)}>{fmtDate(post.date)}</time>
+    </div>
+
+    <header class="head">
+      <h1 class:list={[isPoem ? 'title-poem' : 'title']}>{post.title}</h1>
+    </header>
+
+    <div class="body">
+      {html ? <Fragment set:html={html} /> : Content && <Content />}
+    </div>
+
+    {canonical && (
+      <p class="first small">
+        <a href={canonical} class="quiet" rel="external">First published on Substack</a>
+      </p>
+    )}
+  </article>
+
+  <!-- The coda: one of his lines, full screen. relight.js hides the nav, moves the
+       lamp to the line's edge and, on leaving, returns the room to its rest light. -->
+  {pull && (
+    <section class="interlude" aria-label="From the piece" data-interlude data-light={post.light}>
+      <div class="wrap grid">
+        <blockquote class="verse-line"><p>{pull}</p></blockquote>
+      </div>
+    </section>
+  )}
+
+  <nav class="wrap between" aria-label="Other pieces">
+    {newer && (
+      <p class="n newer">
+        <span class="small muted">Newer</span>
+        <a href={newer.href} class="quiet">{newer.title}</a>
+        <time class="mono muted" datetime={iso(newer.date)}>{fmtDate(newer.date)}</time>
+      </p>
+    )}
+    {older && (
+      <p class="n older">
+        <span class="small muted">Older</span>
+        <a href={older.href} class="quiet">{older.title}</a>
+        <time class="mono muted" datetime={iso(older.date)}>{fmtDate(older.date)}</time>
+      </p>
+    )}
+  </nav>
+</Base>
+
+<style>
+  .room { padding-top: 0.5rem; }
+  .back { font-weight: 500; }
+  .label-row .mono { color: var(--ink-muted); }
+
+  /* the title, then the piece, both pinned left in a wide frame */
+  .head { margin-top: var(--gap-block); max-width: 34em; }
+  .title-poem {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--fs-title);
+    line-height: 1.15;
+    font-optical-sizing: auto;
+  }
+  .body { margin-top: clamp(2rem, 3vw, 3rem); }
+
+  /* prose: Newsreader 480 at 34em */
+  .essay .body {
+    font-family: var(--serif);
+    font-size: var(--fs-lit);
+    font-weight: 480;
+    line-height: 1.55;
+    font-optical-sizing: auto;
+    max-width: 34em;
+    hanging-punctuation: first;
+  }
+  .essay .body :global(p + p) { margin-top: 1.3em; }
+  .essay .body :global(h2),
+  .essay .body :global(h3) {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: var(--fs-lit);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-top: 2.2em;
+  }
+  .essay .body :global(h2 + p),
+  .essay .body :global(h3 + p) { margin-top: 0.8em; }
+  .essay .body :global(blockquote) { margin: 1.3em 0 1.3em 1.5em; font-style: italic; }
+  .essay .body :global(ul),
+  .essay .body :global(ol) { margin: 1.3em 0; padding-left: 1.5em; }
+  .essay .body :global(li + li) { margin-top: 0.4em; }
+  .essay .body :global(img) { margin: 2em 0; }
+  .essay .body :global(hr) { border: 0; border-top: 1px solid var(--hairline); margin: 2.5em 0; }
+
+  /* verse: 22em, ragged, left; a wrapped line hangs; his indents hold */
+  .poem .body {
+    font-family: var(--serif);
+    font-size: var(--fs-lit);
+    font-weight: 480;
+    line-height: 1.6;
+    font-optical-sizing: auto;
+    max-width: 22em;
+    text-align: left;
+  }
+  .poem .body :global(.verse p + p) { margin-top: 1.6em; }
+  .poem .body :global(.l) {
+    display: block;
+    padding-left: 1.5em;
+    text-indent: -1.5em;
+    hanging-punctuation: first;
+  }
+  .poem .body :global(.indent) { display: inline-block; width: 2em; }
+  .poem .body :global(p:not(.verse p)) { max-width: 34em; }
+
+  .first { margin-top: var(--gap-block); color: var(--ink-muted); }
+  .first a:hover { color: var(--ink); }
+
+  /* the coda: the homepage interlude, the line alone */
+  .interlude {
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin-top: var(--gap-section);
+    padding-block: var(--gap-block);
+  }
+  .interlude .verse-line { grid-column: 2 / 12; }
+  .interlude .verse-line p {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 1.5rem + 3.6vw, 4.75rem);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    font-optical-sizing: auto;
+    hanging-punctuation: first;
+    max-width: 16em;
+    text-wrap: balance;
+  }
+  html[data-js] .interlude .verse-line { opacity: 0; transition: opacity var(--d-reveal) var(--ease-out); }
+  html[data-js] .interlude[data-on] .verse-line { opacity: 1; }
+
+  /* newer / older */
+  .between {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--gutter);
+    margin-top: var(--gap-section);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .n { display: grid; gap: 0.25rem; justify-items: start; }
+  .n.older { margin-left: auto; justify-items: end; text-align: right; }
+  .n .small { font-weight: 500; }
+  .n a { font-size: var(--fs-body); }
+
+  /* phone: no dead gaps; the coda sits in the flow with air, not a screen */
+  @media (max-width: 719px) {
+    .interlude .verse-line { grid-column: 1 / -1; }
+    .interlude { min-height: 0; margin-top: clamp(4rem, 12vw, 6rem); padding-block: 3rem; }
+    .between { margin-top: clamp(4rem, 12vw, 6rem); flex-wrap: wrap; }
+  }
+</style>

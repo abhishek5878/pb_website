@@ -30,6 +30,8 @@ export type Post = {
   place?: string;
   tags: string[];
   pull: string[];
+  /** Poems: the relight preset an interlude uses (src/styles/light.css). */
+  light?: string;
   source: 'site' | 'substack' | 'letterboxd';
   sourceName?: string;
   href: string;
@@ -79,6 +81,7 @@ export async function getPosts(): Promise<Post[]> {
       place: d.place,
       tags: d.tags,
       pull: d.pull,
+      light: d.light,
       source: 'site',
       href: `/writing/${e.id}/`,
       external: false,
@@ -135,6 +138,24 @@ export async function getPosts(): Promise<Post[]> {
 /** Things he wrote: local posts plus both Substacks, no film logs. */
 export const getWriting = async () => (await getPosts()).filter((p) => p.source !== 'letterboxd');
 export const getFilms = async () => (await getPosts()).filter((p) => p.source === 'letterboxd');
+
+/**
+ * The first sentence of a local post, verbatim; for a Substack post, its
+ * subtitle (the line under the title there). "Mr." and friends don't end it.
+ */
+export function firstLine(p: Post): string {
+  const body = p.raw?.body;
+  if (!body) return p.excerpt ?? '';
+  const t = plain(body);
+  const re = /[.?!]["”’)]*(?=\s+[A-Z“"‘(])/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t))) {
+    const before = t.slice(0, m.index);
+    if (/\b(Mr|Mrs|Ms|Dr|St|vs|etc|e\.g|i\.e)$/.test(before)) continue;
+    return t.slice(0, m.index + m[0].length);
+  }
+  return t;
+}
 
 /** What a post is called when it has no title. */
 export function label(p: Post): string {

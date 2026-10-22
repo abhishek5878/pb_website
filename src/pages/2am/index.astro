@@ -1,0 +1,147 @@
+---
+/**
+ * 2am: the late layer. A different hour of the same site.
+ *
+ * The one idea is the Frankl device (type-colour.md §2): the question at
+ * display size, a viewport of nothing, then his whole answer, "everything",
+ * at body size. The page is always 2am: the late state is forced here.
+ * Then the hospital poem's two lines as an interlude lit by the poem,
+ * and two more of his lines for the hour. Nothing else.
+ */
+import Base from '../../layouts/Base.astro';
+import { me } from '../../data/me';
+import { getWriting, fmtDate, iso } from '../../lib/posts';
+
+const writing = await getWriting();
+const poem = writing.find((p) => p.kind === 'poem' && p.pull.length > 0);
+const question = 'What do you obsess over at 2am?';
+---
+
+<Base title="2am" description={`${question} ${me.twoAm}`}>
+  <!-- It is always 2am here. Pre-paint, no flash; a stored preference keeps it on everywhere. -->
+  <script is:inline>
+    document.documentElement.dataset.hour = 'late';
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.content = '#07090c';
+  </script>
+
+  <section class="wrap late" aria-labelledby="late-label">
+    <div class="label-row">
+      <h1 id="late-label">2am</h1>
+    </div>
+    <p class="q display">{question}</p>
+    <div class="nothing" aria-hidden="true"></div>
+    <p class="a">{me.twoAm}</p>
+  </section>
+
+  {poem && (
+    <section class="interlude" aria-label="Poem" data-interlude data-light={poem.light}>
+      <div class="wrap grid">
+        <blockquote class="verse">
+          <p class="one">{poem.pull[0]}</p>
+          {poem.pull[1] && <p class="two">{poem.pull[1]}</p>}
+        </blockquote>
+        <p class="small label">
+          <a href={poem.href} class="quiet">{poem.title}</a>
+          <time class="mono" datetime={iso(poem.date)}>{fmtDate(poem.date)}</time>
+          <a href={poem.href} class="quiet">Read →</a>
+        </p>
+      </div>
+    </section>
+  )}
+
+  <section class="wrap grid hour" aria-label="The hour">
+    <p class="music title-lit">{me.music}</p>
+    <p class="again title">{me.oneMoreTime}</p>
+    <p class="keep">
+      <button type="button" class="textbtn" id="keep" aria-pressed="false">Keep the night on</button>
+    </p>
+  </section>
+</Base>
+
+<script>
+  /* A stored night preference (read pre-paint in Base) keeps every page late. */
+  const b = document.getElementById('keep') as HTMLButtonElement | null;
+  const html = document.documentElement;
+  const read = () => { try { return localStorage.getItem('vg-late') === '1'; } catch { return false; } };
+  const show = (on: boolean) => {
+    if (!b) return;
+    b.setAttribute('aria-pressed', String(on));
+    b.textContent = on ? 'Let the day back in' : 'Keep the night on';
+  };
+  if (b) {
+    show(read());
+    b.addEventListener('click', () => {
+      const on = !read();
+      try { on ? localStorage.setItem('vg-late', '1') : localStorage.removeItem('vg-late'); } catch {}
+      html.dataset.hour = 'late';
+      show(on);
+    });
+  }
+</script>
+
+<style is:global>
+  /* the button only means something with JS */
+  html:not([data-js]) .keep { display: none; }
+</style>
+
+<style>
+  .late { padding-top: 0.5rem; }
+  .label-row h1 { font: 500 var(--fs-small) / 1.45 var(--sans); }
+
+  /* the question, the nothing, the answer */
+  .q {
+    margin-top: var(--gap-block);
+    max-width: 11ch;
+    margin-left: -0.03em;
+  }
+  .nothing { height: 100svh; }
+  .a {
+    font-size: var(--fs-body);
+    max-width: 34em;
+  }
+
+  /* the interlude: both of the poem's lines, lit by the poem */
+  .interlude {
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin-top: var(--gap-section);
+    padding-block: var(--gap-block);
+  }
+  .interlude .verse { grid-column: 1 / 13; display: grid; grid-template-columns: subgrid; row-gap: clamp(2.5rem, 5vw, 5rem); }
+  .interlude .verse p {
+    font-family: var(--serif);
+    font-size: clamp(2.25rem, 1.3rem + 3.2vw, 4.25rem);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    font-optical-sizing: auto;
+    hanging-punctuation: first;
+    text-wrap: balance;
+  }
+  .interlude .one { grid-column: 2 / 10; }
+  .interlude .two { grid-column: 5 / 13; }
+  .interlude .label { grid-column: 2 / 11; display: flex; gap: 1rem; margin-top: var(--gap-block); }
+  .interlude .mono { color: var(--ink-muted); }
+  html[data-js] .interlude .verse,
+  html[data-js] .interlude .label { opacity: 0; transition: opacity var(--d-reveal) var(--ease-out); }
+  html[data-js] .interlude[data-on] .verse,
+  html[data-js] .interlude[data-on] .label { opacity: 1; }
+  html[data-js] .interlude[data-on] .label { transition-delay: 200ms; }
+
+  /* the hour: two lines that zigzag, then the switch */
+  .hour { margin-top: var(--gap-section); row-gap: var(--gap-block); }
+  .music { grid-column: 1 / 8; }
+  .again { grid-column: 5 / 13; max-width: 22ch; }
+  .keep { grid-column: 1 / 13; margin-top: var(--gap-block); }
+
+  @media (max-width: 719px) {
+    .nothing { height: 80svh; }
+    .interlude .verse p { text-wrap: pretty; }
+    .interlude .one, .interlude .two, .interlude .label, .music, .again, .keep { grid-column: 1 / -1; }
+    .interlude .two { padding-left: 2rem; }
+    .interlude { min-height: 0; margin-top: clamp(4rem, 12vw, 6rem); padding-block: 3rem; }
+    .hour { margin-top: clamp(4rem, 12vw, 6rem); }
+  }
+</style>

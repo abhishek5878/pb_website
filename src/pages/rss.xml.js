@@ -6,7 +6,7 @@ export async function GET(context) {
   const posts = await getWriting();
   return rss({
     title: me.name,
-    description: `${me.hello.join(' ')} ${me.hello2}`,
+    description: me.interests,
     site: context.site,
     items: posts.map((p) => ({
       title: label(p),

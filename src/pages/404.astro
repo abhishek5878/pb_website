@@ -1,0 +1,96 @@
+---
+/**
+ * 404. Michael Scott everywhere: the whiteboard is the only quote on the site,
+ * so the missed shot is already written on the wall. The error is credited
+ * the way he credits everything: "– Michael Scott" (me.epigraph.lines[1]).
+ * UI words only. Three ways back. One screen.
+ */
+import Base from '../layouts/Base.astro';
+import { me } from '../data/me';
+
+const ways = [
+  ['Home', '/'],
+  ['Writing', '/writing/'],
+  ['Work', '/work/'],
+];
+---
+
+<Base title="Not found">
+  <section class="lost wrap grid" aria-labelledby="lost-h">
+    <h1 class="code display-xl" id="lost-h">
+      <span class="vh">Page not found, </span>404
+    </h1>
+    <p class="credit display">{me.epigraph.lines[1]}</p>
+    <figure class="board">
+      <picture>
+        <source srcset={me.epigraph.image.webp} type="image/webp" />
+        <img
+          src={me.epigraph.image.jpg}
+          width={me.epigraph.image.width}
+          height={me.epigraph.image.height}
+          alt={me.epigraph.image.alt}
+          decoding="async"
+        />
+      </picture>
+      <span class="wash" aria-hidden="true"></span>
+    </figure>
+    <nav class="ways small" aria-label="Ways back">
+      {ways.map(([label, href]) => <a href={href} class="quiet">{label} →</a>)}
+    </nav>
+  </section>
+</Base>
+
+<style>
+  /* one screen: one row, the number and its credit bottom-aligned to the whiteboard's edge, the ways back beneath */
+  .lost {
+    min-height: calc(100svh - var(--top));
+    grid-template-rows: auto auto auto;
+    align-content: center;
+    padding-block: 1rem clamp(3rem, 6vw, 5rem);
+    row-gap: 0;
+  }
+  .board {
+    position: relative; /* the frame the shared .wash sits in, as on the homepage */
+    grid-column: 7 / 13;
+    grid-row: 1 / 3;
+    justify-self: end;
+    align-self: end;
+    margin: 0;
+    width: 100%;
+    max-width: 600px; /* a 600×315 grab; never upscaled */
+  }
+  .board img { width: 100%; height: auto; }
+  .code {
+    grid-column: 1 / 7;
+    grid-row: 1;
+    align-self: end;
+    font-variant-numeric: tabular-nums;
+  }
+  .credit {
+    grid-column: 1 / 7;
+    grid-row: 2;
+    align-self: end;
+    margin-top: 0.1em;
+    margin-bottom: -0.1em; /* the credit's baseline sits on the board's bottom edge */
+    font-weight: 700;
+  }
+  .ways {
+    grid-column: 1 / 13;
+    grid-row: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    margin-top: var(--gap-block);
+    font-weight: 500;
+  }
+  .ways a { color: var(--ink-muted); }
+  .ways a:hover { color: var(--ink); }
+
+  @media (max-width: 719px) {
+    .lost { min-height: 0; grid-template-rows: auto auto auto auto; row-gap: 0; }
+    .board { grid-column: 1 / -1; grid-row: 1; justify-self: start; margin-top: 0.5rem; }
+    .code { grid-column: 1 / -1; grid-row: 2; margin-top: 2rem; }
+    .credit { grid-column: 1 / -1; grid-row: 3; }
+    .ways { grid-column: 1 / -1; grid-row: 4; margin-top: 2.5rem; }
+  }
+</style>

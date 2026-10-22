@@ -58,6 +58,8 @@ const posts = defineCollection({
       tags: z.array(z.string()).default([]),
       /** Lines lifted out as a full-screen interlude. Must be his exact words from the post. */
       pull: z.array(z.string()).default([]),
+      /** Poems only: the relight preset the interlude is lit by (src/styles/light.css). */
+      light: z.string().optional(),
       draft: z.boolean().default(false),
     }),
 });

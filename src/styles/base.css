@@ -1,0 +1,207 @@
+/*
+ * Base. Type, links, grid, sections, the few shared pieces.
+ * Rules: one hairline above a section label and nothing else divides;
+ * labels are small sentence-case Switzer; mono only for dates and numbers.
+ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 100%;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  scroll-behavior: auto;
+}
+body {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 400;
+  min-height: 100svh;
+  overflow-x: clip;
+  position: relative;
+}
+main { position: relative; z-index: 1; }
+h1, h2, h3, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
+ul[role='list'], ol[role='list'] { list-style: none; padding: 0; }
+img, video, svg { display: block; max-width: 100%; }
+button, input, textarea { font: inherit; color: inherit; }
+textarea { resize: none; }
+
+::selection { background: var(--accent); color: var(--bg); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* links: ink, a hairline underline that fills on hover. never blue. */
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--hairline-strong);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--d-hover) var(--ease-hover);
+}
+a:hover { text-decoration-color: currentColor; }
+a.quiet { text-decoration: none; }
+a.quiet:hover { text-decoration: underline; text-decoration-color: currentColor; }
+
+/* type roles */
+.display-xl {
+  font-size: var(--fs-display-xl);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+}
+.display {
+  font-size: var(--fs-display);
+  font-weight: 700;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+}
+.title {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.title-lit {
+  font-family: var(--serif);
+  font-size: var(--fs-title);
+  font-weight: 300;
+  line-height: 1.2;
+  font-optical-sizing: auto;
+}
+.lit {
+  font-family: var(--serif);
+  font-size: var(--fs-lit);
+  font-weight: 480;
+  line-height: 1.55;
+  font-optical-sizing: auto;
+}
+.small { font-size: var(--fs-small); line-height: 1.45; }
+.muted { color: var(--ink-muted); }
+.mono {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.measure { max-width: 34em; }
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* grid: 12 columns, 1312 at 1440, margins that grow with the screen */
+.wrap {
+  width: min(100% - 2 * var(--margin), var(--content));
+  margin-inline: auto;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+@media (max-width: 719px) {
+  .grid > * { grid-column: 1 / -1; }
+}
+
+/* sections: wide air between, tight inside */
+.section { margin-top: var(--gap-section); }
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--gutter);
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+/* the page label: h1 on inner pages, h2 on the home sections; never the UA size */
+.label-row h1,
+.label-row h2 {
+  font: 500 var(--fs-small) / 1.45 var(--sans);
+  letter-spacing: 0;
+}
+.label-row a.quiet { color: var(--ink-muted); }
+.label-row a.quiet:hover { color: var(--ink); }
+.label-row .mono { font-size: inherit; }
+.lead { margin-top: var(--gap-block); text-wrap: balance; }
+
+/* the quiet tones carry a quarter of the accent, so they fade with the light too */
+.muted,
+.small,
+.label-row,
+.label-row a.quiet,
+.textbtn { transition: color var(--d-relight) var(--ease-standard); }
+
+/* a colour wash the photographs take from the current light; a child of a positioned frame */
+.wash {
+  position: absolute;
+  inset: 0;
+  background-color: var(--wash);
+  mix-blend-mode: color;
+  opacity: 0.35;
+  pointer-events: none;
+  transition: background-color var(--d-relight) var(--ease-standard);
+}
+/* bright photographs (the gallery scope) take less, or they go cyan */
+.wash--bright { opacity: 0.22; }
+
+/* the one raised surface: bottle green, edge to edge */
+.band {
+  background-color: var(--bg-raised);
+  padding-block: clamp(5rem, 8.9vw, 8rem);
+}
+.band .label-row { border-top-color: color-mix(in oklab, var(--ink) 16%, transparent); }
+
+/* a text button, for things like pause */
+.textbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-size: var(--fs-small);
+  color: var(--ink-muted);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--hairline-strong);
+  text-underline-offset: 0.2em;
+  transition: color var(--d-hover) var(--ease-hover), text-decoration-color var(--d-hover) var(--ease-hover);
+}
+.textbtn:hover { color: var(--ink); text-decoration-color: currentColor; }
+
+/* the one filled control: accent, text in bg, square */
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--bg);
+  border: 0;
+  padding: 0.7em 1.4em;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color calc(var(--d-relight) * 0.56) var(--ease-standard), color calc(var(--d-relight) * 0.56) var(--ease-standard), transform var(--d-press) var(--ease-out);
+}
+.btn:active { transform: scale(0.985); }
+
+/* cross-document crossfade, 200ms, none under reduced motion */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 200ms; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}

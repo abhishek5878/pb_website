@@ -14,9 +14,11 @@ export const GET: APIRoute = async () => {
   const writing = await getWriting();
   const kinds = Object.keys(KIND_LABEL) as Kind[];
   const lines = [
-    `# ${me.name} (vyas.garden)`,
+    `# ${me.fullName} (vyas.garden)`,
     '',
-    `> ${me.hello.join(' ')} ${me.hello2}`,
+    `> ${me.epigraph.lines.join(' ')}`,
+    '',
+    `${me.name}. ${me.interests}`,
     '',
     `${me.where} ${me.whereNext} ${me.origin.join(' ')}`,
     '',

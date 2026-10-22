@@ -1,0 +1,416 @@
+---
+/**
+ * Taste: the shelf is the instrument.
+ *
+ * Every work he named stands on one shelf as a spine, grouped by kind, each
+ * wearing its own researched swatch as the label band. Point at a spine
+ * (hover, focus, tap) and the whole room is lit by it through the relight
+ * engine (src/scripts/relight.js, by its DOM contract: .strip, .bars,
+ * a[data-light], #lit). The ten works with a preset use light.css; the 23 with
+ * a swatch but no preset use page-scoped palettes derived from the swatch
+ * (contrast-checked: scratchpad/pages/taste/palettes.py); the four with no
+ * researched swatch respond in ink only and keep the house light.
+ *
+ * His words only: lines from src/data/taste.ts, me.consume, me.music, and his
+ * own Letterboxd reviews in src/data/films.json. UI words: "All of it.",
+ * "In his words", "Last watched", "Letterboxd".
+ */
+import Base from '../../layouts/Base.astro';
+import { me, links } from '../../data/me';
+import { works, KIND_LABEL, type Kind, type Work } from '../../data/taste';
+import filmsJson from '../../data/films.json';
+import { fmtDate } from '../../lib/posts';
+
+type Film = { title: string; year?: string; rating?: number | null; watched?: string; url: string; review?: string };
+
+const kinds = Object.keys(KIND_LABEL) as Kind[];
+const groups = kinds.map((kind) => ({ kind, label: KIND_LABEL[kind], items: works.filter((w) => w.kind === kind) }));
+
+/* His Letterboxd log: real dates, ratings and his review text. */
+const log = ((filmsJson.films ?? []) as Film[])
+  .filter((f) => f.watched)
+  .sort((a, b) => (b.watched ?? '').localeCompare(a.watched ?? ''));
+const last = log[0];
+const logged = (w: Work) => (w.kind === 'film' ? log.find((f) => f.title === w.title) : undefined);
+const date = (s?: string) => (s ? fmtDate(new Date(s)) : undefined);
+
+/** His line for a work: taste.ts first; else his own Letterboxd review of that film. Never written here. */
+const lineFor = (w: Work) => w.line ?? logged(w)?.review;
+
+/** The spine's visible name. Records say the album, so the two Radiohead spines differ. */
+const nameOf = (w: Work) => (w.kind === 'music' && w.by ? w.by : w.title);
+const fullName = (w: Work) => (w.by ? `${w.title}, ${w.by}` : w.title);
+
+/** "more than 100 times" → "100+", "more than 10-12 times" → "10–12×". From his words only (same as Strip.astro). */
+function numberIn(line?: string): string | undefined {
+  if (!line) return undefined;
+  const range = line.match(/(\d+)\s*[-–]\s*(\d+)\s*times/);
+  if (range) return `${range[1]}–${range[2]}×`;
+  const more = line.match(/more than (\d+)/);
+  if (more) return `${more[1]}+`;
+  return undefined;
+}
+
+/** The swatch as stacked bands of falling height, top to bottom. */
+function bands(sw: string[]): string {
+  const weights = [46, 27, 17, 10].slice(0, sw.length);
+  const total = weights.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  return sw
+    .map((c, i) => {
+      const from = (acc / total) * 100;
+      acc += weights[i];
+      return `${c} ${from.toFixed(1)}% ${((acc / total) * 100).toFixed(1)}%`;
+    })
+    .join(', ');
+}
+
+/** Which light a spine throws: a preset, a page-scoped palette, or (no swatch) the house light. */
+const lightOf = (w: Work) => w.light ?? (w.swatch.length ? `t-${w.id}` : '');
+
+/* The record beneath the shelf: every line he gave, in shelf order, plus music and the last film he logged. */
+type Said = { id?: string; kicker?: string; text: string; label: string; href?: string; num?: string; when?: string; rating?: number | null };
+const said: Said[] = [];
+for (const g of groups) {
+  for (const w of g.items) {
+    const text = lineFor(w);
+    if (!text) continue;
+    const f = logged(w);
+    said.push({ id: w.id, text, label: fullName(w), num: numberIn(w.line), when: f?.watched, rating: f?.rating });
+  }
+  if (g.kind === 'music') said.push({ text: me.music, label: KIND_LABEL.music });
+}
+if (last?.review) {
+  said.push({ kicker: 'Last watched', text: last.review, label: `${last.title}, ${last.year}`, href: last.url, when: last.watched, rating: last.rating });
+}
+const place = ['a', 'b', 'c'];
+
+/* The room at rest: La La Land, the first spine, his 100+ film. Pinned here so the
+   server-rendered readout matches the light the page ships in (reads lit without JS). */
+const REST = 'lalaland';
+const rest = works.find((w) => w.light === REST);
+/* His lines in the record, except the rest work's: that one is the readout above, always on the page. */
+const record = said.filter((s) => s.id !== rest?.id);
+---
+
+<Base title="Taste" description={me.consume} light={REST}>
+  <!-- the oversized line and the lead, 7/5 -->
+  <section class="open wrap grid" aria-label="Taste">
+    <h1 class="all display-xl">All of it.</h1>
+    <p class="consume title-lit">{me.consume}</p>
+  </section>
+
+  <!-- the shelf: one row of spines standing on a hairline, kind labels beneath. a scroller on the phone -->
+  <div class="strip shelf wrap" id="shelf">
+    <div class="bars">
+      {groups.map((g) => (
+        <section class="group" aria-labelledby={`k-${g.kind}`} style={`--n: ${g.items.length}`}>
+          <h2 id={`k-${g.kind}`} class="kind">{g.label}</h2>
+          <ul class="spines" role="list">
+            {g.items.map((w) => (
+              <li>
+                <a
+                  id={w.id}
+                  href={`#${w.id}`}
+                  class:list={['spine', { ink: !w.swatch.length, rest: w.light === REST }]}
+                  data-light={lightOf(w)}
+                  data-title={w.title}
+                  data-by={w.by}
+                  data-line={lineFor(w)}
+                  data-num={numberIn(w.line)}
+                  style={w.swatch.length ? `--sw: linear-gradient(180deg, ${bands(w.swatch)})` : undefined}
+                >
+                  <span class="name" aria-hidden="true">{nameOf(w)}</span>
+                  <span class="vh">{fullName(w)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+    <!-- the readout: the number, the name, his line. the rest light's is server-rendered; the engine refills it -->
+    <p class="slot has" id="lit" aria-hidden="true">
+      {rest && (
+        <>
+          <span class="num">{numberIn(rest.line) ?? ''}</span>
+          <span class="text">
+            <span class="small t">{fullName(rest)}</span>
+            {rest.line && <span class="q">{rest.line}</span>}
+          </span>
+        </>
+      )}
+    </p>
+  </div>
+
+  <!-- the record: his lines, walking the shelf in order -->
+  <section class="section wrap" aria-labelledby="said-label">
+    <div class="label-row">
+      <h2 id="said-label">In his words</h2>
+      <a href={links.letterboxd} class="quiet" rel="me external">Letterboxd →</a>
+    </div>
+    <ol class="said grid" role="list">
+      {record.map((s, i) => (
+        <li class:list={['say', place[i % 3]]}>
+          {s.kicker && <p class="kicker small">{s.kicker}</p>}
+          <p class="lit q">{s.text}</p>
+          <p class="meta small">
+            {s.href ? (
+              <a href={s.href} class="quiet" rel="external">{s.label}</a>
+            ) : s.id ? (
+              <a href={`#${s.id}`} class="quiet">{s.label}</a>
+            ) : (
+              <span>{s.label}</span>
+            )}
+            {s.num && <span class="mono">{s.num}</span>}
+            {s.when && <time class="mono" datetime={s.when}>{date(s.when)}</time>}
+            {s.rating != null && <span class="mono">{s.rating}/5</span>}
+          </p>
+        </li>
+      ))}
+    </ol>
+  </section>
+</Base>
+
+<script>
+  /* Arriving from a bar on the home strip (/taste/#id): that work lights the room,
+     through the engine's focus path. Runs after the engine has bound its listeners. */
+  function arrive() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const el = id ? document.getElementById(id) : null;
+    if (!(el instanceof HTMLElement) || !el.classList.contains('spine')) return;
+    el.scrollIntoView({ block: 'nearest', inline: 'center' }); /* on the first screen already; the shelf slides to it on the phone */
+    el.focus({ preventScroll: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrive);
+  else arrive();
+</script>
+
+<style is:global>
+  /*
+   * Page-scoped relight palettes for the 23 works with a swatch but no preset.
+   * Derived from the researched swatch, in the round-2 system (bg chroma to 0.08,
+   * glow alpha ×1.5 capped at 60%, a wash each). Verified by
+   * scratchpad/pages/taste/palettes.py: ink/bg ≥ 15.6:1, accent/bg ≥ 5.2:1,
+   * late ≥ 14:1, bg L ≤ 0.18, no yellow (hue 85–110 above C 0.04).
+   */
+  html[data-light='t-eternity'] { --p-bg: oklch(0.17 0.045 40); --p-bg-raised: oklch(0.215 0.045 40); --p-accent: oklch(0.720 0.13 42); --p-glow: oklch(0.78 0.02 75); --p-wash: var(--p-accent); --glow-alpha: 42%; }
+  html[data-light='t-michael'] { --p-bg: oklch(0.16 0.02 260); --p-bg-raised: oklch(0.205 0.02 260); --p-accent: oklch(0.660 0.19 18); --p-glow: oklch(0.86 0.03 75); --p-wash: var(--p-glow); --glow-alpha: 40%; }
+  html[data-light='t-kiarostami'] { --p-bg: oklch(0.18 0.05 125); --p-bg-raised: oklch(0.225 0.05 125); --p-accent: oklch(0.740 0.08 128); --p-glow: oklch(0.62 0.08 78); --p-wash: var(--p-glow); --glow-alpha: 50%; }
+  html[data-light='t-bojack'] { --p-bg: oklch(0.18 0.07 265); --p-bg-raised: oklch(0.225 0.07 265); --p-accent: oklch(0.720 0.16 345); --p-glow: oklch(0.62 0.1 190); --p-wash: var(--p-accent); --glow-alpha: 50%; }
+  html[data-light='t-slow-horses'] { --p-bg: oklch(0.17 0.03 130); --p-bg-raised: oklch(0.215 0.03 130); --p-accent: oklch(0.740 0.03 130); --p-glow: oklch(0.6 0.04 88); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+  html[data-light='t-breaking-bad'] { --p-bg: oklch(0.17 0.05 150); --p-bg-raised: oklch(0.215 0.05 150); --p-accent: oklch(0.760 0.1 225); --p-glow: oklch(0.5 0.12 150); --p-wash: var(--p-accent); --glow-alpha: 54%; }
+  html[data-light='t-daredevil'] { --p-bg: oklch(0.16 0.04 130); --p-bg-raised: oklch(0.205 0.04 130); --p-accent: oklch(0.740 0.12 125); --p-glow: oklch(0.42 0.16 25); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+  html[data-light='t-widows-bay'] { --p-bg: oklch(0.18 0.05 230); --p-bg-raised: oklch(0.225 0.05 230); --p-accent: oklch(0.760 0.12 70); --p-glow: oklch(0.72 0.01 150); --p-wash: var(--p-accent); --glow-alpha: 54%; }
+  html[data-light='t-ted-lasso'] { --p-bg: oklch(0.18 0.07 262); --p-bg-raised: oklch(0.225 0.07 262); --p-accent: oklch(0.660 0.2 25); --p-glow: oklch(0.5 0.15 262); --p-wash: var(--p-glow); --glow-alpha: 54%; }
+  html[data-light='t-shrinking'] { --p-bg: oklch(0.18 0.06 135); --p-bg-raised: oklch(0.225 0.06 135); --p-accent: oklch(0.740 0.11 135); --p-glow: oklch(0.8 0.03 85); --p-wash: var(--p-accent); --glow-alpha: 42%; }
+  html[data-light='t-sopranos'] { --p-bg: oklch(0.17 0.015 250); --p-bg-raised: oklch(0.215 0.015 250); --p-accent: oklch(0.640 0.2 25); --p-glow: oklch(0.6 0.01 250); --p-wash: var(--p-accent); --glow-alpha: 45%; }
+  html[data-light='t-strokes'] { --p-bg: oklch(0.17 0.06 250); --p-bg-raised: oklch(0.215 0.06 250); --p-accent: oklch(0.680 0.15 30); --p-glow: oklch(0.65 0.1 78); --p-wash: var(--p-accent); --glow-alpha: 48%; }
+  html[data-light='t-gambino'] { --p-bg: oklch(0.15 0.04 260); --p-bg-raised: oklch(0.195 0.04 260); --p-accent: oklch(0.780 0.1 230); --p-glow: oklch(0.5 0.19 265); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+  html[data-light='t-kanye'] { --p-bg: oklch(0.17 0.07 25); --p-bg-raised: oklch(0.215 0.07 25); --p-accent: oklch(0.720 0.17 50); --p-glow: oklch(0.5 0.2 25); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+  html[data-light='t-rafi'] { --p-bg: oklch(0.17 0.06 200); --p-bg-raised: oklch(0.215 0.06 200); --p-accent: oklch(0.780 0.13 350); --p-glow: oklch(0.5 0.09 200); --p-wash: var(--p-accent); --glow-alpha: 54%; }
+  html[data-light='t-kishore'] { --p-bg: oklch(0.16 0.05 30); --p-bg-raised: oklch(0.205 0.05 30); --p-accent: oklch(0.660 0.2 28); --p-glow: oklch(0.6 0.18 50); --p-wash: var(--p-glow); --glow-alpha: 54%; }
+  html[data-light='t-bollywood-house'] { --p-bg: oklch(0.17 0.07 260); --p-bg-raised: oklch(0.215 0.07 260); --p-accent: oklch(0.750 0.1 260); --p-glow: oklch(0.66 0.12 70); --p-wash: var(--p-glow); --glow-alpha: 50%; }
+  html[data-light='t-frankl'] { --p-bg: oklch(0.17 0.06 235); --p-bg-raised: oklch(0.215 0.06 235); --p-accent: oklch(0.740 0.08 235); --p-glow: oklch(0.8 0.03 85); --p-wash: var(--p-accent); --glow-alpha: 42%; }
+  html[data-light='t-sisyphus'] { --p-bg: oklch(0.17 0.0 0); --p-bg-raised: oklch(0.215 0.0 0); --p-accent: oklch(0.850 0.0 0); --p-glow: oklch(0.8 0.0 0); --p-wash: var(--p-glow); --glow-alpha: 30%; }
+  html[data-light='t-tiny-experiments'] { --p-bg: oklch(0.17 0.05 190); --p-bg-raised: oklch(0.215 0.05 190); --p-accent: oklch(0.740 0.11 185); --p-glow: oklch(0.85 0.01 90); --p-wash: var(--p-accent); --glow-alpha: 36%; }
+  html[data-light='t-carson'] { --p-bg: oklch(0.17 0.05 235); --p-bg-raised: oklch(0.215 0.05 235); --p-accent: oklch(0.660 0.17 28); --p-glow: oklch(0.65 0.07 225); --p-wash: var(--p-glow); --glow-alpha: 50%; }
+  html[data-light='t-gervais'] { --p-bg: oklch(0.17 0.02 240); --p-bg-raised: oklch(0.215 0.02 240); --p-accent: oklch(0.840 0.02 80); --p-glow: oklch(0.7 0.01 240); --p-wash: var(--p-glow); --glow-alpha: 45%; }
+  html[data-light='t-kohli'] { --p-bg: oklch(0.16 0.02 0); --p-bg-raised: oklch(0.205 0.02 0); --p-accent: oklch(0.640 0.19 25); --p-glow: oklch(0.38 0.14 25); --p-wash: var(--p-glow); --glow-alpha: 60%; }
+</style>
+
+<style>
+  /* the opening: the line pinned left, the lead right, bottom-aligned */
+  .open {
+    padding-top: clamp(1.5rem, 4vw, 3.5rem);
+    row-gap: 1.5rem;
+    align-items: end;
+  }
+  .all { grid-column: 1 / 9; }
+  .consume {
+    grid-column: 9 / 13;
+    max-width: 18em;
+    padding-bottom: 0.35em;
+  }
+  @media (max-width: 1023px) {
+    .all { grid-column: 1 / 8; }
+    .consume { grid-column: 8 / 13; }
+  }
+  @media (max-width: 719px) {
+    .all, .consume { grid-column: 1 / -1; }
+    .consume { padding-bottom: 0; }
+  }
+
+  /* the shelf */
+  .shelf {
+    --band: 48px;
+    --spine-gap: 3px;
+    --group-gap: clamp(1rem, 1.8vw, 1.75rem);
+    margin-top: var(--gap-block);
+  }
+  .bars { display: flex; }
+  .group {
+    display: grid;
+    grid-template-rows: 1fr auto; /* every group as tall as the tallest, so the shelf edge is one line */
+    flex: var(--n) 1 0;
+    min-width: 0;
+  }
+  .kind {
+    grid-row: 2;
+    font-size: var(--fs-small);
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--ink-muted);
+    padding-top: 0.75rem;
+  }
+  .spines {
+    grid-row: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: var(--spine-gap);
+    padding-inline-end: var(--group-gap);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .group:last-child .spines { padding-inline-end: 0; }
+  .spines li { flex: 1 1 0; min-width: 0; display: flex; }
+
+  /* a spine: the swatch as a label band at the top, the name reading down, standing on the shelf */
+  .spine {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 11rem;
+    padding-bottom: 1rem;
+    text-decoration: none;
+    color: var(--ink);
+    scroll-margin-top: 6rem;
+    transition:
+      opacity var(--d-hover) var(--ease-hover),
+      transform var(--d-hover) var(--ease-out);
+  }
+  .spine::before {
+    content: '';
+    flex: none;
+    width: 100%;
+    height: var(--band);
+    background: var(--sw);
+  }
+  .spine.ink::before { background: none; }
+  /* the local bloom: its own colours wash the spine behind the name, contrast-safe at 18% */
+  .spine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--sw);
+    opacity: 0;
+    transition: opacity var(--d-ui) var(--ease-standard);
+  }
+  .spine.on::after,
+  .strip:not(.is-lit) .spine.rest::after { opacity: 0.18; } /* the spine whose light is on, at rest too */
+  .name {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    text-orientation: sideways; /* the whole name turns, apostrophes included */
+    font-size: var(--fs-small);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    padding-top: 0.75rem;
+  }
+  .spine:focus-visible { outline-offset: 3px; }
+
+  /* while one is lit the rest of the shelf recedes */
+  .strip.is-lit .spine:not(.on) { opacity: 0.45; }
+
+  /* pulling a book off the shelf: pointer and tap only, never keyboard, never under reduced motion */
+  @media (hover: hover) and (pointer: fine) {
+    .spine:hover { transform: translateY(-6px); }
+  }
+  .spine.on:not(:focus-visible) { transform: translateY(-6px); }
+  @media (prefers-reduced-motion: reduce) {
+    .spine:hover, .spine.on:not(:focus-visible) { transform: none; }
+  }
+
+  /* the readout: number as a graphic, the name as a label, his line in Newsreader */
+  .slot {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    align-items: start;
+    min-height: 8rem;
+    margin-top: var(--gap-group);
+  }
+  .slot :global(.num) {
+    grid-column: 1 / 4;
+    font-size: var(--fs-display);
+    font-weight: 700;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    margin-top: -0.06em;
+  }
+  .slot :global(.text) { grid-column: 4 / 12; display: grid; gap: 0.5rem; } /* the number's columns are always reserved */
+  .slot :global(.t) { font-size: var(--fs-small); font-weight: 500; color: var(--ink-muted); }
+  .slot :global(.q) {
+    font-family: var(--serif);
+    font-size: var(--fs-title);
+    font-weight: 300;
+    line-height: 1.2;
+    font-optical-sizing: auto;
+    text-wrap: pretty;
+  }
+
+  /* phone: the shelf is a scroller you walk along; nearest to centre lights the room */
+  @media (max-width: 719px) {
+    .shelf { --band: 44px; --group-gap: 1.25rem; }
+    .bars {
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      margin-inline: calc(-1 * var(--margin));
+      padding-inline: var(--margin);
+      scroll-padding-inline: var(--margin);
+    }
+    .bars::-webkit-scrollbar { display: none; }
+    .group { flex: none; }
+    .spines li { flex: none; width: 44px; scroll-snap-align: center; }
+    .spine { min-height: 9rem; }
+    .slot { grid-template-columns: 1fr; min-height: 9rem; row-gap: 0.5rem; }
+    .slot :global(.num), .slot :global(.text) { grid-column: 1 / -1; }
+    .slot :global(.num:empty) { display: none; }
+  }
+
+  /* the record: a walk down the page, three stops, repeating */
+  .said {
+    margin-top: var(--gap-block);
+    row-gap: clamp(2rem, 3vw, 3.5rem);
+  }
+  .say.a { grid-column: 1 / 6; }
+  .say.b { grid-column: 4 / 9; }
+  .say.c { grid-column: 7 / 12; }
+  .say .q { max-width: 24em; text-wrap: pretty; }
+  .kicker { color: var(--ink-muted); font-weight: 500; margin-bottom: 0.5rem; }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: 0.75rem;
+    color: var(--ink-muted);
+  }
+  .meta a { color: var(--ink-muted); }
+  .meta a:hover { color: var(--ink); }
+  .label-row a.quiet { color: var(--ink-muted); }
+  @media (max-width: 1023px) {
+    .say.a { grid-column: 1 / 7; }
+    .say.b { grid-column: 4 / 10; }
+    .say.c { grid-column: 7 / 13; }
+  }
+  @media (max-width: 719px) {
+    .said { row-gap: 2.5rem; }
+    .say.a, .say.b, .say.c { grid-column: 1 / -1; }
+  }
+</style>

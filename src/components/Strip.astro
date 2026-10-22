@@ -1,0 +1,175 @@
+---
+/**
+ * The relight strip: every work with a `light` preset, as a barcode of its own
+ * swatch. The page ships lit by the first of them. Beneath the bars, at rest,
+ * bubbles of what is going on now (`now` in src/data/me.ts, server-rendered so
+ * they read with JS off). Pointing at a bar relights the page and the readout
+ * takes the bubbles' place with that work's name, his line, and the number as a
+ * graphic where his line gives one; leaving brings the bubbles back.
+ * Each bar is a plain link to /taste/#id, so it works without JS.
+ * Colour stays under 5% of the viewport.
+ */
+import { works } from '../data/taste';
+import { now } from '../data/me';
+
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+
+const lit = works.filter((w) => w.light);
+
+/** "more than 100 times" → "100+", "more than 10-12 times" → "10–12×". From his words only. */
+function numberIn(line?: string): string | undefined {
+  if (!line) return undefined;
+  const range = line.match(/(\d+)\s*[-–]\s*(\d+)\s*times/);
+  if (range) return `${range[1]}–${range[2]}×`;
+  const more = line.match(/more than (\d+)/);
+  if (more) return `${more[1]}+`;
+  return undefined;
+}
+
+/** A hard-stop gradient: the swatch as stripes of falling width. */
+function stripes(sw: string[]): string {
+  const weights = [46, 27, 17, 10].slice(0, sw.length);
+  const total = weights.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  return sw
+    .map((c, i) => {
+      const from = (acc / total) * 100;
+      acc += weights[i];
+      const to = (acc / total) * 100;
+      return `${c} ${from.toFixed(1)}% ${to.toFixed(1)}%`;
+    })
+    .join(', ');
+}
+---
+
+<div class:list={['strip', cls]}>
+  <ul class="bars" role="list">
+    {lit.map((w) => (
+      <li>
+        <a
+          href={`/taste/#${w.id}`}
+          class="bar"
+          data-light={w.light}
+          data-title={w.title}
+          data-by={w.by}
+          data-line={w.line}
+          data-num={numberIn(w.line)}
+          style={`--sw: linear-gradient(90deg, ${stripes(w.swatch)})`}
+        >
+          <span class="vh">{w.by ? `${w.title}, ${w.by}` : w.title}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+  <div class="slot" id="lit">
+    <!-- at rest: what's going on now, as bubbles -->
+    <ul class="rest" role="list" aria-label="Now">
+      {now.map((n, i) => (
+        <li class="bubble" style={`--i: ${i}`}>
+          {i === 0 && <span class="live" aria-hidden="true"></span>}
+          <span class="verb">{n.verb}</span> <span class="short">{n.short}</span>
+        </li>
+      ))}
+    </ul>
+    <!-- while pointing: the work, filled by relight.js -->
+    <p class="readout" aria-hidden="true"></p>
+  </div>
+</div>
+
+<style>
+  .bars {
+    display: flex;
+    gap: 3px;
+    height: 48px;
+  }
+  .bars li { flex: 1 0 auto; min-width: 0; display: flex; }
+  .bar {
+    display: block;
+    width: 100%;
+    background: var(--sw);
+    text-decoration: none;
+    transition: opacity var(--d-hover) var(--ease-hover);
+  }
+  /* unlit bars dim only while one is being pointed at, never at rest */
+  .strip.is-lit .bar:not(.on) { opacity: 0.4; }
+  .bar:focus-visible { outline-offset: 5px; }
+
+  .slot { margin-top: 1.25rem; min-height: 7rem; }
+  .slot.has .rest { display: none; }
+  .slot:not(.has) .readout { display: none; }
+
+  /* bubbles: one wrapping row of pills; the verb quiet, the thing in ink; border and dot take the light */
+  .rest {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 0.5rem;
+  }
+  .bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    padding: 0.5em 1em 0.52em;
+    border: 1px solid color-mix(in oklab, var(--accent) 55%, transparent);
+    border-radius: 999px;
+    font-size: var(--fs-body);
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: border-color var(--d-relight) var(--ease-standard);
+  }
+  .bubble .verb { color: var(--ink-muted); font-weight: 400; transition: color var(--d-relight) var(--ease-standard); }
+  .bubble .short { font-weight: 500; }
+  .bubble .live {
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: background-color var(--d-relight) var(--ease-standard);
+  }
+
+  /* the readout: number as a graphic (its columns always reserved), title as a label, his line in Newsreader */
+  .readout {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    align-items: start;
+    margin: 0;
+  }
+  .readout :global(.num) {
+    grid-column: 1 / 4;
+    font-size: var(--fs-display);
+    font-weight: 700;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    margin-top: -0.06em;
+  }
+  .readout :global(.text) { grid-column: 4 / 12; display: grid; gap: 0.5rem; }
+  .readout :global(.t) { font-size: var(--fs-small); font-weight: 500; color: var(--ink-muted); transition: color var(--d-relight) var(--ease-standard); }
+  .readout :global(.q) {
+    font-family: var(--serif);
+    font-size: var(--fs-title);
+    font-weight: 300;
+    line-height: 1.2;
+    font-optical-sizing: auto;
+  }
+
+  @media (max-width: 719px) {
+    .bars {
+      height: 56px;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      margin-inline: calc(-1 * var(--margin));
+      padding-inline: var(--margin);
+      scroll-padding-inline: var(--margin);
+    }
+    .bars::-webkit-scrollbar { display: none; }
+    .bars li { flex: 0 0 auto; width: 92px; scroll-snap-align: center; }
+    .slot { min-height: 0; margin-top: 1rem; }
+    .bubble { white-space: normal; font-size: var(--fs-small); }
+    .readout { grid-template-columns: 1fr; row-gap: 0.5rem; }
+    .readout :global(.num), .readout :global(.text) { grid-column: 1 / -1; }
+    .readout :global(.num:empty) { display: none; }
+  }
+</style>
