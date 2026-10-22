@@ -25,7 +25,7 @@ const groups = GROUPS.map((g) => ({ ...g, n: projects.filter((p) => groupsOf(p).
 
 /** A number as a graphic where his line gives one: "top 30 companies" → 30, with a label that says only what his line says. */
 const numberIn = (line: string) => line.match(/top (\d+)/)?.[1];
-const numberLabel: Record<string, string[]> = { Torch: ['top 30 companies,', 'US market, 1 year forward'] };
+const numberLabel: Record<string, string[]> = { 'My first internship, at an asset manager': ['top 30 companies,', 'US market, 1 year forward'] };
 const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.wasp };
 ---
 

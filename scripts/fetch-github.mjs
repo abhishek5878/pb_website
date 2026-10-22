@@ -17,14 +17,14 @@ const OUT = resolve(ROOT, 'src/data/github.json');
 const USER = process.env.GITHUB_PROFILE || 'abhishek5878';
 
 /**
- * Never publish these. Client, employer, and partner names must not reach the
- * site through live GitHub data — this is the single choke point, so anything
- * whose repo name or description matches is dropped before it is written.
+ * Only these repos are ever written. His rule (23 Oct 2026): a public repo
+ * stays off the site unless it is clean and his, so this is an allowlist, the
+ * single choke point. It never has to name what it hides, and a new repo only
+ * shows up once it is added here.
  */
-const REDACTED = [/finbud/i, /\bzap\b/i, /ambition/i, /alyve/i, /credmo/i];
+const SHOWN = new Set(['fewwords', 'devflow', 'rocky', 'waspos', 'vc_voice', 'gtm_copilot']);
 
-const isRedacted = (...fields) =>
-  fields.some((f) => f && REDACTED.some((re) => re.test(f)));
+const isShown = (fullName) => SHOWN.has(String(fullName).split('/').pop());
 
 /** GITHUB_TOKEN lifts the rate limit from 60/hr to 5000/hr in CI. */
 const headers = {
@@ -52,7 +52,7 @@ function summarise(events) {
     if (!event.repo?.name) continue;
     // Fork/watch events say nothing about what someone is building.
     if (event.type === 'WatchEvent' || event.type === 'ForkEvent') continue;
-    if (isRedacted(event.repo.name)) continue;
+    if (!isShown(event.repo.name)) continue;
 
     const name = event.repo.name;
     const existing = seen.get(name);
@@ -81,7 +81,7 @@ function summarise(events) {
 async function main() {
   const [events, repos] = await Promise.all([
     api(`/users/${USER}/events/public?per_page=100`),
-    api(`/users/${USER}/repos?sort=pushed&per_page=12`),
+    api(`/users/${USER}/repos?sort=pushed&per_page=50`),
   ]);
 
   const payload = {
@@ -94,7 +94,7 @@ async function main() {
           !r.fork &&
           !r.archived &&
           r.name !== `${USER}.github.io` &&
-          !isRedacted(r.name, r.description)
+          isShown(r.name)
       )
       .slice(0, 5)
       .map((r) => ({

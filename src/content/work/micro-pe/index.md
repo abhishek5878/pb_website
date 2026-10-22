@@ -1,7 +1,5 @@
 ---
-links:
-  - { label: "micro-pe-hunt on GitHub", url: "https://github.com/abhishek5878/micro-pe-hunt", kind: repo }
-updated: 2026-10-22
+updated: 2026-10-23
 ---
 
 Small software businesses for sale, and how motivated the seller is. Built in one day, 26 February 2026.

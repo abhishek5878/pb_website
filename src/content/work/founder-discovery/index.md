@@ -6,19 +6,19 @@ links:
   - { label: "Wasp-OS on GitHub", url: "https://github.com/abhishek5878/waspos", kind: repo }
 examples:
   - { src: ./shot-1.png, caption: "The WASP Signal archive: four issues, January to March 2026.", url: "https://waspsignal.substack.com/archive" }
-updated: 2026-10-22
+updated: 2026-10-23
 ---
 
 It started at 3am, a month after I resigned from my data scientist job. I'd been digging into everything people were building, and somewhere in the noise I had a thought: shouldn't there be some order in this chaos? The idea hasn't changed since. Find founders before they are obvious to the market, from public traces, not pitch decks.
 
-It has had four names.
+It has had three names, and now it has a home.
 
 - **Mandrake** (July to October 2025). Startups as time series: what they ship on GitHub, what they say on X, watched over time instead of in one snapshot.
 - **Wasp** (October 2025 to March 2026). A tool for lean VCs, the ones running with a GP and an analyst against a relentless inbox. Agents watched Reddit, X and GitHub against a fund's thesis. In December it got quieter: no scores, just evidence and the decisions made on it. AI surfaces signal. Humans make decisions.
 - **WASP Signal** (January to March 2026). Four issues of a newsletter about builders I'd spotted from what they did in public. We don't guess. We log the traces.
-- **Kairos** (April 2026 onwards). Founder intelligence for pre-seed investing in India. It became a team version for a fund's partners, behind a sign-in, with agents that go hunting every morning.
+- **For a VC fund** (April 2026 onwards). The same idea, built for the partners of a VC fund, behind a sign-in. I join the fund in January.
 
-One rule runs under all four: evidence or it doesn't exist. A founder record without sources gets refused. A claim with no source is not a weak signal; it is not a signal. And no founder is ever made up by a model.
+One rule runs under all of it: evidence or it doesn't exist. And no founder is ever made up by a model.
 
 Along the way I wrote the founder post, the "comment BETA below" kind. Later I wrote about why I'm done performing. Both are linked here.
 

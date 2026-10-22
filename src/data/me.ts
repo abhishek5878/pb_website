@@ -157,7 +157,7 @@ export const projects: Project[] = projectsJson as Project[];
 /** Q20. His proudest, in his words. */
 export const proud = [
   {
-    name: 'Torch',
+    name: 'My first internship, at an asset manager',
     line: 'We were able to predict top 30 companies in US market for 1 year forward returns, and we were able to beat the market as well.',
     note: 'The first project of my career and it felt really good.',
   },
@@ -168,13 +168,18 @@ export const proud = [
   },
 ];
 
-/** Q23: "somewhere in some drop-down menu… in my own language." TODO(abhishek): one line each, your words. */
+/**
+ * Q23: "somewhere in some drop-down menu… in my own language." TODO(abhishek): one line each, your words.
+ * His rule (23 Oct 2026): Apriori is the only company named. Every other place is described, never named.
+ */
 export const jobs = [
-  { when: 'Jan 2027', what: 'A VC firm' },
-  { when: '2026', what: 'finbud, credit' },
-  { when: '2026', what: 'Boardy' },
-  { when: '2025', what: 'A healthcare startup, paused the second the regulatory reality showed up' },
-  { when: 'Before', what: 'FREED, EXL, WorldQuant, Siemens, ShareChat, research at IIT Delhi, Torch' },
+  { when: 'Jan 2027', what: 'A VC fund' },
+  { when: 'Apr 2026 →', what: 'Part-time with a public fintech company: credit and audience data' },
+  { when: 'Jan 2026', what: 'Scouting founders for a venture fund, till May' },
+  { when: 'Aug 2025', what: 'A healthcare startup, paused the second the regulatory reality showed up' },
+  { when: 'Jun 2025 →', what: 'Advisor and builder at Apriori' },
+  { when: 'Jul 2024', what: 'A data scientist job at a startup, for a year' },
+  { when: 'Before', what: 'Assistant manager at an analytics firm, research for a quant firm, two data science internships, research at IIT Delhi, and my first internship, at an asset manager' },
 ];
 
 /** Q38. */

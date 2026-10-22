@@ -35,8 +35,8 @@
     ]
   },
   {
-    "slug": "kairos",
-    "name": "Kairos",
+    "slug": "founder-discovery",
+    "name": "Founder discovery for a VC fund",
     "line": "Finding founders before they are obvious to the market.",
     "why": "Started as Mandrake at 3am after I resigned.",
     "status": "in use",
@@ -190,16 +190,15 @@
     ]
   },
   {
-    "slug": "indiastox",
-    "name": "IndiaStox",
-    "line": "A market data layer built for agents.",
+    "slug": "market-data",
+    "name": "Market data for agents",
+    "line": "Every number on the console comes back from a tool call.",
     "status": "shipped",
     "when": "May 2026",
     "tags": [
       "finance",
       "agents"
-    ],
-    "href": "https://indiastox.vercel.app"
+    ]
   },
   {
     "slug": "devflow",

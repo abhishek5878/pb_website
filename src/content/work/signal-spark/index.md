@@ -4,7 +4,7 @@ links:
   - { label: "signal-spark-eta.vercel.app", url: "https://signal-spark-eta.vercel.app", kind: live }
 examples:
   - { src: ./shot-1.png, caption: "The way in: a public sign-in page, invite-only past it, with the crisis lines along the bottom.", url: "https://signal-spark-eta.vercel.app/login" }
-updated: 2026-10-22
+updated: 2026-10-23
 ---
 
 Signal Spark is one quiet website with two rooms. The box keeps the things that remind you of your worth, for a hard night. They drift around as bubbles, and when you ask, it hands one back at random. The gym is seven small mental moves: an example first, tried in private, one line to carry out with you. The way in is a bench. You sit, you speak or write, and nothing answers. Nothing you type is read, scored or reacted to.
@@ -23,6 +23,6 @@ Some of the words are mine. The first thing the gym asks is which of three is tr
 
 And the bench opens with "Come sit with me."
 
-It took 33 days from an empty repo to the version that's live now: about 88 tickets, 293 tests, 24 releases. It's invite-only, 18+, India, and free. I'm building it with another company, and every word in it is still a draft until it has been through clinical review.
+It took 33 days from an empty repo to the version that's live now: about 88 tickets, 293 tests, 24 releases. It's invite-only, 18+, India, and free. I'm building it along with Iti Bhargava at [Signal Studio](https://signalstudio.in), and every word in it is still a draft until it has been through clinical review.
 
 The honest part: nothing proves it works yet, and nothing can yet. And I still don't feel like this is as human as it should be. That's the next round, one screen at a time.

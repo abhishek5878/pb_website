@@ -1,13 +1,8 @@
 ---
-links:
-  - { label: "indiastox.vercel.app", url: "https://indiastox.vercel.app", kind: demo }
-  - { label: "indiastox_agent on GitHub", url: "https://github.com/abhishek5878/indiastox_agent", kind: repo }
-examples:
-  - { src: ./shot-1.png, caption: "The live console, running on synthetic personas. Every number on it came back from a tool call.", url: "https://indiastox.vercel.app" }
-updated: 2026-10-22
+updated: 2026-10-23
 ---
 
-A brief asked for a working miniature of an analytics platform in 48 hours, on synthetic data I'd generate myself, for a product where every user action is a market call, bull or bear. I gave it ten days in May 2026, and the demo is still live.
+A brief asked for a working miniature of an analytics platform in 48 hours, on synthetic data I'd generate myself, for a product where every user action is a market call, bull or bear. I gave it ten days in May 2026.
 
 The bet: when every action is also a scored market bet, the analytics layer has to be a place agents act through, not just a place humans look at. So every number on the console comes back from a tool call: the same tool the growth agent calls, the same one the critic checks proposals with, the same one the support agent sends nudges through. Dashboards are a degraded read of it, not the product.
 
