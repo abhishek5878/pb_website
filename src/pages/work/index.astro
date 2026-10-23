@@ -49,7 +49,8 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
     <ol class="index" id="index" role="list">
       {sorted.map((p, i) => {
         const run = isRunning(p);
-        const showWhen = i === 0 || sorted[i - 1].when !== p.when;
+        const firstEarlier = !run && i > 0 && isRunning(sorted[i - 1]);
+        const showWhen = i === 0 || firstEarlier || sorted[i - 1].when !== p.when;
         const page = entries.has(p.slug);
         return (
           <li
@@ -58,6 +59,7 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
             data-tags={groupsOf(p).join(' ')}
             data-status={p.status}
             data-run={run ? '' : undefined}
+            data-earlier={firstEarlier ? '' : undefined}
           >
             <div class="rail">
               <time class:list={['when', 'mono', { vh: !showWhen }]} datetime={whenISO(p.when)} data-when={p.when}>
@@ -207,6 +209,8 @@ const proudHref: Record<string, string | undefined> = { 'WASP Signal': links.was
   }
   .row[data-run] { padding-block: 1.75rem; }
   .row[data-run] + .row:not([data-run]) { padding-top: 1.25rem; }
+  /* where the running group ends: one hairline, then the rest by date */
+  .row[data-earlier] { margin-top: clamp(2rem, 4vw, 3.5rem); border-top: 1px solid var(--hairline); padding-top: clamp(1.5rem, 3vw, 2.25rem); }
   .row:not([data-run]) + .row[data-run] { margin-top: 1rem; }
   .row[hidden] { display: none; }
   /* back from a project page (/work/#slug): the row lands with air above it */

@@ -32,8 +32,12 @@ export function whenISO(when: string): string {
 export const RUNNING: Status[] = ['live', 'in use', 'building'];
 export const isRunning = (p: Project) => RUNNING.includes(p.status);
 
-/** The ledger's order: newest first; ties keep projects.json order. */
-export const sortedProjects = (): Project[] => [...projects].sort((a, b) => whenKey(b.when) - whenKey(a.when));
+/**
+ * The ledger's order, by recency: what's running now comes first (newest
+ * started first), then everything else, newest first. Ties keep projects.json order.
+ */
+export const sortedProjects = (): Project[] =>
+  [...projects].sort((a, b) => Number(isRunning(b)) - Number(isRunning(a)) || whenKey(b.when) - whenKey(a.when));
 
 let cache: Map<string, WorkEntry> | null = null;
 /** slug → work entry, for the projects that have one. Entries without a project are ignored. */
