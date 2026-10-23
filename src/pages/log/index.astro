@@ -27,7 +27,7 @@ const [setup, punch] = (() => {
 
 /** The filter's ids: a kind's own name, films plural as the link says it. */
 const ID: Record<LineKind, string> = { writing: 'writing', work: 'work', now: 'now', film: 'films' };
-const FILTER_LABEL: Record<LineKind, string> = { writing: 'Writing', work: 'Work', now: 'Now', film: 'Films' };
+const FILTER_LABEL: Record<LineKind, string> = { writing: 'Posts', work: 'Work', now: 'Now', film: 'Films' };
 const kinds = KINDS.map((k) => ({ k, id: ID[k], label: FILTER_LABEL[k], n: lines.filter((l) => l.kind === k).length })).filter((k) => k.n > 0);
 
 /* by month, newest first; each month knows its kinds so a filter can hide it */
@@ -75,7 +75,7 @@ const day = (l: Line) => String(Number(l.day.slice(8, 10)));
               {m.items.map((l, i) => (
                 <li class="entry" data-kind={ID[l.kind]}>
                   <time class:list={['d mono', { again: i > 0 && m.items[i - 1].day === l.day }]} datetime={l.day}>{day(l)}</time>
-                  <span class="k small">{KIND_LABEL[l.kind]}</span>
+                  <span class="k small">{l.section ?? KIND_LABEL[l.kind]}</span>
                   <p class="what">
                     {l.href ? (
                       <a href={l.href} class="t" rel={l.external ? 'external' : undefined}>{l.text}</a>

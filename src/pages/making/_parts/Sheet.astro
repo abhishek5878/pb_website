@@ -1,0 +1,112 @@
+---
+/**
+ * Photos as a contact sheet: every frame at one row height, its own shape kept
+ * (no crop), rows justified edge to edge, thin night between frames, newest
+ * first. CSS only: each frame grows in proportion to its aspect ratio, so a row
+ * keeps one height; the last row doesn't stretch. Each frame opens its post.
+ *
+ * astro:assets makes the sizes at build; every frame is lazy except, on request,
+ * the first row. Fine pointers get a caption on hover (his alt text, the post,
+ * the date); everyone else gets the same words as the link's name.
+ */
+import { Image } from 'astro:assets';
+import { fmtDate, iso, label } from '../../../lib/posts';
+import type { Frame } from '../_making';
+
+interface Props {
+  frames: Frame[];
+  /** load the first few eagerly (the sheet is near the top of its page) */
+  eager?: number;
+  /** "tall" is the tab page's full sheet; the landing's is a little shorter */
+  size?: 'tall' | 'short';
+}
+const { frames, eager = 0, size = 'short' } = Astro.props;
+
+/* the row height the CSS uses (px), for `sizes`: so the browser fetches what a frame actually needs */
+const ROW = size === 'tall' ? { phone: 132, wide: 260 } : { phone: 116, wide: 220 };
+const WIDTHS = [240, 360, 480, 640, 960, 1280];
+const ar = (f: Frame) => f.src.width / f.src.height;
+const sizes = (f: Frame) => `(max-width: 719px) ${Math.ceil(ar(f) * ROW.phone * 1.35)}px, ${Math.ceil(ar(f) * ROW.wide * 1.35)}px`;
+---
+
+<ul class:list={['sheet', size]} role="list">
+  {frames.map((f, k) => (
+    <li class="frame" style={`--ar: ${ar(f).toFixed(4)}`}>
+      <a href={`${f.post.href}`} class="quiet">
+        <Image
+          src={f.src}
+          alt={f.alt}
+          widths={WIDTHS.filter((w) => w <= f.src.width * 1.01).concat(f.src.width < 240 ? [f.src.width] : [])}
+          sizes={sizes(f)}
+          loading={k < eager ? 'eager' : 'lazy'}
+          decoding="async"
+        />
+        <span class="cap small">
+          {f.alt && <span class="alt">{f.alt}</span>}
+          <span class="from"><span class="vh">From </span>{label(f.post)}<time class="mono" datetime={iso(f.post.date)}>{fmtDate(f.post.date)}</time></span>
+        </span>
+      </a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .sheet {
+    --row: clamp(116px, 6rem + 9vw, 220px);
+    --gap: clamp(3px, 0.35vw, 6px);
+    --stretch: 1.35;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap);
+  }
+  .sheet.tall { --row: clamp(132px, 6.5rem + 11vw, 260px); }
+  /* a phone row holds two or three frames: let them fill it */
+  @media (max-width: 719px) { .sheet { --stretch: 2; } }
+  /* the last row keeps its frames at the row height instead of stretching them */
+  .sheet::after { content: ''; flex: 1e4 1 0; }
+  /* a frame grows with its row, by its own shape, but never past a third over the row height,
+     so a short row stays a contact sheet's row instead of a poster */
+  .frame {
+    position: relative;
+    flex: var(--ar) 1 calc(var(--ar) * var(--row));
+    max-width: calc(var(--ar) * var(--row) * var(--stretch));
+    min-width: 0;
+  }
+  .frame a { display: block; height: 100%; }
+  .frame :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--ar);
+    object-fit: cover;
+    background: var(--bg-raised);
+  }
+  .frame a:focus-visible { outline-offset: 2px; }
+
+  /* the caption: only for fine pointers, on hover or focus; the words are the link's name for everyone */
+  .cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.7rem 0.8rem 0.65rem;
+    background: color-mix(in oklab, var(--bg) 86%, transparent);
+    color: var(--ink);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--d-hover) var(--ease-hover);
+    /* off-screen for touch and coarse pointers, still read as the link's name */
+    clip-path: inset(0 0 100% 0);
+  }
+  .cap .alt { font-weight: 500; text-wrap: pretty; }
+  .cap .from { color: var(--ink-muted); display: flex; flex-wrap: wrap; gap: 0 0.75rem; }
+  .cap .mono { font-size: inherit; }
+  @media (hover: hover) and (pointer: fine) {
+    .cap { clip-path: none; }
+    .frame a:hover .cap,
+    .frame a:focus-visible .cap { opacity: 1; }
+    .frame a:hover { text-decoration: none; }
+  }
+</style>

@@ -1,11 +1,19 @@
 ---
 /**
- * Writing: the index. Its job is scanning (after invertedpassion.com's
+ * Writing: the index, and its tabs. Its job is scanning (after invertedpassion.com's
  * "All essays and posts": years to jump to, every title, small tags).
  *
+ * Routes: /writing/ (All), and one per kind with posts in it: /writing/essays/,
+ * /writing/poems/, /writing/notes/, /writing/links/ (src/pages/writing/_writing.ts).
+ * A tab with no posts has no route and no link. The tabs are plain links, so they
+ * work with JavaScript off. Post ids are dated slugs, so no tab meets /writing/[id]/.
+ * Photos, videos, music and trips live in Making; books in Books (Amendment 1 C).
+ *
  * Top to bottom: his answer to what the writing is about (the long setup, then
- * the turn); Recent, the five newest, numbered; then every post by year, with
- * the years to jump to and the three lanes to filter by.
+ * the turn); the tabs; then, on All, Recent (the five newest, numbered) and every
+ * post by year, with the years to jump to and the three lanes to filter by. A kind's
+ * tab is its posts by year (the lanes too, when it has more than one); Poems opens
+ * each poem on its first lines instead.
  *
  * The lanes (night, signal, build) are a post's `lane`. Each is a plain link
  * to #night, #signal or #build, and the filter is CSS (:target), so it works
@@ -15,20 +23,35 @@
  * Every line here is his: titles, dates, and his Q33 answer. The rest is UI words.
  */
 import Base from '../../layouts/Base.astro';
+import Tabs from './_tabs/Tabs.astro';
+import Poems from './_tabs/Poems.astro';
 import { me, links } from '../../data/me';
 import { getWriting, label, fmtDate, fmtDay, iso, LANES, LANE_LABEL, type Post } from '../../lib/posts';
+import { inWriting, writingTabs, WRITING_TABS, type WritingTab } from './_writing';
 
-const pieces = await getWriting();
-const recent = pieces.slice(0, 5);
+export async function getStaticPaths() {
+  const tabs = writingTabs((await getWriting()).filter(inWriting));
+  return tabs.map((t) => ({ params: { tab: t.id === 'all' ? undefined : t.id } }));
+}
+
+const tabId = (Astro.params.tab ?? 'all') as WritingTab | 'all';
+/* everything whose home is Writing; a tab narrows it to one kind */
+const everything = (await getWriting()).filter(inWriting);
+const tabs = writingTabs(everything);
+const def = WRITING_TABS.find((t) => t.id === tabId);
+const pieces = def ? everything.filter((p) => p.kind === def.kind) : everything;
+const isAll = !def;
+const recent = isAll ? pieces.slice(0, 5) : [];
 
 /* Q33: what the writing is about. The long setup, then the turn. */
 const { setup, punch } = me.writesAbout;
 
-/** The lanes with something in them, and how many. */
-const lanes = LANES.map((id) => ({ id, label: LANE_LABEL[id], n: pieces.filter((p) => p.lane === id).length })).filter((l) => l.n > 0);
+/** The lanes with something in them, and how many. On a kind's tab, only when there's a choice. */
+const lanesHere = LANES.map((id) => ({ id, label: LANE_LABEL[id], n: pieces.filter((p) => p.lane === id).length })).filter((l) => l.n > 0);
+const lanes = isAll || lanesHere.length > 1 ? lanesHere : [];
 
-/** Small tags after a title: its lane, its kind when it isn't an essay, and his own tags. */
-const tagsOf = (p: Post) => [...new Set([p.lane, p.kind !== 'essay' ? p.kind : undefined, ...p.tags].filter(Boolean))] as string[];
+/** Small tags after a title: its lane, its kind when it isn't an essay (and the tab isn't the kind), and his own tags. */
+const tagsOf = (p: Post) => [...new Set([p.lane, p.kind !== 'essay' && isAll ? p.kind : undefined, ...p.tags].filter(Boolean))] as string[];
 
 /* grouped by year, newest first, in order; each year knows its lanes so a filter can hide it */
 const years: { year: number; items: Post[]; lanes: string }[] = [];
@@ -41,10 +64,10 @@ for (const p of pieces) {
 for (const y of years) y.lanes = [...new Set(y.items.map((p) => p.lane).filter(Boolean))].join(' ');
 ---
 
-<Base title="Writing" description={`${setup} ${punch}`}>
+<Base title={def ? def.label : 'Writing'} description={`${setup} ${punch}`}>
   <section class="wrap index" aria-labelledby="writing-label">
     <div class="label-row">
-      <h1 id="writing-label">Writing</h1>
+      <h1 id="writing-label">{isAll ? 'Writing' : <a href="/writing/" class="quiet">Writing</a>}{def && <span class="vh">: {def.label}</span>}</h1>
       <p class="elsewhere">
         <a href={links.substack} class="quiet" rel="me">Substack</a>
         <a href={links.wasp} class="quiet" rel="me">WASP Signal</a>
@@ -55,7 +78,17 @@ for (const y of years) y.lanes = [...new Set(y.items.map((p) => p.lane).filter(B
     <p class="setup muted">{setup}</p>
     <p class="punch display">{punch}</p>
 
-    <!-- Recent: the five newest, numbered -->
+    <!-- the tabs: All, then each kind with posts in it -->
+    {tabs.length > 1 && <Tabs tabs={tabs} current={tabId} />}
+
+    {tabId === 'poems' && (
+      <section class="poems-tab" aria-label="Poems">
+        <Poems poems={pieces} level={2} />
+      </section>
+    )}
+
+    <!-- Recent: the five newest, numbered (All only) -->
+    {isAll && (
     <section class="recent" aria-labelledby="recent-label">
       <h2 id="recent-label" class="sub">Recent</h2>
       <ol class="recent-list" role="list">
@@ -73,21 +106,25 @@ for (const y of years) y.lanes = [...new Set(y.items.map((p) => p.lane).filter(B
         ))}
       </ol>
     </section>
+    )}
 
     <!-- Everything, by year. The lane targets come first: #night etc. filter the list below by CSS. -->
-    <section class="all" id="all" aria-labelledby="all-label">
+    {tabId !== 'poems' && (
+    <section class:list={['all', { first: !isAll }]} id="all" aria-labelledby="all-label">
       {lanes.map((l) => <span class="tgt" id={l.id}></span>)}
       <div class="label-row">
-        <h2 id="all-label">All posts</h2>
+        <h2 id="all-label">{isAll ? 'All posts' : 'By year'}</h2>
         <a href="/rss.xml" class="quiet">rss</a>
       </div>
 
-      <nav class="lanes" aria-label="Lanes">
-        <a href="#all" data-lane="all">All <span class="n mono">{pieces.length}</span></a>
-        {lanes.map((l) => (
-          <a href={`#${l.id}`} data-lane={l.id}>{l.label} <span class="n mono">{l.n}</span></a>
-        ))}
-      </nav>
+      {lanes.length > 0 && (
+        <nav class="lanes" aria-label="Lanes">
+          <a href="#all" data-lane="all">All <span class="n mono">{pieces.length}</span></a>
+          {lanes.map((l) => (
+            <a href={`#${l.id}`} data-lane={l.id}>{l.label} <span class="n mono">{l.n}</span></a>
+          ))}
+        </nav>
+      )}
 
       <nav class="years" aria-label="Years">
         {years.map((y) => (
@@ -112,6 +149,7 @@ for (const y of years) y.lanes = [...new Set(y.items.map((p) => p.lane).filter(B
         </section>
       ))}
     </section>
+    )}
   </section>
 </Base>
 
@@ -164,6 +202,12 @@ for (const y of years) y.lanes = [...new Set(y.items.map((p) => p.lane).filter(B
   }
   .t:hover { text-decoration-color: currentColor; }
   .tags { color: var(--ink-muted); white-space: nowrap; }
+
+  /* the tabs: under the turn, a size up from the lanes, so the two never compete */
+  .index :global(.tabs) { margin-top: var(--gap-block); }
+  /* a kind's tab: its list straight under the tabs */
+  .poems-tab { margin-top: var(--gap-block); }
+  .all.first { margin-top: var(--gap-block); }
 
   /* Recent: five, numbered, a size up from the index */
   .recent { margin-top: var(--gap-block); }

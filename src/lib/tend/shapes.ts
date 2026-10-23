@@ -6,11 +6,16 @@
  */
 import { z } from 'astro/zod';
 import yaml from 'js-yaml';
+import { isAudioUrl, isLocalAudio, isYouTubeUrl, youtubeId } from '../../components/writing/embeds';
 
 /** The same list as src/content.config.ts. Kept in step by hand; the build enforces it. */
 export const KINDS = ['note', 'essay', 'poem', 'link', 'book', 'film', 'listening', 'mix', 'photo', 'video', 'trip', 'build'] as const;
 /** The same list as LANES in src/content.config.ts: the three lanes of /writing/. */
 export const LANES = ['night', 'signal', 'build'] as const;
+/** The same lists as LANGS, SOURCES and BOOK_STATUS in src/content.config.ts. */
+export const LANGS = ['en', 'hi', 'mixed'] as const;
+export const SOURCES = ['substack', 'youtube', 'tend'] as const;
+export const BOOK_STATUS = ['reading', 'read', 'stopped'] as const;
 
 const line = (max: number) => z.string().max(max);
 /* http(s) only (review L2): no javascript:, data:, file: */
@@ -51,10 +56,18 @@ export const Fields = z
       .array(z.object({ src: z.string().regex(/^\.\/[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.(jpe?g|webp|png|gif|avif)$/), alt: line(500).default('') }).strict())
       .max(40)
       .default([]),
-    youtube: url.optional(),
-    audio: line(500).optional(),
+    /* a YouTube link the reading room can play: youtube.com or youtu.be, with a video id */
+    youtube: url.refine((u) => isYouTubeUrl(u) && youtubeId(u) !== null, 'a YouTube video link').optional(),
+    /* SoundCloud, Mixcloud, Spotify or YouTube; or an audio file of the site's own */
+    audio: line(500)
+      .refine((u) => isAudioUrl(u) || isLocalAudio(u), 'a SoundCloud, Mixcloud, Spotify or YouTube link')
+      .optional(),
     link: url.optional(),
     canonical: url.optional(),
+    source: z.enum(SOURCES).optional(),
+    lang: z.enum(LANGS).optional(),
+    status: z.enum(BOOK_STATUS).optional(),
+    highlights: z.array(line(2000).refine((s) => s.trim().length > 0, 'an empty line')).max(60).default([]),
     place: line(200).optional(),
     tags: z.array(line(40)).max(20).default([]),
     pull: z.array(line(500)).max(10).default([]),
@@ -74,7 +87,44 @@ export function compact<T extends Record<string, unknown>>(o: T): T {
   return out as T;
 }
 
-const ORDER: (keyof Fields)[] = ['kind', 'date', 'title', 'subtitle', 'publication', 'lane', 'subject', 'by', 'year', 'rating', 'place', 'images', 'youtube', 'audio', 'link', 'canonical', 'tags', 'pull', 'light', 'draft'];
+const ORDER: (keyof Fields)[] = ['kind', 'date', 'title', 'subtitle', 'publication', 'source', 'lane', 'lang', 'subject', 'by', 'year', 'rating', 'status', 'place', 'images', 'youtube', 'audio', 'link', 'canonical', 'highlights', 'tags', 'pull', 'light', 'draft'];
+
+/**
+ * What each kind must carry, and the fields that belong to one kind only
+ * (Amendment 1: "the server still validates strictly by kind"). Null when the
+ * post is fine; otherwise the reason, for the server log.
+ */
+export function kindProblem(f: Fields, body: string): string | null {
+  const words = body.trim().length > 0;
+  const has = (v: unknown) => v !== undefined && v !== null && v !== '';
+  if (f.kind !== 'book' && (has(f.status) || f.highlights.length)) return 'status and highlights are for books';
+  if (has(f.audio) && !['mix', 'listening'].includes(f.kind)) return 'audio is for a mix or a listening';
+  if (has(f.lang) && !['poem', 'note', 'essay'].includes(f.kind)) return 'lang is for words';
+  switch (f.kind) {
+    case 'note':
+    case 'poem':
+      return words ? null : 'no words';
+    case 'essay':
+      return words && has(f.title) ? null : 'an essay needs a title and words';
+    case 'photo':
+      return f.images.length >= 1 && f.images.length <= 30 ? null : 'a photo post needs 1–30 photos';
+    case 'trip':
+      return f.images.length <= 30 && (f.images.length > 0 || words) ? null : 'a trip needs photos or words';
+    case 'video':
+      return has(f.youtube) || has(f.link) ? null : 'a video needs a link';
+    case 'mix':
+      return has(f.audio) ? null : 'a mix needs its link';
+    case 'listening':
+      return has(f.audio) || has(f.subject) ? null : 'a listening needs a link or what it is';
+    case 'book':
+    case 'film':
+      return has(f.subject) ? null : 'a review needs its subject';
+    case 'link':
+      return has(f.link) ? null : 'a link post needs its link';
+    default:
+      return null;
+  }
+}
 
 /**
  * The whole file: generated frontmatter, then his body, one trailing newline.

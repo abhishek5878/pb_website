@@ -16,8 +16,14 @@ import { workEntries, pagePath } from './work/_work';
 import { THREADS } from '../data/threads';
 import start from '../data/start.json';
 import { getLog, KIND_LABEL, ratingText } from '../lib/log';
+import { getMaking } from './making/_making';
+import { getBooks } from './books/_books';
+import { inWriting } from './writing/_writing';
 
-const writing = await getWriting();
+/* Writing's own: photos, videos and music live in Making, books in Books (src/pages/writing/_writing.ts) */
+const writing = (await getWriting()).filter(inWriting);
+const making = await getMaking();
+const books = await getBooks();
 /** The address only ever appears assembled by JS (Base), so scrapers reading the HTML miss it. */
 const [mailUser, mailDomain] = me.email.split('@');
 /** His own pieces, first lines; Substack subtitles aren't first lines. */
@@ -50,6 +56,9 @@ const doors: { label: string; href: string; n?: number; note?: string; rel?: str
   { label: 'Threads', href: '/threads/', n: THREADS.length },
   { label: 'Taste', href: '/taste/', n: works.length },
   { label: 'Writing', href: '/writing/', n: writing.length },
+  ...(books.count > 0 ? [{ label: 'Books', href: '/books/', n: books.count }] : []),
+  /* only once there's something in it: photos, videos, music, trips */
+  ...(making.count > 0 ? [{ label: 'Making', href: '/making/', n: making.count }] : []),
   { label: 'Newsletter', href: links.substack, note: 'on Substack', rel: 'me' },
 ];
 ---
@@ -98,7 +107,7 @@ const doors: { label: string; href: string; n?: number; note?: string; rel?: str
             {lately.map((l) => (
               <li>
                 <time class="mono" datetime={l.day}>{shortDay(l.date)}</time>
-                <span class="k small">{KIND_LABEL[l.kind]}</span>
+                <span class="k small">{l.section ?? KIND_LABEL[l.kind]}</span>
                 <span class="w">
                   {l.href ? <a href={l.href} rel={l.external ? 'external' : undefined}>{l.text}</a> : l.text}
                   {l.year && <span class="mono x">{l.year}</span>}

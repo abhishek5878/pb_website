@@ -1,0 +1,122 @@
+---
+/**
+ * A video or a mix behind a click-to-load facade. Nothing from the provider
+ * loads until the reader presses play: the still is this site's own
+ * (/writing/<id>/poster.jpg, posters.ts), and only the click inserts the
+ * player's iframe (youtube-nocookie for YouTube, Vimeo with dnt=1, the
+ * official SoundCloud / Mixcloud / Spotify widgets, all built in embeds.ts).
+ *
+ *   <Embed embed={e} poster="/writing/<id>/poster.jpg" title="…" />
+ *
+ * Without JavaScript the facade is a plain link to the video or the mix.
+ * Video sits on the 880 media axis as a 16:9 frame; audio is a strip in the
+ * 680 text column. bg-raised backs both until the player is in
+ * (docs/design/reading.md: "Video … with a bg-raised backdrop until loaded").
+ */
+import type { Embed } from './embeds';
+
+interface Props {
+  embed: Embed;
+  /** This site's still, if one was fetched. */
+  poster?: string | null;
+  /** What it is, for the play button's name and the iframe's title. */
+  title: string;
+  class?: string;
+}
+const { embed, poster, title, class: cls } = Astro.props;
+const video = embed.shape === 'video';
+const name = `Play ${title}, from ${embed.label}`;
+---
+
+<figure
+  class:list={['embed', video ? 'embed--video' : 'embed--audio', { 'has-art': !!poster }, cls]}
+  data-embed
+  style={!video && embed.height ? `--player-h: ${embed.height}px` : undefined}
+>
+  <a class="facade" href={embed.href} rel="external noopener" data-src={embed.src} data-title={title} data-height={embed.height} aria-label={name}>
+    {/* a still that doesn't load leaves the plain frame, never a broken image */}
+    {poster && <img class="art" src={poster} alt="" loading="lazy" decoding="async" onerror="this.parentNode.parentNode.classList.remove('has-art');this.remove()" />}
+    <span class="play" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="24" height="24" focusable="false"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+    </span>
+    {!video && (
+      <span class="words">
+        <span class="t">Play</span>
+        <span class="from">{embed.label}</span>
+      </span>
+    )}
+  </a>
+</figure>
+
+<script>
+  /* The click is the consent: only now does the provider's player load. A modified
+     click (new tab, new window) opens the provider's page as a link would. */
+  document.addEventListener('click', (e) => {
+    const a = (e.target as Element | null)?.closest?.('[data-embed] a.facade') as HTMLAnchorElement | null;
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const src = a.dataset.src;
+    if (!src || !/^https:\/\/(www\.youtube-nocookie\.com|player\.vimeo\.com|w\.soundcloud\.com|player-widget\.mixcloud\.com|open\.spotify\.com)\//.test(src)) return;
+    e.preventDefault();
+    const f = document.createElement('iframe');
+    f.src = src;
+    f.title = a.dataset.title || 'Player';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write';
+    f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    if (a.dataset.height) f.height = a.dataset.height;
+    const fig = a.closest('[data-embed]')!;
+    fig.classList.add('on');
+    a.replaceWith(f);
+    f.focus();
+  });
+</script>
+
+<style>
+  .embed { position: relative; margin-inline: auto; background: var(--bg-raised); transition: background-color var(--d-relight) var(--ease-standard); }
+  .facade { display: block; position: relative; width: 100%; height: 100%; color: var(--ink); text-decoration: none; cursor: pointer; }
+  .facade:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .art { display: block; object-fit: cover; }
+  .embed :global(iframe) { display: block; width: 100%; border: 0; }
+
+  /* the one invitation: the accent, a true circle, the triangle in the room's bg */
+  .play {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    transition: transform var(--d-hover) var(--ease-out), background-color var(--d-relight) var(--ease-standard);
+  }
+  .play svg { width: 1.75rem; height: 1.75rem; margin-left: 0.15rem; }
+  @media (hover: hover) { .facade:hover .play { transform: scale(1.06); } }
+  .facade:active .play { transform: scale(0.97); }
+
+  /* video: a 16:9 frame on the media axis; the still fills it, the play sits centred */
+  .embed--video { aspect-ratio: 16 / 9; width: 100%; max-width: var(--media, 880px); }
+  .embed--video .art { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .embed--video .play { position: absolute; left: 50%; top: 50%; translate: -50% -50%; }
+  .embed--video.on :global(iframe) { position: absolute; inset: 0; height: 100%; }
+
+  /* audio: a strip in the text column; the artwork square at its left */
+  .embed--audio { width: 100%; max-width: var(--col, 680px); }
+  .embed--audio .facade { display: flex; align-items: center; gap: 1.25rem; min-height: 7.5rem; padding-right: 1.25rem; }
+  .embed--audio:not(.has-art) .facade { padding-left: 1.25rem; }
+  .embed--audio .art { width: 7.5rem; height: 7.5rem; flex: none; }
+  .embed--audio .play { width: 3.5rem; height: 3.5rem; flex: none; }
+  .embed--audio .play svg { width: 1.4rem; height: 1.4rem; }
+  .embed--audio .words { display: grid; gap: 0.1rem; font-family: var(--sans); line-height: 1.3; }
+  .embed--audio .t { font-weight: 600; font-size: var(--fs-body); }
+  .embed--audio .from { font-size: var(--fs-small); color: var(--ink-muted); }
+  .embed--audio.on { background: none; }
+  .embed--audio.on :global(iframe) { height: var(--player-h, 166px); }
+
+  @media (max-width: 719px) {
+    .embed--video { margin-inline: calc(0.5rem - var(--margin)); width: auto; }
+    .embed--audio .art { width: 6rem; height: 6rem; }
+    .embed--audio .facade { min-height: 6rem; gap: 1rem; }
+    .play { width: 4rem; height: 4rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .play { transition: none; } }
+</style>

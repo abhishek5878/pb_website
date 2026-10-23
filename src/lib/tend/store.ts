@@ -28,6 +28,8 @@ export type PostMeta = {
   date?: string;
   draft: boolean;
   images: number;
+  /** His tags, so the composer can suggest them. */
+  tags: string[];
 };
 
 /** A read of a file that isn't there (a project whose page isn't written yet). */
@@ -64,6 +66,7 @@ function meta(path: string, text: string): PostMeta {
     date: s(fields.date),
     draft: fields.draft === true,
     images: Array.isArray(fields.images) ? fields.images.length : 0,
+    tags: Array.isArray(fields.tags) ? fields.tags.filter((t): t is string => typeof t === 'string').slice(0, 20) : [],
   };
 }
 
@@ -143,7 +146,9 @@ function mock(): Store {
       return { sha };
     },
     async commit(message, files, deletes) {
-      for (const f of files) {
+      /* images before text: astro dev parses a post the moment its index.md lands, so its photos must already be there */
+      const ordered = [...files.filter((f) => f.content === undefined), ...files.filter((f) => f.content !== undefined)];
+      for (const f of ordered) {
         const full = at(f.path);
         await fs.mkdir(dirname(full), { recursive: true });
         if (f.content !== undefined) await fs.writeFile(full, f.content, 'utf8');

@@ -1,0 +1,27 @@
+{
+  "_about": "The daily sync's record (.github/workflows/sync.yml; scripts/import-substack.mjs, scripts/sync-youtube.mjs). youtube.channelId: the channel's UC… id; set it with `node scripts/sync-youtube.mjs --set <channel URL>`. youtube.since: optional YYYY-MM-DD; older uploads are skipped. ignore: Substack or YouTube URLs never to bring over. before: posts already on the site when the sync began. synced: what the sync brought over, written by the scripts. A post listed in before or synced and then deleted stays deleted.",
+  "youtube": {
+    "channelId": "",
+    "since": ""
+  },
+  "ignore": [],
+  "before": [
+    "https://abhishekvyas02032001.substack.com/p/4042-forty-is-the-answer-for-everything",
+    "https://abhishekvyas02032001.substack.com/p/a-piece-of-plastic",
+    "https://abhishekvyas02032001.substack.com/p/a-short-hospital-story",
+    "https://abhishekvyas02032001.substack.com/p/backside-of-your-favourite-notebook",
+    "https://abhishekvyas02032001.substack.com/p/curious-case-of-cred",
+    "https://abhishekvyas02032001.substack.com/p/mandrake-venture-intelligence",
+    "https://abhishekvyas02032001.substack.com/p/nothing-pays-as-good-as-what-unemployment",
+    "https://abhishekvyas02032001.substack.com/p/perform-this-is-gtm-dude",
+    "https://abhishekvyas02032001.substack.com/p/the-desire-to-be-seen",
+    "https://abhishekvyas02032001.substack.com/p/the-less-i-know-the-better",
+    "https://abhishekvyas02032001.substack.com/p/thermodynamics-of-social-connections",
+    "https://abhishekvyas02032001.substack.com/p/what-reddit-tells-us-about-the-future",
+    "https://waspsignal.substack.com/p/builders-shaping-indias-ai-execution",
+    "https://waspsignal.substack.com/p/from-inflection-to-ignition",
+    "https://waspsignal.substack.com/p/the-rise-of-the-vertical-operator",
+    "https://waspsignal.substack.com/p/young-builders-signal"
+  ],
+  "synced": []
+}

@@ -15,17 +15,24 @@ import Base from '../../layouts/Base.astro';
 import { render } from 'astro:content';
 import type { ImageMetadata } from 'astro';
 import Photos from '../../components/writing/Photos.astro';
+import Embed from '../../components/writing/Embed.astro';
+import { embedsOf, posterFor, posterPath } from '../../components/writing/posters';
+import { hostLabel, isLocalAudio } from '../../components/writing/embeds';
+import { stars } from '../../lib/media';
 import { me } from '../../data/me';
-import { getWriting, label, fmtDate, iso, LANE_LABEL, type Post } from '../../lib/posts';
+import { getWriting, label, fmtDate, iso, homeOf, LANE_LABEL, type Post } from '../../lib/posts';
 import { cardPath, cardAlt, shareDescription } from '../../lib/og/post';
 import Ending from '../../components/Ending.astro';
 import { threadsOf, mentionsOf, changedOn, after } from '../../lib/endings';
 
 export async function getStaticPaths() {
   const local = (await getWriting()).filter((p) => p.source === 'site');
-  /* Newer and older walk the post's own lane (night, signal, build); a post without one walks them all. */
+  /* Newer and older walk the post's own section (Writing, Books, Making); in Writing, its own
+     lane (night, signal, build) when it has one. */
   return local.map((post) => {
-    const walk = post.lane ? local.filter((p) => p.lane === post.lane) : local;
+    const home = homeOf(post).href;
+    const mine = local.filter((p) => homeOf(p).href === home);
+    const walk = post.lane && home === '/writing/' ? mine.filter((p) => p.lane === post.lane) : mine;
     const i = walk.indexOf(post);
     return { params: { id: post.id }, props: { post, newer: walk[i - 1] ?? null, older: walk[i + 1] ?? null } };
   });
@@ -34,11 +41,17 @@ export async function getStaticPaths() {
 interface Props { post: Post; newer: Post | null; older: Post | null }
 const { post, newer, older } = Astro.props;
 const entry = post.raw!;
+const home = homeOf(post);
 /* Where it was first published (Substack, WASP Signal). Credited at the foot of the piece;
    the canonical URL is this page, so vyas.garden is the post's home. */
 const firstPublished = entry.data.canonical;
 const pull = post.pull[0];
 const isPoem = post.kind === 'poem';
+/* A poem in Hindi, or in Hindi and English: the verse (and its coda) carry lang="hi", so
+   Tiro Devanagari Hindi sets the Devanagari and a screen reader reads it as Hindi. */
+const lang = entry.data.lang;
+const hindi = lang === 'hi' || lang === 'mixed';
+const devanagari = (s?: string) => !!s && /[\u0900-\u097F]/.test(s);
 
 /* "N min read": words ÷ 230, rounded, never under 1. Markup and image syntax don't count. */
 const words = (entry.body ?? '')
@@ -63,7 +76,8 @@ function verseLines(html: string): string {
     return `<div class="verse">${lined}</div>`;
   });
 }
-const html = isPoem && entry.rendered?.html ? verseLines(entry.rendered.html) : null;
+const verseHtml = (h: string) => (hindi ? h.replace(/<div class="verse">/g, '<div class="verse" lang="hi">') : h);
+const html = isPoem && entry.rendered?.html ? verseHtml(verseLines(entry.rendered.html)) : null;
 const { Content } = html ? { Content: null } : await render(entry);
 
 /* PHOTOS (trips, photo rolls): src/components/writing/Photos.astro. The lead photo
@@ -72,8 +86,46 @@ const { Content } = html ? { Content: null } : await render(entry);
 const photos = post.images.filter((i): i is { src: ImageMetadata; alt: string } => typeof i.src !== 'string');
 const hasPhotos = photos.length > 0;
 
+/* BOOKS (docs/design/making.md, Amendment 1 B): the title, the author beneath it, then status and
+   rating in the byline; the highlights (the author's words) as quotes; then his notes. No covers. */
+const isBook = post.kind === 'book';
+const BOOK_STATUS: Record<string, string> = { reading: 'Reading now', read: 'Finished', stopped: 'Stopped' };
+const bookStatus = isBook && entry.data.status ? BOOK_STATUS[entry.data.status] : undefined;
+const highlights = isBook ? entry.data.highlights.filter((l) => l.trim()) : [];
+const hasNotes = words > 0;
+
+/* An untitled poem goes by its first line (Amendment 1): the outline, the tab and the card say it. */
+const decode = (s: string) =>
+  s
+    .replace(/<[^>]+>/g, '')
+    .replace(/&#x([0-9a-f]+);/gi, (_, x) => String.fromCodePoint(parseInt(x, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .trim();
+const firstVerse = isPoem && !post.title && html ? decode(/<span class="l">([\s\S]*?)<\/span>/.exec(html)?.[1] ?? '') || undefined : undefined;
+const name = post.title ?? firstVerse ?? label(post);
+
 /* A note has no title and needs none: the piece starts under the byline. The h1 stays for readers of the outline. */
-const heading = post.title ?? (post.subject ? label(post) : undefined);
+const heading = post.title ?? (isBook ? post.subject : post.subject ? label(post) : undefined);
+
+/* VIDEO and MUSIC: the post's players (src/components/writing/Embed.astro), each behind a
+   click-to-load facade. The first one's still is this site's own, fetched at build
+   (/writing/<id>/poster.jpg). A link the site can't play stays a quiet link. */
+const embeds = embedsOf(entry.data);
+const firstPoster = embeds[0] ? await posterFor(embeds[0]) : null;
+const playTitle = heading ?? name;
+const localAudio = entry.data.audio && isLocalAudio(entry.data.audio) ? entry.data.audio : null;
+const listenOut = entry.data.audio && !localAudio && !embeds.some((e) => e.shape === 'audio' || (e.provider === 'youtube' && !entry.data.youtube)) ? entry.data.audio : null;
+const watchOut = post.kind === 'video' && !entry.data.youtube && entry.data.link && !embeds.length ? entry.data.link : null;
+/* a link post: where it points, under the byline */
+const linkOut = (post.kind === 'link' || isBook) && entry.data.link ? entry.data.link : null;
+const linkText = (u: string) => u.replace(/^https?:\/\/(www\.)?/i, '').replace(/[?#].*$/, '').replace(/\/$/, '');
+/* "N min read" says nothing under a photo, a video or a mix with a line or two */
+const media = hasPhotos || embeds.length > 0 || !!localAudio;
+const showMinutes = !isBook && !(media && words < 120);
 
 /* ---- the end (src/components/Ending.astro): the thread, who links here, the dates, the lane's pair ---- */
 const threads = await threadsOf({ post: post.id });
@@ -88,14 +140,14 @@ const SITE = 'https://vyas.garden';
 const article = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
-  headline: post.title ?? label(post),
+  headline: name,
   ...(post.subtitle ? { alternativeHeadline: post.subtitle } : {}),
   url: new URL(post.href, SITE).href,
   mainEntityOfPage: new URL(post.href, SITE).href,
   datePublished: iso(post.date),
   ...(modified ? { dateModified: iso(modified) } : {}),
   wordCount: words,
-  inLanguage: 'en',
+  inLanguage: lang === 'hi' ? 'hi' : 'en',
   image: new URL(cardPath(post), SITE).href,
   author: { '@type': 'Person', name: me.fullName, url: SITE + '/' },
   ...(firstPublished ? { isBasedOn: firstPublished } : {}),
@@ -104,30 +156,61 @@ const article = {
 ---
 
 <Base
-  title={post.title ?? label(post)}
+  title={name}
   description={shareDescription(post)}
   image={cardPath(post)}
   imageAlt={cardAlt(post)}
   light={post.light}
+  section={home.href}
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(article)} />
-  <article class:list={['wrap room', isPoem ? 'poem' : 'essay', { photos: hasPhotos }]}>
+  <article class:list={['wrap room', isPoem ? 'poem' : 'essay', { photos: hasPhotos, book: isBook }]}>
     <header class="head col">
-      <p class="back small"><a href="/writing/" class="quiet">Writing</a></p>
-      {heading ? <h1 class="title">{heading}</h1> : <h1 class="vh">{label(post)}</h1>}
-      {post.subtitle && <p class="subtitle">{post.subtitle}</p>}
+      <p class="back small"><a href={home.href} class="quiet">{home.label}</a></p>
+      {heading ? <h1 class="title" lang={hindi && devanagari(heading) ? 'hi' : undefined}>{heading}</h1> : <h1 class="vh" lang={hindi && devanagari(name) ? 'hi' : undefined}>{name}</h1>}
+      {post.subtitle && <p class="subtitle" lang={hindi && devanagari(post.subtitle) ? 'hi' : undefined}>{post.subtitle}</p>}
+      {isBook && post.by && <p class="subtitle author">{post.by}{post.year ? <>, <span class="mono">{post.year}</span></> : null}</p>}
       <p class="byline small muted">
         <span class="who">{me.name}</span>
         {post.place && <span class="place">{post.place}</span>}
+        {bookStatus && <span class="status">{bookStatus}</span>}
+        {isBook && typeof post.rating === 'number' && (
+          <span class="rating"><span aria-hidden="true">{stars(post.rating)}</span><span class="vh">{post.rating} out of 5</span></span>
+        )}
         <time class="mono" datetime={iso(post.date)}>{fmtDate(post.date)}</time>
-        <span class="mins"><span class="mono">{minutes}</span> min read</span>
+        {showMinutes && <span class="mins"><span class="mono">{minutes}</span> min read</span>}
       </p>
     </header>
+
+    <!-- VIDEO / MUSIC: the players, each behind its facade (Embed.astro) -->
+    {embeds.length > 0 && (
+      <div class="players">
+        {embeds.map((e, i) => (
+          <Embed embed={e} title={playTitle} poster={i === 0 && firstPoster ? posterPath(post.id) : null} />
+        ))}
+      </div>
+    )}
+    {localAudio && (
+      <div class="players col">
+        <audio controls preload="none" src={localAudio}></audio>
+      </div>
+    )}
+    {(listenOut || watchOut || linkOut) && (
+      <p class="out col">
+        {listenOut && <a href={listenOut} rel="external noopener">Listen on {hostLabel(listenOut)} →</a>}
+        {watchOut && <a href={watchOut} rel="external noopener">Watch on {hostLabel(watchOut)} →</a>}
+        {linkOut && <a href={linkOut} rel="external noopener">{linkText(linkOut)} →</a>}
+      </p>
+    )}
 
     <!-- PHOTOS: the lead photo (Photos.astro) -->
     {hasPhotos && <Photos photos={photos} part="lead" />}
 
-    <div class="body wide">
+    <div class="body wide" lang={!isPoem && hindi ? 'hi' : undefined}>
+      {highlights.map((l) => (
+        <blockquote class="highlight"><p>{l}</p></blockquote>
+      ))}
+      {highlights.length > 0 && hasNotes && <hr />}
       {html ? <Fragment set:html={html} /> : Content && <Content />}
     </div>
 
@@ -146,7 +229,7 @@ const article = {
   {pull && (
     <section class="interlude" aria-label="From the piece" data-interlude data-light={post.light}>
       <div class="wrap grid">
-        <blockquote class="verse-line"><p>{pull}</p></blockquote>
+        <blockquote class="verse-line" lang={hindi && devanagari(pull) ? 'hi' : undefined}><p>{pull}</p></blockquote>
       </div>
     </section>
   )}
@@ -235,6 +318,41 @@ const article = {
   }
   /* PHOTOS: with a lead photo above it, the words get a block's air (the photos' own CSS is in Photos.astro) */
   .photos .body { margin-top: var(--gap-block); }
+
+  /* VIDEO / MUSIC: the players sit where a lead photo would, on the same axis (their CSS is in Embed.astro) */
+  .players { margin-top: clamp(1.5rem, 3vw, 2.5rem); display: grid; gap: 1.5rem; }
+  .players audio { width: 100%; }
+  .players + .body,
+  .out + .body { margin-top: clamp(2rem, 3.5vw, 3rem); }
+  .out {
+    margin-top: clamp(1.25rem, 2.5vw, 1.75rem);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-size: var(--fs-small);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  .out a:hover { text-decoration-color: var(--accent); }
+  .players + .out { margin-top: 1rem; }
+
+  /* Hindi: Devanagari from Tiro Devanagari Hindi (fonts.css loads it only when a page has
+     Devanagari); Latin stays Newsreader, so a mixed poem keeps one voice */
+  .title:lang(hi),
+  .subtitle:lang(hi),
+  .body :global(:lang(hi)),
+  .interlude .verse-line:lang(hi) p {
+    font-family: 'Newsreader Variable', 'Newsreader', 'Tiro Devanagari Hindi', 'Mukta', Georgia, serif;
+  }
+  .body :global(.verse:lang(hi)) { line-height: 1.75; }
+
+  /* BOOKS: the author under the title, status and rating in the byline, highlights as quotes */
+  .author { font-style: normal; }
+  .author .mono { font-size: 0.8em; }
+  .byline .rating { letter-spacing: 0.08em; }
+  .body .highlight { white-space: pre-line; }
+  .body .highlight + .highlight { margin-top: 1.75em; }
+  .book .body > .highlight:first-child { margin-top: 0; }
 
   /* every block of text sits in the 680 column; only media widens */
   .body > :global(*) { max-width: var(--col); margin-inline: auto; }

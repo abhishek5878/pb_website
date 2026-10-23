@@ -1,7 +1,7 @@
 /**
  * POST /api/tend/commit/ { message, files, deletes } → { commit, url }.
  *
- *   files: [{ path, post: { fields, body } }]   a markdown post: frontmatter is built here
+ *   files: [{ path, post: { fields, body } }]   a markdown post: frontmatter is built here, held to its kind (kindProblem)
  *          [{ path, work: { fields, body } }]   a project's page: the same, `updated` set to today
  *          [{ path, text }]                      a data file: validated against its shape
  *          [{ path, sha }]                       an image already uploaded as a blob
@@ -22,7 +22,7 @@ import type { APIRoute } from 'astro';
 import { guard } from '../../../lib/tend/auth';
 import { Refused, fail, json, readJson, refuse } from '../../../lib/tend/http';
 import { MAX_FILES, NOW_PATH, isAllowed, isData, isDeletable, isPostImage, isPostText, isRecord, isWorkImage, isWorkText, pageFor, workSlug } from '../../../lib/tend/paths';
-import { Fields, Place, WorkFields, compact, markdown, validateData, workMarkdown } from '../../../lib/tend/shapes';
+import { Fields, Place, WorkFields, compact, kindProblem, markdown, validateData, workMarkdown } from '../../../lib/tend/shapes';
 import { recordsFor } from '../../../lib/tend/records';
 import { store, type CommitFile } from '../../../lib/tend/store';
 
@@ -71,6 +71,12 @@ export const POST: APIRoute = async ({ request }) => {
       if (isPostText(path)) {
         const post = markdownPart(f as Record<string, unknown>, 'post');
         const fields = Fields.parse(compact(post.fields));
+        /* what the kind must carry, and what belongs to one kind only (Amendment 1) */
+        const problem = kindProblem(fields, post.body);
+        if (problem) {
+          console.error('[tend] commit refused:', problem);
+          throw new Refused(400, 'Didn’t work.');
+        }
         out.push({ path, content: markdown(fields, post.body) });
       } else if (isWorkText(path)) {
         const page = markdownPart(f as Record<string, unknown>, 'work');

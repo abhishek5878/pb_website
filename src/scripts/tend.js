@@ -1,14 +1,20 @@
 /*
- * /tend: the publishing room (docs/design/tend-spec.md).
+ * /tend: the publishing room (docs/design/tend-spec.md, docs/design/making.md).
  *
- * One page, hash routes: #/ home · #/write · #/trip · #/taste · #/now ·
- * #/projects · #/projects/<slug> · #/posts · #/posts/<id>. Every save is one
+ * One page, hash routes: #/ home · #/new · #/taste · #/now · #/projects ·
+ * #/projects/<slug> · #/posts · #/posts/<id>. "New" is one box that sorts
+ * itself (src/lib/tend/detect.ts): he types, pastes or attaches, a chip row
+ * says what it looks like, one tap changes it, and only then do that type's
+ * fields show. Editing a post opens the same composer. Every save is one
  * POST to /api/tend/commit/; photos are shrunk on a canvas here (which drops
  * EXIF and GPS), uploaded one blob each with progress, then named in the same
  * commit. A project is one editor for its line in projects.json and its page,
  * src/content/work/<slug>/index.md, saved together.
  * UI words only: nothing in this file writes in his voice.
  */
+
+import { bookLine, detect, isBookUrl, langOf, laneFor, titleFromBookUrl, unwrapVerse, urlsIn, without, withoutBookLine, wrapVerse } from '../lib/tend/detect';
+import { audioEmbed, hostLabel, isAudioUrl, videoEmbed, youtubeId } from '../components/writing/embeds';
 
 /* ---------- small helpers ---------- */
 
@@ -119,8 +125,6 @@ const relight = (id) => {
 
 const KIND_LABEL = { film: 'Films', show: 'Shows', music: 'Music', book: 'Books', person: 'People' };
 const STATUSES = ['live', 'in use', 'building', 'paused', 'stopped', 'shipped'];
-const WRITE_KINDS = ['note', 'essay', 'poem', 'book', 'film', 'listening'];
-const ALL_KINDS = ['note', 'essay', 'poem', 'book', 'film', 'listening', 'trip', 'photo', 'link', 'video', 'mix', 'build'];
 /* The lanes of /writing/ (src/content.config.ts LANES): none, or one of the three. */
 const LANES = [
   { value: '', label: 'none' },
@@ -128,8 +132,6 @@ const LANES = [
   { value: 'signal', label: 'signal' },
   { value: 'build', label: 'build' },
 ];
-const REVIEW = new Set(['book', 'film', 'listening']);
-const PHOTO = new Set(['trip', 'photo']);
 
 /* ---------- pieces ---------- */
 
@@ -141,10 +143,10 @@ function field(label, control, { optional = false, hint = '' } = {}) {
   return h('label', { class: 'field' }, fl, control, hint && h('span', { class: 'hint' }, hint));
 }
 
-/** A named set of controls (links, screenshots): a group, not a label, so a tap on its name focuses nothing. */
-function group(label, control, { optional = false } = {}) {
+/** A named set of controls (pills, stars, tags, links, screenshots): a group, not a label, so a tap on its name changes nothing. */
+function group(label, control, { optional = false, hint = '' } = {}) {
   const fl = h('span', { class: 'fl' }, label, optional && h('span', { class: 'opt' }, 'optional'));
-  return h('div', { class: 'field', role: 'group', 'aria-label': label }, fl, control);
+  return h('div', { class: 'field', role: 'group', 'aria-label': label }, fl, control, hint && h('span', { class: 'hint' }, hint));
 }
 
 const input = (attrs = {}) => h('input', { type: 'text', autocapitalize: 'sentences', spellcheck: 'true', ...attrs });
@@ -232,11 +234,18 @@ function done({ url, again, againLabel, big }) {
 }
 function doneView({ url, again, againLabel, big }) {
   const site = location.host.replace(/^www\./, '');
+  /* the same route again (New after New): the hash doesn't change, so draw it here */
+  const same = (e) => {
+    if (e.currentTarget.getAttribute('href') === location.hash) {
+      e.preventDefault();
+      route();
+    }
+  };
   const links = h(
     'p',
     { class: 'links' },
     url && h('a', { href: url }, `${site}${url}`),
-    again && h('a', { href: again, class: 'quiet' }, againLabel || 'Another'),
+    again && h('a', { href: again, class: 'quiet', onClick: same }, againLabel || 'Another'),
     h('a', { href: '#/', class: 'quiet' }, 'Home')
   );
   return h('div', { class: 'done' }, h('p', { class: 'big' }, big || 'Live in about a minute.'), links);
@@ -325,9 +334,11 @@ async function shrink(file) {
  * Options, for a project page's screenshots: `prefix` names new files
  * (shot-3.jpg), `taken` lists the files already in the folder so a new name
  * never lands on one, `withUrl` adds the address each one shows, `thumbs`
- * maps a kept file to an image of it, `wide` lays them out one per row.
+ * maps a kept file to an image of it, `wide` lays them out one per row,
+ * `max` caps the roll (`onLimit` hears how many were left out), `onChange`
+ * hears every add and remove (the composer re-sorts on it).
  */
-function photoRoll(existing = [], { prefix = 'photo', taken = [], withUrl = false, thumbs = {}, wide = false, addLabel = 'Add photos', keptLabel = 'In the post' } = {}) {
+function photoRoll(existing = [], { prefix = 'photo', taken = [], withUrl = false, thumbs = {}, wide = false, addLabel = 'Add photos', keptLabel = 'In the post', max = 40, onChange = null, onLimit = null } = {}) {
   const shots = existing.map((i) => {
     const name = i.src.replace(/^\.\//, '');
     return { name, alt: i.alt || '', url: i.url || '', sha: null, state: 'kept', thumb: thumbs[name] || null };
@@ -378,10 +389,16 @@ function photoRoll(existing = [], { prefix = 'photo', taken = [], withUrl = fals
   };
 
   async function take(files) {
+    const room = Math.max(0, max - shots.length);
+    if (files.length > room) {
+      onLimit?.(files.length - room);
+      files = files.slice(0, room);
+    }
     for (const file of files) {
       const s = { name: `${prefix}-${next++}.jpg`, alt: '', url: '', sha: null, state: 'shrinking', file };
       shots.push(s);
       render();
+      onChange?.();
       try {
         const { blob, thumb } = await shrink(file);
         s.blob = blob;
@@ -443,6 +460,7 @@ function photoRoll(existing = [], { prefix = 'photo', taken = [], withUrl = fals
     const [s] = shots.splice(i, 1);
     if (s.state === 'kept') removed.push(s.name);
     render();
+    onChange?.();
   };
   const removed = [];
   render();
@@ -470,7 +488,8 @@ function photoRoll(existing = [], { prefix = 'photo', taken = [], withUrl = fals
   };
 }
 
-/* ---------- the post form (Write, Trip, Posts) ---------- */
+
+/* ---------- the composer: one box that sorts itself (docs/design/making.md, Amendment 1) ---------- */
 
 const DRAFT_KEY = (k) => `tend-draft-${k}`;
 const loadDraft = (k) => {
@@ -491,183 +510,693 @@ const dropDraft = (k) => {
   } catch {}
 };
 
+/* The types, in the order the chips show them. `kind` is what the post is saved as. */
+const TYPES = [
+  { id: 'note', label: 'Note' },
+  { id: 'poem', label: 'Poem' },
+  { id: 'essay', label: 'Essay' },
+  { id: 'photo', label: 'Photos' },
+  { id: 'trip', label: 'Trip' },
+  { id: 'video', label: 'Video' },
+  { id: 'music', label: 'Music' },
+  { id: 'book', label: 'Book' },
+  { id: 'film', label: 'Film' },
+  { id: 'link', label: 'Link' },
+];
+const TYPE_LABEL = Object.fromEntries(TYPES.map((t) => [t.id, t.label]));
+const TYPE_OF_KIND = { note: 'note', build: 'note', poem: 'poem', essay: 'essay', photo: 'photo', trip: 'trip', video: 'video', mix: 'music', listening: 'music', book: 'book', film: 'film', link: 'link' };
+const LANGS = [
+  { value: 'en', label: 'English' },
+  { value: 'hi', label: 'हिंदी' },
+  { value: 'mixed', label: 'Mixed' },
+];
+const BOOK_STATUS = [
+  { value: 'reading', label: 'Reading now' },
+  { value: 'read', label: 'Finished' },
+  { value: 'stopped', label: 'Stopped' },
+];
+const MUSIC_KINDS = [
+  { value: 'listening', label: 'Listening' },
+  { value: 'mix', label: 'My mix' },
+];
+const MAX_PHOTOS = 30;
+
+/** The kind a type saves as. */
+const kindOf = (st) => (st.type === 'music' ? (st.musicKind === 'mix' ? 'mix' : 'listening') : st.type === 'note' && st.kind === 'build' ? 'build' : st.type);
+
+/** Text as it reads, for checking a pull line is his, word for word (the same test as inPost in src/lib/posts.ts). */
+const flat = (s) => String(s || '').replace(/<[^>]+>/g, ' ').replace(/[*_\\]/g, '').replace(/\s+/g, ' ').trim();
+
+/** A tappable rating out of five, halves allowed: each star is two buttons, its left half and its right. */
+function starPicker(value, onChange) {
+  let v = typeof value === 'number' ? value : null;
+  const row = h('div', { class: 'stars', role: 'group', 'aria-label': 'Rating' });
+  const num = h('span', { class: 'mono n' });
+  const clear = h('button', { type: 'button', class: 'textbtn', onClick: () => set(null) }, 'Clear');
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    const s = h(
+      'span',
+      { class: 'star' },
+      h('button', { type: 'button', class: 'half l', 'aria-label': `${i - 0.5} out of 5`, onClick: () => set(i - 0.5) }),
+      h('button', { type: 'button', class: 'half r', 'aria-label': `${i} out of 5`, onClick: () => set(i) })
+    );
+    stars.push(s);
+    row.append(s);
+  }
+  const set = (x) => {
+    v = x;
+    paint();
+    onChange(v);
+  };
+  const paint = () => {
+    stars.forEach((s, j) => {
+      const n = j + 1;
+      s.className = 'star ' + (v == null ? '' : v >= n ? 'full' : v >= n - 0.5 ? 'half' : '');
+      s.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(v != null && Number(b.getAttribute('aria-label').split(' ')[0]) === v)));
+    });
+    num.textContent = v == null ? '' : `${Math.floor(v)}${v % 1 ? '½' : ''}`;
+    clear.hidden = v == null;
+  };
+  paint();
+  return h('div', { class: 'rating' }, row, num, clear);
+}
+
+/** Lines lifted from a book: "+ add a line", each its own box, removable. */
+function highlightRows(st) {
+  const list = h('div', { class: 'highlights' });
+  const render = (focusLast = false) => {
+    list.replaceChildren(
+      ...st.highlights.map((text, i) =>
+        h(
+          'div',
+          { class: 'hl' },
+          h('label', { class: 'field' }, h('span', { class: 'vh' }, `Highlight ${i + 1}`), textarea({ class: 'quote', rows: 2, value: text, onInput: (e) => (st.highlights[i] = e.target.value) })),
+          h('button', { type: 'button', class: 'textbtn', onClick: () => { st.highlights.splice(i, 1); render(); } }, 'Remove')
+        )
+      )
+    );
+    if (focusLast) list.lastChild?.querySelector('textarea')?.focus();
+  };
+  render();
+  const add = h('button', { type: 'button', class: 'textbtn addline', onClick: () => { st.highlights.push(''); render(true); } }, '+ add a line');
+  return h('div', { class: 'hlwrap' }, list, add);
+}
+
 /**
- * One form for every post. `kinds`: the kinds offered; `initial`: { fields, body };
- * `photos`: whether the roll shows; `draftKey`: autosave slot (new posts only).
+ * Tags as chips. Typing and Enter (or a comma) adds one; his existing tags are
+ * offered as chips to tap, most used first; an existing tag is reused in its own
+ * spelling, so "Poetry" never sits beside "poetry".
  */
-function postForm({ kinds, initial = {}, photos = false, draftKey }) {
-  const f = { ...(initial.fields || {}) };
-  let kind = kinds.includes(f.kind) ? f.kind : kinds[0];
-  const v = (k) => (f[k] == null ? '' : String(f[k]));
+function tagChips(st, known) {
+  const chosen = h('div', { class: 'chips' });
+  const entry = h('input', { type: 'text', autocapitalize: 'none', spellcheck: 'false', enterkeyhint: 'done', placeholder: 'Add a tag', 'aria-label': 'Add a tag', maxlength: 40 });
+  const offer = h('div', { class: 'chips offer', 'aria-label': 'Your tags' });
+  const norm = (t) => t.replace(/[\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').replace(/^#/, '').trim().slice(0, 40);
+  const add = (raw) => {
+    const t = norm(raw);
+    if (!t || st.tags.length >= 20) return;
+    const same = (x) => x.toLowerCase() === t.toLowerCase();
+    if (st.tags.some(same)) return;
+    st.tags.push(known.list.find(same) || t);
+    render();
+    st.changed();
+  };
+  const commit = () => {
+    const parts = entry.value.split(',');
+    entry.value = '';
+    parts.forEach(add);
+    render();
+  };
+  entry.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commit();
+    } else if (e.key === 'Backspace' && !entry.value && st.tags.length) {
+      st.tags.pop();
+      render();
+      st.changed();
+    }
+  });
+  entry.addEventListener('input', () => {
+    if (entry.value.includes(',')) commit();
+    else render();
+  });
+  entry.addEventListener('blur', () => entry.value.trim() && commit());
+  function render() {
+    chosen.replaceChildren(
+      ...st.tags.map((t, i) =>
+        h('button', { type: 'button', class: 'chip on', 'aria-label': `Remove tag ${t}`, onClick: () => { st.tags.splice(i, 1); render(); st.changed(); } }, t, h('span', { 'aria-hidden': 'true' }, ' ×'))
+      ),
+      entry
+    );
+    const q = entry.value.trim().toLowerCase();
+    const free = known.list.filter((t) => !st.tags.some((x) => x.toLowerCase() === t.toLowerCase()) && (!q || t.toLowerCase().includes(q))).slice(0, 12);
+    offer.replaceChildren(...free.map((t) => h('button', { type: 'button', class: 'chip', onClick: () => { add(t); entry.value = ''; render(); } }, t)));
+    offer.hidden = !free.length;
+  }
+  render();
+  known.ready.then(render);
+  const el = h('div', { class: 'tags' }, chosen, offer);
+  el.flush = commit;
+  return el;
+}
 
-  const title = input({ value: v('title'), placeholder: '' });
-  const subtitle = input({ value: v('subtitle') });
-  const date = h('input', { type: 'date', value: v('date') || today(), required: true });
-  const place = input({ value: v('place') });
-  const subject = input({ value: v('subject') });
-  const by = input({ value: v('by') });
-  const year = h('input', { type: 'number', inputmode: 'numeric', min: 1800, max: 2100, value: v('year') });
-  const rating = h(
-    'select',
-    {},
-    h('option', { value: '' }, '–'),
-    ...[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((r) => h('option', { value: String(r), selected: f.rating === r }, `${stars(r)}  ${r}`))
+/** His tags across every post, most used first (for the chips). */
+function knownTags() {
+  const known = { list: [] };
+  known.ready = postList()
+    .then((list) => {
+      const n = new Map();
+      for (const p of list) for (const t of p.tags || []) n.set(t, (n.get(t) || 0) + 1);
+      known.list = [...n.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([t]) => t);
+    })
+    .catch(() => {});
+  return known;
+}
+
+/** Where a link points, to show under the box: the still for YouTube, else the name of where it plays or lives. */
+function linkPreview(url, { kind }) {
+  if (!url) return null;
+  const id = youtubeId(url);
+  const where = hostLabel(url);
+  const plays = kind === 'video' ? videoEmbed(url) : kind === 'music' ? audioEmbed(url) : null;
+  const short = /^https?:\/\/(on\.soundcloud\.com|spotify\.link)\//i.test(url);
+  const note =
+    kind === 'video' || kind === 'music'
+      ? plays
+        ? `${where} · plays on the post, nothing loads until pressed`
+        : short
+          ? `${where} · a short link shows as a link; the full one plays on the post`
+          : `${where} · shows as a link`
+      : url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+  return h(
+    'div',
+    { class: 'preview' + (id ? ' yt' : '') },
+    id && h('img', { src: `https://img.youtube.com/vi/${id}/hqdefault.jpg`, alt: '', referrerpolicy: 'no-referrer', loading: 'lazy' }),
+    h('p', { class: 'small' }, note)
   );
-  const body = textarea({ class: 'words', rows: 8, value: initial.body || '', 'aria-label': 'Words' });
-  const pull = textarea({ rows: 2, value: (f.pull || []).join('\n'), placeholder: 'One per line, his exact words from the piece' });
-  const tags = input({ value: (f.tags || []).join(', '), autocapitalize: 'none', placeholder: 'comma, separated' });
-  const link = h('input', { type: 'url', value: v('link'), inputmode: 'url', autocapitalize: 'none' });
-  const youtube = h('input', { type: 'url', value: v('youtube'), inputmode: 'url', autocapitalize: 'none' });
-  const draft = h('input', { type: 'checkbox', checked: f.draft === true });
-  const light = lightPicker(v('light'));
-  relight(v('light'));
-  /* which lane of /writing/ it runs in; a WASP issue with none still counts as signal */
-  const lane = pills('lane', LANES, LANES.some((l) => l.value === f.lane) ? f.lane : '', () => {});
+}
 
-  const titleField = field('Title', title);
-  const subtitleField = field('Subtitle', subtitle, { optional: true });
-  const reviewFields = h('div', { class: 'form' }, field('Subject', subject), h('div', { class: 'two' }, field('By', by), field('Year', year)), field('Rating', rating));
-  const placeField = field('Place', place, { optional: true });
-  const roll = photos ? photoRoll(f.images || []) : null;
-  const linkField = field('Link', link);
-  const videoField = field('YouTube', youtube);
+/**
+ * The composer. New: an empty box. Edit: `existing` = { path, id, fields, body, files }.
+ * Everything typed lives in `st`; the box is the post's words, and the link a
+ * video, a mix, a link or a book carries is read out of it when it's saved.
+ */
+function composer({ existing = null, draftKey = null } = {}) {
+  const f0 = existing ? { ...existing.fields } : {};
+  const draft = !existing && draftKey ? loadDraft(draftKey) : null;
+  const st = {
+    type: null,
+    picked: false,
+    box: '',
+    rawVerse: false,
+    detected: null,
+    title: f0.title || '',
+    subtitle: f0.subtitle || '',
+    place: f0.place || '',
+    subject: f0.subject || '',
+    by: f0.by || '',
+    year: f0.year ?? '',
+    rating: typeof f0.rating === 'number' ? f0.rating : null,
+    status: f0.status || (existing ? '' : 'read'),
+    highlights: Array.isArray(f0.highlights) ? [...f0.highlights] : [],
+    lang: f0.lang || 'en',
+    langPicked: !!f0.lang,
+    musicKind: f0.kind === 'mix' ? 'mix' : 'listening',
+    kind: f0.kind || '',
+    light: f0.light || '',
+    pull: Array.isArray(f0.pull) ? [...f0.pull] : [],
+    lane: typeof f0.lane === 'string' ? f0.lane : '',
+    lanePicked: !!existing,
+    date: f0.date || today(),
+    draft: f0.draft === true,
+    tags: Array.isArray(f0.tags) ? [...f0.tags] : [],
+    touched: { subject: !!f0.subject, by: !!f0.by },
+    changed: () => {},
+  };
 
-  const kindPills = pills('kind', kinds.map((k) => ({ value: k, label: k })), kind, (k) => {
-    kind = k;
-    show();
+  if (existing) {
+    st.type = TYPE_OF_KIND[f0.kind] || 'note';
+    st.picked = true;
+    let body = existing.body || '';
+    if (st.type === 'poem') {
+      const plain = unwrapVerse(body);
+      if (plain !== null) body = plain;
+      else st.rawVerse = true; /* not in the composer's verse format: edited as the markdown it is */
+    }
+    /* a link the post carries in a field goes back in the box, where the composer reads it from */
+    const url = st.type === 'video' ? f0.youtube || f0.link : st.type === 'music' ? f0.audio : st.type === 'link' || st.type === 'book' ? f0.link : null;
+    st.box = url ? (body.trim() ? `${url}\n\n${body}` : url) : body;
+  } else if (draft) {
+    Object.assign(st, draft, { changed: st.changed, touched: { ...st.touched, ...(draft.touched || {}) } });
+  } else {
+    /* a draft from the old Write or Trip room: its words come over once */
+    for (const k of ['write', 'trip']) {
+      const old = loadDraft(k);
+      if (!old) continue;
+      dropDraft(k);
+      if (st.box) continue;
+      st.box = old.body || '';
+      const of = old.fields || {};
+      for (const key of ['title', 'subtitle', 'place', 'subject', 'by', 'light']) if (of[key]) st[key] = of[key];
+      if (of.kind && TYPE_OF_KIND[of.kind]) {
+        st.type = TYPE_OF_KIND[of.kind];
+        st.picked = true;
+      }
+    }
+  }
+
+  const known = knownTags();
+  const roll = photoRoll(existing ? f0.images || [] : [], {
+    max: MAX_PHOTOS,
+    addLabel: 'Add photos',
+    onChange: () => sort(),
+    onLimit: (n) => bar.say(`${MAX_PHOTOS} photos at most; ${n === 1 ? 'one was' : `${n} were`} left out.`, true),
   });
 
-  function show() {
-    const optional = kind === 'note' || kind === 'photo' || REVIEW.has(kind); /* a review is named by its subject */
-    titleField.replaceChildren(h('span', { class: 'fl' }, 'Title', optional && h('span', { class: 'opt' }, 'optional')), title);
-    reviewFields.hidden = !REVIEW.has(kind);
-    subtitleField.hidden = !(kind === 'essay' || subtitle.value);
-    placeField.hidden = !PHOTO.has(kind);
-    linkField.hidden = kind !== 'link';
-    videoField.hidden = kind !== 'video';
-    body.placeholder = kind === 'poem' ? 'Each line a line.' : '';
-  }
-  show();
+  /* ---- the controls, made once and moved between types so nothing typed is lost ---- */
+  const ctl = {};
+  const one = (key, make) => ctl[key] || (ctl[key] = make());
+  const text = (key, attrs = {}) =>
+    one(key, () =>
+      input({
+        value: String(st[key] ?? ''),
+        ...attrs,
+        onInput: (e) => {
+          st[key] = e.target.value;
+          if (key in st.touched) st.touched[key] = true;
+          changed();
+          /* a place beside two or more photos makes it a trip */
+          if (key === 'place') {
+            clearTimeout(box.t);
+            box.t = setTimeout(sort, 400);
+          }
+        },
+      })
+    );
 
-  const more = h(
-    'details',
-    { class: 'more', open: !!(f.light || (f.pull || []).length || f.draft || (f.tags || []).length) },
-    h('summary', {}, 'More'),
-    h('div', { class: 'form' }, field('Light', light), field('Pull lines', pull), field('Tags', tags), linkField, videoField, h('label', { class: 'check' }, draft, 'Draft (not on the site yet)'))
-  );
+  const box = textarea({
+    class: 'words box',
+    rows: 6,
+    value: st.box,
+    'aria-label': 'What you want to post',
+    placeholder: 'Type, paste a link, or add photos',
+    onInput: (e) => {
+      st.box = e.target.value;
+      changed();
+      clearTimeout(box.t);
+      box.t = setTimeout(sort, 250);
+    },
+  });
+  const boxHint = h('p', { class: 'hint small' });
+
+  const typeRow = h('div', { class: 'types', role: 'group', 'aria-label': 'Type' });
+  const said = h('span', { class: 'vh', role: 'status', 'aria-live': 'polite' });
+  const extras = h('div', { class: 'form extras' });
+  const tagsField = group('Tags', tagChips(st, known), { optional: true });
+  const moreSum = h('span', { class: 'sum' });
+  const more = h('details', { class: 'more' }, h('summary', {}, 'More', moreSum), h('div', { class: 'form' }));
+
+  /* ---- what it looks like: the rules in detect.ts, unless he picked ---- */
+  function sort() {
+    const d = detect(st.box, { photos: roll.count(), place: st.place });
+    st.detected = d;
+    if (!st.picked) {
+      const next = d ? d.type : null;
+      if (next !== st.type) {
+        st.type = next;
+        if (next) said.textContent = `Looks like ${TYPE_LABEL[next]}`;
+        show();
+      }
+    }
+    /* a poem's language follows what he types, until he picks one */
+    if (st.type === 'poem' && !st.langPicked) {
+      const l = langOf(st.box);
+      if (l !== st.lang) {
+        st.lang = l;
+        ctl.lang?.querySelectorAll('input').forEach((r) => (r.checked = r.value === l));
+      }
+    }
+    /* a book's title and author from `book: Title by Author`, or its address, while he hasn't typed them */
+    if (st.type === 'book') {
+      const b = bookLine(st.box);
+      const url = urlsIn(st.box).find(isBookUrl);
+      const subject = b?.subject || (url ? titleFromBookUrl(url) : '');
+      if (!st.touched.subject && subject && ctl.subject) ctl.subject.value = st.subject = subject;
+      if (!st.touched.by && b?.by && ctl.by) ctl.by.value = st.by = b.by;
+    }
+    paintTypes();
+    paintPreview();
+    paintMore();
+  }
+
+  function paintTypes() {
+    const cur = st.type;
+    /* the current type leads the row; on a phone the row swipes, so bring it back to the start */
+    if (typeRow.cur !== cur) typeRow.scrollLeft = 0;
+    typeRow.cur = cur;
+    const order = cur ? [cur, ...TYPES.map((t) => t.id).filter((t) => t !== cur)] : TYPES.map((t) => t.id);
+    typeRow.replaceChildren(
+      ...order.map((id) =>
+        h(
+          'button',
+          {
+            type: 'button',
+            class: 'chip type' + (id === cur ? ' on' : ''),
+            'aria-pressed': String(id === cur),
+            onClick: () => {
+              if (id === cur && st.picked && !existing) {
+                st.picked = false; /* a second tap on the picked type hands it back to the box */
+                sort();
+                return;
+              }
+              st.picked = true;
+              st.type = id;
+              said.textContent = TYPE_LABEL[id];
+              show();
+              sort();
+              changed();
+            },
+          },
+          id === cur && !st.picked ? h('span', { class: 'lk' }, 'Looks like: ') : null,
+          TYPE_LABEL[id]
+        )
+      )
+    );
+  }
+
+  const preview = h('div', { class: 'previewslot' });
+  function currentUrl() {
+    const urls = urlsIn(st.box);
+    if (st.type === 'video') return urls.find((u) => youtubeId(u)) || urls.find((u) => videoEmbed(u)) || urls[0];
+    if (st.type === 'music') return urls.find((u) => isAudioUrl(u));
+    if (st.type === 'book') return urls.find(isBookUrl);
+    if (st.type === 'link') return urls[0];
+    return undefined;
+  }
+  function paintPreview() {
+    const url = currentUrl();
+    const key = `${st.type}|${url || ''}`;
+    if (preview.key === key) return;
+    preview.key = key;
+    preview.replaceChildren(...[linkPreview(url, { kind: st.type })].filter(Boolean));
+  }
+
+  /** Keep the caret where it was when a control moves (a type change re-lays the extras). */
+  function keepFocus(fn) {
+    const a = document.activeElement;
+    const sel = a && 'selectionStart' in a ? [a.selectionStart, a.selectionEnd] : null;
+    fn();
+    if (a && a.isConnected && document.activeElement !== a) {
+      a.focus({ preventScroll: true });
+      try {
+        if (sel) a.setSelectionRange(sel[0], sel[1]);
+      } catch {}
+    }
+  }
+
+  /* ---- the type's own fields ---- */
+  function lightCtl() {
+    return one('light', () => lightPicker(st.light, (id) => { st.light = id; changed(); }));
+  }
+  function pullCtl() {
+    return one('pull', () => (st.pull.length > 1 ? textarea({ rows: 2, value: st.pull.join('\n'), placeholder: 'One per line, exactly as written', onInput: (e) => { st.pull = e.target.value.split('\n'); changed(); } }) : input({ value: st.pull[0] || '', placeholder: 'A line from the piece, exactly as written', onInput: (e) => { st.pull = [e.target.value]; changed(); } })));
+  }
+  function show() {
+    keepFocus(() => {
+      const t = st.type;
+      const parts = [];
+      if (t === 'poem') {
+        parts.push(field('Title', text('title'), { optional: true, hint: 'Untitled, it goes by its first line.' }));
+        parts.push(group('Language', one('lang', () => pills('lang', LANGS, st.lang, (v) => { st.lang = v; st.langPicked = true; changed(); }))));
+        parts.push(group('Light', lightCtl(), { optional: true }));
+        parts.push(field('Pull line', pullCtl(), { optional: true, hint: 'Shown full screen after the poem.' }));
+      } else if (t === 'note') {
+        parts.push(field('Title', text('title'), { optional: true }));
+      } else if (t === 'essay') {
+        parts.push(field('Title', text('title')));
+        parts.push(field('Subtitle', text('subtitle'), { optional: true }));
+      } else if (t === 'photo') {
+        parts.push(field('Place', text('place', { autocapitalize: 'words' }), { optional: true, hint: 'With two or more photos, a place makes it a trip.' }));
+      } else if (t === 'trip') {
+        parts.push(field('Title', text('title'), { optional: true }));
+        parts.push(field('Place', text('place', { autocapitalize: 'words' }), { optional: true }));
+      } else if (t === 'video') {
+        parts.push(preview);
+        parts.push(field('Title', text('title'), { optional: true }));
+      } else if (t === 'music') {
+        parts.push(preview);
+        parts.push(group('It’s', one('musicKind', () => pills('musickind', MUSIC_KINDS, st.musicKind, (v) => { st.musicKind = v; if (!st.lanePicked) st.lane = laneFor(kindOf(st)); show(); changed(); }))));
+        if (st.musicKind === 'mix') parts.push(field('Title', text('title'), { optional: true }));
+        else {
+          parts.push(field('What', text('subject'), { optional: true }));
+          parts.push(field('By', text('by'), { optional: true }));
+          parts.push(group('Rating', one('rating', () => starPicker(st.rating, (v) => { st.rating = v; changed(); })), { optional: true }));
+        }
+      } else if (t === 'book') {
+        parts.push(preview);
+        parts.push(field('Title', text('subject')));
+        parts.push(field('Author', text('by'), { optional: true }));
+        parts.push(group('Status', one('status', () => pills('status', BOOK_STATUS, st.status, (v) => { st.status = v; changed(); }))));
+        parts.push(group('Rating', one('rating', () => starPicker(st.rating, (v) => { st.rating = v; changed(); })), { optional: true }));
+        parts.push(group('Highlights', one('highlights', () => highlightRows(st)), { optional: true }));
+      } else if (t === 'film') {
+        parts.push(field('What', text('subject')));
+        parts.push(h('div', { class: 'two' }, field('By', text('by')), field('Year', text('year', { type: 'number', inputmode: 'numeric', min: 1800, max: 2100 }))));
+        parts.push(group('Rating', one('rating', () => starPicker(st.rating, (v) => { st.rating = v; changed(); })), { optional: true }));
+      } else if (t === 'link') {
+        parts.push(preview);
+        parts.push(field('Title', text('title'), { optional: true }));
+      }
+      extras.replaceChildren(...parts);
+      extras.hidden = !parts.length;
+      boxHint.textContent = t === 'poem' ? (st.rawVerse ? 'Markdown, as it was saved.' : 'Each line a line; a blank line between stanzas.') : t === 'book' ? 'Notes, if any. Logging a book with no words is fine.' : '';
+      boxHint.hidden = !boxHint.textContent;
+      box.classList.toggle('verse', t === 'poem');
+      tagsField.hidden = more.hidden = !t;
+      if (!st.lanePicked) st.lane = laneFor(kindOf(st));
+      paintMore(true);
+      paintPreview();
+      relight(st.light);
+    });
+  }
+
+  /* ---- More: the date, the lane, the light, pull lines, draft ---- */
+  function paintMore(rebuild = false) {
+    moreSum.textContent = [st.lane || null, fmtDate(st.date), st.draft && 'draft'].filter(Boolean).join(' · ');
+    if (!rebuild) return;
+    const inner = more.lastChild;
+    keepFocus(() =>
+      inner.replaceChildren(
+        ...[
+          st.type === 'photo' && field('Title', text('title'), { optional: true }),
+          field('Date', one('date', () => h('input', { type: 'date', value: st.date, required: true, onChange: (e) => { st.date = e.target.value; changed(); paintMore(); } }))),
+          group('Lane', one('lane', () => pills('lane', LANES, st.lane, (v) => { st.lane = v; st.lanePicked = true; changed(); paintMore(); }))),
+          st.type !== 'poem' && group('Light', lightCtl(), { optional: true }),
+          st.type !== 'poem' && field('Pull lines', pullCtl(), { optional: true }),
+          h('label', { class: 'check' }, one('draft', () => h('input', { type: 'checkbox', checked: st.draft, onChange: (e) => { st.draft = e.target.checked; changed(); paintMore(); } })), 'Draft (not on the site yet)'),
+        ].filter(Boolean)
+      )
+    );
+    /* the lane pills follow the kind's default until he picks one */
+    ctl.lane?.querySelectorAll('input').forEach((r) => (r.checked = r.value === st.lane));
+  }
+
+  /* ---- the draft, autosaved so a closed tab costs nothing (photos aren't kept: they're files) ---- */
+  let dt = 0;
+  function changed() {
+    if (!draftKey) return;
+    clearTimeout(dt);
+    dt = setTimeout(() => {
+      const { changed: _c, detected: _d, ...keep } = st;
+      saveDraft(draftKey, keep);
+    }, 400);
+  }
+  st.changed = changed;
+
+  /**
+   * The post as the server wants it. An edit keeps every field the composer
+   * doesn't show (canonical, publication, a year on a listening…) exactly as it came.
+   */
+  function read() {
+    const kind = kindOf(st);
+    const fields = {};
+    for (const [k, v] of Object.entries(f0)) if (v !== undefined && v !== null && v !== '') fields[k] = v;
+    /* what belongs to one type only goes when the post isn't that type any more */
+    if (kind !== 'book') {
+      delete fields.status;
+      delete fields.highlights;
+    }
+    if (kind !== 'mix' && kind !== 'listening') delete fields.audio;
+    if (kind !== 'poem' && !['note', 'essay'].includes(kind)) delete fields.lang;
+    const urls = urlsIn(st.box);
+    let body = st.box;
+    const set = (k, v) => {
+      if (v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length)) delete fields[k];
+      else fields[k] = v;
+    };
+    const t = st.type;
+    set('kind', kind);
+    set('date', st.date);
+    if (!existing) set('source', 'tend');
+    if (['poem', 'note', 'essay', 'trip', 'video', 'link'].includes(t) || (t === 'music' && st.musicKind === 'mix') || t === 'photo') set('title', st.title.trim());
+    if (t === 'essay') set('subtitle', st.subtitle.trim());
+    if (t === 'photo' || t === 'trip') set('place', st.place.trim());
+    if (['book', 'film'].includes(t) || (t === 'music' && st.musicKind === 'listening')) {
+      set('subject', st.subject.trim());
+      set('by', st.by.trim());
+      set('rating', st.rating ?? undefined);
+    }
+    if (t === 'film') set('year', st.year ? Number(st.year) : undefined);
+    if (t === 'book') {
+      set('status', st.status || undefined);
+      set('highlights', st.highlights.map((s) => s.trim()).filter(Boolean));
+    }
+    /* a new poem always says its language; an old one only when it isn't English or he picked */
+    if (t === 'poem' && (!existing || f0.lang || st.langPicked || st.lang !== 'en')) set('lang', st.lang);
+    if (t === 'video') {
+      const yt = urls.find((u) => youtubeId(u));
+      const other = urls.find((u) => videoEmbed(u)) || urls[0];
+      set('youtube', yt);
+      set('link', yt ? undefined : other);
+      body = without(body, yt || other);
+    }
+    if (t === 'music') {
+      const a = urls.find((u) => isAudioUrl(u));
+      set('audio', a);
+      body = without(body, a);
+    }
+    if (t === 'link') {
+      set('link', urls[0]);
+      body = without(body, urls[0]);
+    }
+    if (t === 'book') {
+      const b = urls.find(isBookUrl);
+      if (b) set('link', b);
+      body = withoutBookLine(without(body, b));
+    }
+    if (t === 'poem' && !st.rawVerse) body = wrapVerse(body.trim());
+    set('pull', st.pull.map((s) => s.trim()).filter(Boolean));
+    set('light', st.light || undefined);
+    set('lane', st.lane || undefined);
+    set('tags', st.tags);
+    set('draft', st.draft || undefined);
+    return { fields, body: body.replace(/\s+$/, ''), plain: t === 'poem' ? st.box : body };
+  }
+
+  /** In UI words, what's missing; the server holds the same rules (kindProblem). */
+  function problem({ fields, body, plain }, photos) {
+    const k = fields.kind;
+    const words = body.trim().length > 0;
+    if (!st.type) return 'Type something, paste a link, or add photos.';
+    if (!fields.date) return 'A date, please.';
+    if ((k === 'note' || k === 'poem' || k === 'essay') && !words) return k === 'poem' ? 'The poem, please.' : 'Nothing to publish yet.';
+    if (k === 'essay' && !fields.title) return 'An essay needs a title.';
+    if (k === 'photo' && !photos) return 'Add a photo or two.';
+    if (k === 'trip' && !photos && !words) return 'Add photos or words.';
+    if (k === 'video' && !fields.youtube && !fields.link) return 'Paste the video’s link in the box.';
+    if (k === 'mix' && !fields.audio) return 'Paste the mix’s SoundCloud, Mixcloud, Spotify or YouTube link in the box.';
+    if (k === 'listening' && !fields.audio && !fields.subject) return 'Paste a SoundCloud, Mixcloud, Spotify or YouTube link, or say what it is.';
+    if ((k === 'book' || k === 'film') && !fields.subject) return k === 'book' ? 'The book’s title, please.' : 'What is it? The title, please.';
+    if (k === 'link' && !fields.link) return 'Paste the link in the box.';
+    /* a pull line is lifted from the piece: word for word, though a capital may start it; one the post already had is left be */
+    const whole = flat([fields.title, fields.subtitle, plain].filter(Boolean).join('\n')).toLowerCase();
+    const had = new Set(Array.isArray(f0.pull) ? f0.pull : []);
+    const off = (fields.pull || []).find((p) => !had.has(p) && !whole.includes(flat(p.replace(/^…|…$/g, '')).toLowerCase()));
+    if (off) return 'A pull line must be in the piece, word for word.';
+    return null;
+  }
+
+  async function publish(say) {
+    tagsField.querySelector('.tags')?.flush?.();
+    const out = read();
+    const why = problem(out, roll.count());
+    if (why) throw new Error(why);
+    const { fields, body } = out;
+    let shots = [];
+    if (roll.count() || roll.removed().length) {
+      if (roll.pending()) say('Waiting for the photos…');
+      shots = await roll.ready();
+    }
+    if (shots.length || (f0.images || []).length) fields.images = shots.map((s) => ({ src: `./${s.name}`, alt: s.alt }));
+    if (fields.images && !fields.images.length) delete fields.images;
+
+    let id = existing?.id;
+    if (!id) {
+      const firstWords = slugify(body.replace(/<[^>]+>/g, ' ').trim().split(/\s+/).slice(0, 6).join(' '));
+      const base = slugify(fields.title) || slugify(fields.subject) || slugify(fields.place) || firstWords || fields.kind;
+      id = `${fields.date}-${base}`;
+      const taken = new Set((await postList().catch(() => [])).map((p) => p.id));
+      for (let n = 2; taken.has(id); n++) id = `${fields.date}-${base}-${n}`;
+    }
+    const dir = `src/content/posts/${id}`;
+    const folder = shots.length > 0 || (existing?.path || '').endsWith('/index.md');
+    const mdPath = folder ? `${dir}/index.md` : `${dir}.md`;
+    const files = [{ path: mdPath, post: { fields, body } }];
+    for (const s of shots) if (s.sha) files.push({ path: `${dir}/${s.name}`, sha: s.sha });
+    const deletes = [];
+    if (existing && existing.path !== mdPath) deletes.push(existing.path);
+    for (const name of roll.removed()) deletes.push(`${dir}/${name}`);
+    if (files.length + deletes.length > 40) throw new Error('Too many files for one save.');
+    const what = fields.title || fields.subject || fields.place || TYPE_LABEL[st.type].toLowerCase();
+    say(fields.draft ? 'Saving…' : 'Publishing…');
+    const res = await api('commit', { message: existing ? `edit ${what}` : `new ${fields.kind}, ${what}`, files, deletes });
+    return { ...res, draft: fields.draft === true };
+  }
+
+  /* ---- the page ---- */
+  const bar = saveBar(existing ? 'Save' : 'Publish', async (say) => {
+    const { url, draft: isDraft } = await publish(say);
+    if (draftKey) {
+      clearTimeout(dt);
+      dropDraft(draftKey);
+    }
+    posts.list = null;
+    relight('');
+    /* a draft isn't on the site, so there's no page to link to yet */
+    const big = isDraft ? 'Saved as a draft. Not on the site yet.' : existing ? 'Saved. Live in about a minute.' : 'Live in about a minute.';
+    el.replaceChildren(el.firstChild, done({ url: isDraft ? null : url, again: '#/new', againLabel: 'New', big }));
+  });
 
   const el = h(
     'div',
-    { class: 'form' },
-    kinds.length > 1 && field('Kind', kindPills),
-    titleField,
-    subtitleField,
-    placeField,
-    field('Date', date),
-    field('Lane', lane, { optional: true }),
-    reviewFields,
-    field('Words', body),
-    roll && field('Photos', roll.el),
-    more
+    { class: 'view composer' },
+    crumb(existing ? 'Edit' : 'New'),
+    typeRow,
+    said,
+    h('label', { class: 'field boxfield' }, h('span', { class: 'vh' }, 'What you want to post'), box, boxHint),
+    h('div', { class: 'attach' }, roll.el),
+    extras,
+    tagsField,
+    more,
+    bar
   );
+  el.bar = bar;
+  el.run = bar.run;
+  el.publish = publish;
 
-  /* the draft, autosaved so a closed tab costs nothing */
-  if (draftKey) {
-    let t = 0;
-    const save = () => {
-      clearTimeout(t);
-      t = setTimeout(() => saveDraft(draftKey, { fields: read().fields, body: body.value }), 400);
-    };
-    el.addEventListener('input', save);
-    el.addEventListener('change', save);
-  }
-
-  /**
-   * The fields as the server wants them. What the form shows is read from its
-   * inputs; everything else an existing post carried (canonical, publication,
-   * audio, images without a roll, review fields of another kind…) goes back
-   * exactly as it came, so an edit never loses a field.
-   */
-  function read() {
-    const fields = {};
-    for (const [k, val] of Object.entries(f)) if (val !== undefined && val !== null && val !== '') fields[k] = val;
-    Object.assign(fields, { kind, date: date.value, title: title.value.trim() || undefined, subtitle: subtitle.value.trim() || undefined });
-    if (PHOTO.has(kind)) fields.place = place.value.trim() || undefined;
-    if (REVIEW.has(kind)) {
-      fields.subject = subject.value.trim() || undefined;
-      fields.by = by.value.trim() || undefined;
-      fields.year = year.value ? Number(year.value) : undefined;
-      fields.rating = rating.value ? Number(rating.value) : undefined;
-    }
-    if (kind === 'link') fields.link = link.value.trim() || undefined;
-    if (kind === 'video') fields.youtube = youtube.value.trim() || undefined;
-    fields.pull = pull.value.split('\n').map((s) => s.trim()).filter(Boolean);
-    fields.tags = tags.value.split(',').map((s) => s.trim()).filter(Boolean);
-    fields.light = light.value() || undefined;
-    fields.lane = lane.value() || undefined;
-    fields.draft = draft.checked;
-    return { fields, body: body.value };
-  }
-
-  return { el, read, roll, kind: () => kind, body };
-}
-
-/** Everything a post save needs, from the form: paths, images, the commit. */
-async function publishPost(form, { existingPath, existingId, posts, say }) {
-  const { fields, body } = form.read();
-  if (!fields.date) throw new Error('A date, please.');
-  if (!fields.title && fields.kind !== 'note' && fields.kind !== 'photo' && !fields.subject) throw new Error('A title, please.');
-  if (REVIEW.has(fields.kind) && !fields.subject) throw new Error('What is it? The subject, please.');
-  const photos = form.roll ? form.roll.count() : 0;
-  if (!body.trim() && !photos) throw new Error('Nothing to publish yet.');
-
-  let shots = [];
-  if (form.roll) {
-    if (form.roll.pending()) say('Waiting for the photos…');
-    shots = await form.roll.ready();
-    fields.images = shots.map((s) => ({ src: `./${s.name}`, alt: s.alt }));
-  }
-
-  let id = existingId;
-  if (!id) {
-    const base = slugify(fields.title) || slugify(fields.subject) || slugify(body.trim().split(/\s+/).slice(0, 6).join(' ')) || fields.kind;
-    id = `${fields.date}-${base}`;
-    const taken = new Set((posts || []).map((p) => p.id));
-    for (let n = 2; taken.has(id); n++) id = `${fields.date}-${base}-${n}`;
-  }
-  const dir = `src/content/posts/${id}`;
-  const folder = shots.length > 0 || (existingPath || '').endsWith('/index.md');
-  const mdPath = folder ? `${dir}/index.md` : `${dir}.md`;
-
-  const files = [{ path: mdPath, post: { fields, body } }];
-  for (const s of shots) if (s.sha) files.push({ path: `${dir}/${s.name}`, sha: s.sha });
-  const deletes = [];
-  if (existingPath && existingPath !== mdPath) deletes.push(existingPath);
-  if (form.roll) for (const name of form.roll.removed()) deletes.push(`${dir}/${name}`);
-
-  const what = fields.title || fields.subject || fields.kind;
-  const message = existingId ? `edit ${what}` : `new ${fields.kind}, ${what}`;
-  say('Publishing…');
-  return api('commit', { message, files, deletes });
+  if (draft) bar.say('Draft restored. Photos aren’t kept in a draft.');
+  show();
+  sort();
+  if (!existing && !st.box) queueMicrotask(() => box.focus({ preventScroll: true }));
+  return el;
 }
 
 /* ---------- views ---------- */
 
 const posts = { list: null, at: 0 };
-/** The posts, fetched once a minute at most; new posts check their id against it. */
+/** The posts, fetched once a minute at most; new posts check their id against it, and the tags come from it. */
 async function postList(force = false) {
   if (force || !posts.list || Date.now() - posts.at > 60_000) {
-    const r = await api('list');
-    posts.list = r.posts;
-    posts.at = Date.now();
+    if (!posts.pending || force) posts.pending = api('list').then((r) => ((posts.list = r.posts), (posts.at = Date.now()), r.posts)).finally(() => (posts.pending = null));
+    return posts.pending;
   }
   return posts.list;
 }
 
 function viewHome() {
-  const choices = [
-    ['#/write', 'Write', 'note, essay, poem, review'],
-    ['#/trip', 'Trip', 'photos and words'],
+  const rooms = [
     ['#/taste', 'Taste', 'what you say about a work'],
     ['#/now', 'Now', 'the bubbles'],
     ['#/projects', 'Projects', 'the list and each page'],
@@ -692,49 +1221,24 @@ function viewHome() {
     },
     'Log out'
   );
+  const hasDraft = !!loadDraft('new');
   return h(
     'div',
     { class: 'view' },
     h('div', { class: 'label-row' }, h('span', {}, 'Tend'), h('time', { class: 'mono', datetime: today() }, fmtDate(today()))),
-    h('nav', { class: 'choices', 'aria-label': 'Rooms' }, ...choices.map(([href, name, hint]) => h('a', { href }, h('span', { class: 'name' }, name), hint && h('span', { class: 'hint' }, hint)))),
+    h(
+      'a',
+      { href: '#/new', class: 'new' },
+      h('span', { class: 'name' }, 'New'),
+      h('span', { class: 'hint' }, hasDraft ? 'your draft is waiting' : 'a poem, photos, a video, a mix, a book, a note, anything')
+    ),
+    h('nav', { class: 'choices rooms', 'aria-label': 'Rooms' }, ...rooms.map(([href, name, hint]) => h('a', { href }, h('span', { class: 'name' }, name), hint && h('span', { class: 'hint' }, hint)))),
     h('p', { class: 'out' }, out)
   );
 }
 
-function viewWrite() {
-  const draft = loadDraft('write');
-  const form = postForm({ kinds: WRITE_KINDS, initial: draft || {}, draftKey: 'write' });
-  postList().catch(() => {});
-  const view = h('div', { class: 'view' }, crumb('Write'), form.el);
-  const bar = saveBar('Publish', async (say) => {
-    const { url } = await publishPost(form, { posts: await postList().catch(() => []), say });
-    dropDraft('write');
-    posts.list = null;
-    relight('');
-    view.replaceChildren(crumb('Write'), done({ url, again: '#/write', againLabel: 'Write another' }));
-  });
-  if (draft) bar.say('Draft restored.');
-  view.append(bar);
-  view.run = bar.run;
-  return view;
-}
-
-function viewTrip() {
-  const draft = loadDraft('trip');
-  const form = postForm({ kinds: ['trip', 'photo'], initial: draft || {}, photos: true, draftKey: 'trip' });
-  postList().catch(() => {});
-  const view = h('div', { class: 'view' }, crumb('Trip'), form.el);
-  const bar = saveBar('Publish', async (say) => {
-    const { url } = await publishPost(form, { posts: await postList().catch(() => []), say });
-    dropDraft('trip');
-    posts.list = null;
-    relight('');
-    view.replaceChildren(crumb('Trip'), done({ url, again: '#/trip', againLabel: 'Another trip' }));
-  });
-  if (draft) bar.say('Draft restored.');
-  view.append(bar);
-  view.run = bar.run;
-  return view;
+function viewNew() {
+  return composer({ draftKey: 'new' });
 }
 
 async function viewPosts(id) {
@@ -761,29 +1265,14 @@ async function viewPost(id) {
   const meta = list.find((p) => p.id === id);
   if (!meta) return h('div', { class: 'view' }, crumb('Posts'), h('p', { class: 'quietline' }, 'Not here.'));
   const { fields, body, files = [] } = await api('read', { path: meta.path });
-  const kinds = [...new Set([fields.kind, ...ALL_KINDS])].filter(Boolean);
-  const form = postForm({ kinds, initial: { fields, body }, photos: PHOTO.has(fields.kind) || (fields.images || []).length > 0 });
+  const view = composer({ existing: { path: meta.path, id, fields, body, files } });
   const name = fields.title || fields.subject || id;
-  const view = h('div', { class: 'view' }, crumb('Posts'), form.el);
-  const del = h(
-    'button',
-    { type: 'button', class: 'textbtn danger' },
-    'Delete'
-  );
-  const bar = saveBar(
-    'Save',
-    async (say) => {
-      const { url } = await publishPost(form, { existingPath: meta.path, existingId: id, say });
-      posts.list = null;
-      relight('');
-      view.replaceChildren(crumb('Posts'), done({ url, again: '#/posts', againLabel: 'Posts' }));
-    },
-    del
-  );
+  const del = h('button', { type: 'button', class: 'textbtn danger' }, 'Delete');
+  view.bar.append(del);
   del.addEventListener('click', async () => {
     if (!confirm(`Delete “${name}”? It leaves the site with the next deploy.`)) return;
     del.disabled = true;
-    bar.say('Deleting…');
+    view.bar.say('Deleting…');
     try {
       /* the post and, for a folder, every file beside it that the server's allowlist lets go */
       const dir = meta.path.replace(/index\.md$/, '');
@@ -796,12 +1285,10 @@ async function viewPost(id) {
       relight('');
       view.replaceChildren(crumb('Posts'), done({ big: 'Gone in about a minute.', again: '#/posts', againLabel: 'Posts' }));
     } catch (e) {
-      bar.say(e.message || 'Didn’t work.', true);
+      view.bar.say(e.message || 'Didn’t work.', true);
       del.disabled = false;
     }
   });
-  view.append(bar);
-  view.run = bar.run;
   return view;
 }
 
@@ -1127,9 +1614,15 @@ function editProject(data, p, { pages = null, page = null } = {}) {
   return view;
 }
 
+
 /* ---------- the router ---------- */
 
-const ROUTES = { '': viewHome, write: viewWrite, trip: viewTrip, posts: viewPosts, taste: viewTaste, now: viewNow, projects: viewProjects };
+/* the old Write and Trip rooms are the composer now; their drafts come over on first open */
+const toNew = () => {
+  location.replace('#/new');
+  return h('div', { class: 'view' });
+};
+const ROUTES = { '': viewHome, new: viewNew, write: toNew, trip: toNew, posts: viewPosts, taste: viewTaste, now: viewNow, projects: viewProjects };
 let current = null;
 
 async function route() {

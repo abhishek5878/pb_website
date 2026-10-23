@@ -1,0 +1,109 @@
+# The daily sync (docs/design/making.md, Agent 3). Brings new Substack posts
+# (scripts/import-substack.mjs) and YouTube uploads (scripts/sync-youtube.mjs)
+# onto the site and commits them to main, which Vercel deploys. On Sundays it
+# opens the issue "This week on vyas.garden" (scripts/sync-weekly.mjs): what
+# came over, every new image to glance at for privacy, and a nudge to add the
+# rest from /tend. GitHub emails him the issue; he's assigned to it.
+#
+# Letterboxd isn't here: the Vercel cron (src/pages/api/rebuild.ts) does it.
+# Run it by hand: Actions → sync → Run workflow (tick "weekly" for the issue).
+name: sync
+
+on:
+  schedule:
+    - cron: '15 0 * * *' # 00:15 UTC = 05:45 IST, every day
+  workflow_dispatch:
+    inputs:
+      weekly:
+        description: Also open this week's issue now
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # commit the new posts
+  issues: write # the Sunday issue
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      # Substack's own videos are re-encoded with ffmpeg (which also drops their metadata).
+      - name: ffmpeg
+        run: command -v ffmpeg || { sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg; }
+
+      # A failed fetch is a warning, not a red run: tomorrow's run tries again,
+      # and Sunday's issue says if a check is still failing.
+      - name: Substack
+        id: substack
+        continue-on-error: true
+        run: node scripts/import-substack.mjs
+
+      - name: YouTube
+        id: youtube
+        continue-on-error: true
+        run: node scripts/sync-youtube.mjs
+
+      # Authored as the repo owner (his GitHub noreply address), so Vercel
+      # deploys the commit: it can refuse commits by authors outside the
+      # Vercel team, which github-actions[bot] is.
+      - name: Commit what's new
+        env:
+          OWNER: ${{ github.repository_owner }}
+          OWNER_ID: ${{ github.repository_owner_id }}
+        run: |
+          git config user.name "$OWNER"
+          git config user.email "$OWNER_ID+$OWNER@users.noreply.github.com"
+          git add -A -- src/content/posts public/media src/data/sync.json
+          if git diff --cached --quiet; then
+            echo "Nothing new."
+            exit 0
+          fi
+          n=$(git diff --cached --name-only --diff-filter=A -- src/content/posts | grep -c '\.md$' || true)
+          git commit -q -m "sync: $n new from Substack/YouTube"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            git pull --rebase origin main
+          done
+          exit 1
+
+      - name: Sunday?
+        id: when
+        env:
+          EVENT: ${{ github.event_name }}
+          WEEKLY: ${{ inputs.weekly }}
+        run: |
+          if { [ "$EVENT" = schedule ] && [ "$(date -u +%u)" = 7 ]; } || [ "$WEEKLY" = true ]; then
+            echo "weekly=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: This week on vyas.garden
+        if: ${{ !cancelled() && steps.when.outputs.weekly == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          SUBSTACK: ${{ steps.substack.outcome }}
+          YOUTUBE: ${{ steps.youtube.outcome }}
+        run: |
+          node scripts/sync-weekly.mjs > "$RUNNER_TEMP/week.md"
+          gh label create weekly --color c5def5 --description "The Sunday note from the sync" --force
+          previous=$(gh issue list --label weekly --state open --json number --jq '.[].number')
+          url=$(gh issue create --title "This week on vyas.garden" --body-file "$RUNNER_TEMP/week.md" --label weekly --assignee "$OWNER")
+          echo "Opened $url"
+          for number in $previous; do
+            gh issue close "$number" --comment "This week's: $url"
+          done

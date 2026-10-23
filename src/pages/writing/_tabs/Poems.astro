@@ -1,0 +1,118 @@
+---
+/**
+ * Poems: each one opens the way it opens in the reading room. The title in
+ * Newsreader italic, then its first three or four lines, his line breaks kept
+ * (a wrapped line hangs), then the date and the way in. Two to a spread, like
+ * facing pages. Devanagari renders in Tiro Devanagari Hindi under lang="hi".
+ * Pointing at a poem that has its own light relights the room in it.
+ */
+import type { Post } from '../../../lib/posts';
+import { fmtDate, iso, label } from '../../../lib/posts';
+import { opening, htmlLang, langOf } from '../_writing';
+
+interface Props {
+  poems: Post[];
+  /** the heading level of each poem's title: 2 on the Poems tab, where nothing sits between */
+  level?: 2 | 3;
+}
+const { poems, level = 3 } = Astro.props;
+const H = level === 2 ? 'h2' : 'h3';
+/* an untitled poem goes by its first line (label(), src/lib/posts.ts), and opens on the lines after it */
+const items = poems.map((p) => {
+  const stanzas = opening(p, p.title ? 4 : 5);
+  if (!p.title && stanzas[0]) stanzas[0] = stanzas[0].slice(1);
+  return { p, name: p.title ?? label(p), stanzas: stanzas.filter((s) => s.length), lang: htmlLang(p), titleLang: p.title ? (langOf(p) === 'hi' ? 'hi' : undefined) : htmlLang(p) };
+});
+---
+
+<ol class="poems grid" role="list">
+  {items.map(({ p, name, stanzas, lang, titleLang }, i) => (
+    <li class:list={['poem', i % 2 ? 'recto' : 'verso']}>
+      <H class="t" lang={titleLang}>
+        <a href={p.href} class="quiet" data-light={p.light}>{name || fmtDate(p.date)}</a>
+      </H>
+      {stanzas.length > 0 && (
+        <div class="lines" lang={lang}>
+          {stanzas.map((lines) => (
+            <p>{lines.map((l) => <span class="l" set:html={l} />)}</p>
+          ))}
+        </div>
+      )}
+      <p class="meta small">
+        <time class="mono" datetime={iso(p.date)}>{fmtDate(p.date)}</time>
+        <span class="read" aria-hidden="true">Read →</span>
+      </p>
+    </li>
+  ))}
+</ol>
+<!-- A poem with a light of its own (its interlude's) relights the room while it's pointed at,
+     through relight.js by its contract (.strip a[data-light]). Fine pointers only, so a tap
+     on a phone just opens the poem; JS off, nothing changes. -->
+<script is:inline>
+  (function () {
+    if (!matchMedia('(hover: hover) and (pointer: fine)').matches || document.querySelector('.strip')) return;
+    var list = document.currentScript && document.currentScript.previousElementSibling;
+    if (list && list.querySelector('a[data-light]')) list.classList.add('strip');
+  })();
+</script>
+
+<style>
+  .poems { row-gap: clamp(3.5rem, 5vw, 5.5rem); }
+  /* facing pages: the left one at the margin, the right one across the gutter */
+  .verso { grid-column: 1 / 6; }
+  .recto { grid-column: 7 / 12; }
+  .poem {
+    position: relative;
+    /* Newsreader for Latin; Devanagari falls through to Tiro (it loads only for Devanagari, by unicode-range) */
+    font-family: 'Newsreader Variable', 'Newsreader', 'Tiro Devanagari Hindi', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+  .t {
+    font-family: inherit;
+    font-size: var(--fs-title);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  /* the whole poem is the way in; the title carries the link */
+  .t a::after { content: ''; position: absolute; inset: -0.75rem -1rem; }
+  .t a:focus-visible { outline: none; }
+  .poem:has(.t a:focus-visible) { outline: 2px solid var(--accent); outline-offset: 0.9rem; }
+  .lines {
+    margin-top: 1.1rem;
+    max-width: 22em;
+    font-size: var(--fs-lit);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+  .lines p + p { margin-top: 0.9em; }
+  /* his breaks stay his; a wrapped line hangs */
+  .l {
+    display: block;
+    padding-left: 1.5em;
+    text-indent: -1.5em;
+    hanging-punctuation: first;
+  }
+  /* Tiro comes in one weight, 400: the Latin beside it matches it, and the matras get room */
+  .lines:lang(hi) { line-height: 1.75; font-weight: 400; }
+  .meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.1rem;
+    font-family: var(--sans);
+    color: var(--ink-muted);
+  }
+  .read { color: var(--ink); font-weight: 500; }
+  .poem:hover .read { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+  .poem:hover .t a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.14em; text-decoration-color: var(--hairline-strong); }
+  @media (max-width: 1023px) {
+    .verso { grid-column: 1 / 7; }
+    .recto { grid-column: 7 / 13; }
+  }
+  @media (max-width: 719px) {
+    .verso, .recto { grid-column: 1 / -1; }
+    .poems { row-gap: 3rem; }
+  }
+</style>

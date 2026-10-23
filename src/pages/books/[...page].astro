@@ -1,0 +1,210 @@
+---
+/**
+ * Books (/books/). docs/design/making.md, Amendment 1 B.
+ *
+ * The one idea: the library he owes himself, kept like a ledger at a library.
+ * Reading now sits open with a bookmark (the one pink thing); Read is the
+ * ledger by year: title, author, his rating, the first line of his notes; the
+ * books on his Taste shelf stand under it, each with its own swatch as a spine.
+ * A row opens his reading page only when it has notes or highlights; otherwise
+ * it is a plain row.
+ *
+ * His words only: the line is Q11 (src/pages/books/_books.ts), the rest is his
+ * posts and taste.json. UI words: "Reading now", "Read", "stopped", "On the Taste shelf".
+ * The page exists only while it has a book on it.
+ */
+import Base from '../../layouts/Base.astro';
+import { getBooks, LINE, type Book } from './_books';
+import { fmtDate, iso } from '../../lib/posts';
+import { ratingText } from '../../lib/log';
+
+export async function getStaticPaths() {
+  return (await getBooks()).count > 0 ? [{ params: { page: undefined } }] : [];
+}
+
+const { reading, years, shelf } = await getBooks();
+const readCount = years.reduce((n, y) => n + y.items.length, 0);
+
+/** the swatch as a spine: stacked bands, the way the Taste shelf draws it */
+const spine = (sw: string[]) => {
+  const weights = [46, 27, 17, 10].slice(0, sw.length);
+  const total = weights.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  const stops = sw.map((c, i) => {
+    const from = (acc / total) * 100;
+    acc += weights[i];
+    return c + ' ' + from.toFixed(1) + '% ' + ((acc / total) * 100).toFixed(1) + '%';
+  });
+  return 'linear-gradient(180deg, ' + stops.join(', ') + ')';
+};
+const name = (b: Book) => b.title;
+---
+
+<Base title="Books" description={`${LINE.library} ${LINE.daily}`}>
+  <section class="wrap books" aria-labelledby="books-label">
+    <div class="label-row">
+      <h1 id="books-label">Books</h1>
+    </div>
+
+    <!-- Q11: the oversized line, then the deadpan -->
+    <p class="line display">{LINE.library}</p>
+    <p class="daily lit muted">{LINE.daily}</p>
+
+    {reading.length > 0 && (
+      <section class="section reading" aria-labelledby="now-label">
+        <div class="label-row">
+          <h2 id="now-label">Reading now</h2>
+        </div>
+        <ol class="open" role="list">
+          {reading.map((b) => (
+            <li class="desk">
+              <span class="ribbon" aria-hidden="true"></span>
+              <h3 class="t">{b.href ? <a href={b.href} class="quiet">{name(b)}</a> : name(b)}</h3>
+              {b.by && <p class="by">{b.by}</p>}
+              {b.note && <p class="note">{b.note}</p>}
+              <p class="meta small">
+                {b.date && <time class="mono" datetime={iso(b.date)}>{fmtDate(b.date)}</time>}
+                {b.href && <a href={b.href} class="quiet go" aria-hidden="true" tabindex="-1">Notes →</a>}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
+
+    {readCount > 0 && (
+      <section class="section" aria-labelledby="read-label">
+        <div class="label-row">
+          <h2 id="read-label">Read</h2>
+          <span class="mono muted">{readCount}</span>
+        </div>
+        {years.map((y) => (
+          <section class="year grid" aria-labelledby={`y${y.year}`}>
+            <h3 class="year-label mono" id={`y${y.year}`}>{y.year}</h3>
+            <ol class="ledger" role="list">
+              {y.items.map((b) => (
+                <li class:list={['row', { linked: !!b.href }]}>
+                  <p class="what">
+                    <span class="t">{b.href ? <a href={b.href} class="quiet">{name(b)}</a> : name(b)}</span>
+                    {b.by && <span class="by">{b.by}</span>}
+                  </p>
+                  <span class="score small">
+                    {b.status === 'stopped' ? <span class="muted">stopped</span> : b.rating != null ? <span class="mono">{ratingText(b.rating)}</span> : null}
+                  </span>
+                  {b.note && <p class="note">{b.note}</p>}
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+      </section>
+    )}
+
+    {shelf.length > 0 && (
+      <section class="section" aria-labelledby="shelf-label">
+        <div class="label-row">
+          <h2 id="shelf-label">On the Taste shelf</h2>
+          <a href="/taste/#shelf" class="quiet">The shelf →</a>
+        </div>
+        <div class:list={['grid shelf-row', { aligned: readCount > 0 }]}>
+        <ol class="ledger shelf" role="list">
+          {shelf.map((b) => (
+            <li class:list={['row', { linked: !!b.href }]}>
+              <span class="spine" aria-hidden="true" style={b.work?.swatch.length ? `--sw: ${spine(b.work.swatch)}` : undefined}></span>
+              <p class="what">
+                <span class="t">{b.href ? <a href={b.href} class="quiet">{name(b)}</a> : name(b)}</span>
+                {b.by && <span class="by">{b.by}</span>}
+              </p>
+              {b.note && <p class="note">{b.note}</p>}
+            </li>
+          ))}
+        </ol>
+        </div>
+      </section>
+    )}
+  </section>
+</Base>
+
+<style>
+  .books { padding-top: 0.5rem; }
+  /* the one oversized line, pinned left; the deadpan under it */
+  .line { margin-top: var(--gap-block); margin-left: -0.04em; max-width: 12ch; text-wrap: balance; }
+  .daily { margin-top: 1.25rem; max-width: 30em; }
+
+  /* Reading now: the book left open, a bookmark hanging from the top of it */
+  .open { display: grid; gap: var(--gap-block); margin-top: var(--gap-block); }
+  .desk { position: relative; padding-left: clamp(1.75rem, 3vw, 2.75rem); max-width: 40rem; }
+  .ribbon {
+    position: absolute;
+    left: 0;
+    top: -0.25rem;
+    width: 0.55rem;
+    height: 4.25rem;
+    background: var(--accent);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+    transition: background-color var(--d-relight) var(--ease-standard);
+  }
+  .desk .t {
+    font-size: var(--fs-title);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .desk .by { margin-top: 0.35rem; font-family: var(--serif); font-size: var(--fs-lit); font-style: italic; font-weight: 300; color: var(--ink-muted); }
+  .desk .note { margin-top: 1rem; font-family: var(--serif); font-size: var(--fs-lit); font-weight: 400; line-height: 1.5; max-width: 32em; text-wrap: pretty; }
+  .desk .meta { display: flex; gap: 1rem; margin-top: 0.9rem; color: var(--ink-muted); }
+  .desk .go { color: var(--ink); font-weight: 500; }
+  .desk:has(.t a) .t a::after { content: ''; position: absolute; inset: -0.5rem; }
+  .desk:hover .t a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.12em; text-decoration-color: var(--hairline-strong); }
+
+  /* Read: the ledger, by year; the year in the margin, the books across the rest (4/8) */
+  .year { margin-top: var(--gap-block); padding-top: 1rem; border-top: 1px solid var(--hairline); align-items: start; }
+  .year-label { grid-column: 1 / 4; color: var(--ink-muted); font-weight: 400; font-size: var(--fs-lit); line-height: 1.3; }
+  .ledger { display: grid; gap: 1.35rem; max-width: 56rem; }
+  .year .ledger { grid-column: 4 / 13; }
+  /* under a ledger the shelf lines up with it (the margin stays empty); on its own it starts at the edge */
+  .shelf-row { margin-top: var(--gap-block); }
+  .shelf-row .shelf { grid-column: 1 / 10; }
+  .shelf-row.aligned .shelf { grid-column: 4 / 13; }
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 2rem;
+    align-items: baseline;
+  }
+  .what { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.9rem; }
+  .row .t { font-size: var(--fs-lit); font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+  .row .by { font-family: var(--serif); font-size: var(--fs-lit); font-style: italic; font-weight: 300; color: var(--ink-muted); }
+  .score { color: var(--ink-muted); white-space: nowrap; }
+  .row .note {
+    grid-column: 1 / -1;
+    margin-top: 0.3rem;
+    font-family: var(--serif);
+    font-size: var(--fs-body);
+    font-weight: 300;
+    line-height: 1.5;
+    color: var(--ink-muted);
+    max-width: 40em;
+    text-wrap: pretty;
+  }
+  /* a row with a reading page is the way in, whole */
+  .linked .t a::after { content: ''; position: absolute; inset: -0.4rem -0.6rem; }
+  .linked:hover .t a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.18em; text-decoration-color: var(--hairline-strong); }
+  .linked:hover .note { color: var(--ink); }
+
+  /* the shelf: each book its own spine, the swatch from /taste/ */
+  .shelf .row { grid-template-columns: 0.9rem minmax(0, 1fr); column-gap: 1.1rem; align-items: start; }
+  .shelf .note { grid-column: 2; }
+  .spine { grid-row: 1 / span 2; width: 0.9rem; height: 100%; min-height: 2.6rem; background: var(--sw, var(--hairline-strong)); }
+
+  @media (max-width: 719px) {
+    .row { column-gap: 1rem; }
+    .ledger { gap: 1.25rem; }
+    .year { row-gap: 1.25rem; }
+    .year-label { font-size: var(--fs-small); }
+    .shelf-row .shelf,
+    .shelf-row.aligned .shelf { grid-column: 1 / -1; }
+  }
+</style>

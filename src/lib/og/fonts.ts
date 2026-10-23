@@ -8,6 +8,9 @@
  *     License forbids redistributing the files; a rendered PNG is fine).
  *   Newsreader 400, roman and italic: @fontsource/newsreader's WOFF files.
  *   IBM Plex Mono 400 for the date: @fontsource/ibm-plex-mono's WOFF.
+ *   Tiro Devanagari Hindi 400, roman and italic, for a poem in Hindi (from /tend):
+ *     under its own name, so satori falls back to it for Devanagari glyphs only.
+ *     (A second face under the same name as Newsreader is never consulted.)
  *
  * Never fails the build: if Fontshare can't be reached, Mukta (already a
  * dependency) stands in for Switzer and the build says so.
@@ -73,7 +76,11 @@ export function cardFonts(): Promise<CardFont[]> {
       }
     }
     const mono: CardFont = { name: 'Plex Mono', data: await pkgFile('@fontsource/ibm-plex-mono', 'ibm-plex-mono-latin-400-normal.woff'), weight: 400, style: 'normal' };
-    return [...sans, ...serif, mono];
+    const hindi: CardFont[] = [];
+    for (const style of ['normal', 'italic'] as const) {
+      hindi.push({ name: 'Tiro Devanagari Hindi', data: await pkgFile('@fontsource/tiro-devanagari-hindi', `tiro-devanagari-hindi-devanagari-400-${style}.woff`), weight: 400, style });
+    }
+    return [...sans, ...serif, mono, ...hindi];
   })();
   return fonts;
 }

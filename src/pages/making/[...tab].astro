@@ -1,0 +1,130 @@
+---
+/**
+ * Making: /making/ and one route per tab (/making/photos/, /making/videos/,
+ * /making/music/, /making/trips/). docs/design/making.md, Amendment 1 C: poems
+ * live in Writing → Poems, not here.
+ *
+ * The one idea: each medium in its own form. Photographs sit on a contact sheet,
+ * videos are title cards, music is a tracklist, trips are a logbook. The landing
+ * shows each, the newest few; a tab shows all of it.
+ *
+ * Only what exists renders: a tab with nothing in it has no route and no link,
+ * and with nothing at all there is no /making/ (and no nav link, Base.astro).
+ * The line is his, Q35 (src/pages/making/_making.ts). The rest is UI words.
+ */
+import Base from '../../layouts/Base.astro';
+import Tabs from './_parts/Tabs.astro';
+import Sheet from './_parts/Sheet.astro';
+import Reels from './_parts/Reels.astro';
+import Tracks from './_parts/Tracks.astro';
+import Trips from './_parts/Trips.astro';
+import { getMaking, LINE, TAB_LABEL, type TabId } from './_making';
+import { fmtDate, iso, label } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const m = await getMaking();
+  if (m.count === 0) return [];
+  return [{ params: { tab: undefined } }, ...m.tabs.map((t) => ({ params: { tab: t.id } }))];
+}
+
+const tab = Astro.params.tab as TabId | undefined;
+const m = await getMaking();
+
+/** The landing shows the newest few of each; a tab shows everything. */
+const CAP: Record<TabId, number> = { photos: 10, videos: 3, music: 5, trips: 5 };
+const sections = m.tabs.map((t) => ({ ...t, more: t.n > CAP[t.id] }));
+
+/* the Photos tab: the sheet in rolls, one per post, its title in the margin */
+const rolls = m.rolls.map((post) => ({ post, frames: m.frames.filter((f) => f.post === post) }));
+
+const title = tab ? TAB_LABEL[tab] : 'Making';
+const description = `${LINE.plan} ${LINE.done}`;
+---
+
+<Base title={title} description={description}>
+  <section class="wrap head" aria-labelledby="making-label">
+    <div class="label-row">
+      <h1 id="making-label">
+        {tab ? <a href="/making/" class="quiet">Making</a> : 'Making'}{tab && <span class="vh">: {TAB_LABEL[tab]}</span>}
+      </h1>
+    </div>
+    <!-- Q35, his answer to "any other making?": the plan, then the promise -->
+    <p class="line display">
+      <span class="plan">{LINE.plan}</span>
+      <span class="done">{LINE.done}</span>
+    </p>
+    <Tabs tabs={m.tabs} current={tab} />
+  </section>
+
+  {!tab &&
+    sections.map((s) => (
+      <section class="section wrap" aria-labelledby={`${s.id}-label`}>
+        <div class="label-row">
+          <h2 id={`${s.id}-label`}>
+            <a href={s.href} class="quiet">{s.label}</a>
+          </h2>
+          {s.more && (
+            <a href={s.href} class="quiet">
+              All <span class="mono">{s.n}</span> →
+            </a>
+          )}
+        </div>
+        <div class="body">
+          {s.id === 'photos' && <Sheet frames={m.frames.slice(0, CAP.photos)} />}
+          {s.id === 'videos' && <Reels videos={m.videos.slice(0, CAP.videos)} />}
+          {s.id === 'music' && <Tracks music={m.music.slice(0, CAP.music)} />}
+          {s.id === 'trips' && <Trips trips={m.trips.slice(0, CAP.trips)} />}
+        </div>
+      </section>
+    ))}
+
+  {tab && (
+    <section class="wrap tab" aria-labelledby="making-label">
+      {tab === 'photos' && (
+        <ol class="rolls" role="list">
+          {rolls.map((r, i) => (
+            <li class="roll grid">
+              <p class="roll-label small">
+                <a href={r.post.href} class="quiet t">{label(r.post)}</a>
+                {r.post.place && <span class="muted">{r.post.place}</span>}
+                <time class="mono muted" datetime={iso(r.post.date)}>{fmtDate(r.post.date)}</time>
+              </p>
+              <div class="roll-sheet">
+                <Sheet frames={r.frames} size="tall" eager={i === 0 ? 4 : 0} />
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      {tab === 'videos' && <Reels videos={m.videos} />}
+      {tab === 'music' && <Tracks music={m.music} />}
+      {tab === 'trips' && <Trips trips={m.trips} />}
+    </section>
+  )}
+</Base>
+
+<style>
+  .head { padding-top: 0.5rem; }
+  /* the one oversized line: the plan in the quiet tone, the promise in ink, both pinned left */
+  .line { margin-top: var(--gap-block); margin-left: -0.04em; }
+  .line span { display: block; text-wrap: balance; }
+  .plan { color: var(--ink-muted); }
+  .head :global(.tabs) { margin-top: clamp(2.5rem, 4vw, 4rem); }
+
+  .body { margin-top: var(--gap-block); }
+  .tab { margin-top: var(--gap-section); }
+
+  /* the photos tab: each roll's title in the margin, its frames across the rest */
+  .rolls { display: grid; row-gap: var(--gap-block); }
+  .roll { align-items: start; }
+  .roll-label { grid-column: 1 / 4; display: grid; gap: 0.2rem; padding-top: 0.1rem; }
+  .roll-label .t { font-weight: 600; font-size: var(--fs-body); color: var(--ink); }
+  .roll-sheet { grid-column: 4 / 13; }
+  @media (max-width: 719px) {
+    .roll { row-gap: 0.9rem; }
+    .roll-label, .roll-sheet { grid-column: 1 / -1; }
+    .roll-label { display: flex; flex-wrap: wrap; gap: 0.1rem 0.9rem; align-items: baseline; }
+    .roll-label .t { flex-basis: 100%; }
+    .tab { margin-top: 4.5rem; }
+  }
+</style>

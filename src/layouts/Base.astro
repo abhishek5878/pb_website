@@ -10,6 +10,8 @@ import '../styles/base.css';
 import '../styles/light.css';
 import Mark from '../components/Mark.astro';
 import { me, links } from '../data/me';
+import { getMaking } from '../pages/making/_making';
+import { getBooks } from '../pages/books/_books';
 
 interface Props {
   title?: string;
@@ -24,6 +26,8 @@ interface Props {
   light?: string;
   /** Rarely needed: the canonical URL, if not this page. Imported posts are canonical here. */
   canonical?: string;
+  /** The header noun to mark as here, when the address doesn't say it (a book's page lives at /writing/<id>/ but belongs to Books). */
+  section?: string;
 }
 
 const SITE = 'https://vyas.garden';
@@ -47,9 +51,14 @@ const self = new URL(path, SITE).href;
 const canonical = canonicalProp ?? self;
 const isHome = path === '/';
 
+/* Books and Making show only when they have something in them (src/pages/books/_books.ts, src/pages/making/_making.ts) */
+const books = (await getBooks()).count > 0;
+const making = (await getMaking()).count > 0;
 const nav = [
   ['Work', '/work/'],
   ['Writing', '/writing/'],
+  ...(books ? [['Books', '/books/']] : []),
+  ...(making ? [['Making', '/making/']] : []),
   ['Taste', '/taste/'],
   ['About', '/about/'],
 ];
@@ -128,7 +137,7 @@ const person = {
         </p>
         <nav aria-label="Site">
           {nav.map(([label, href]) => (
-            <a href={href} class="quiet" aria-current={path.startsWith(href) ? 'page' : undefined}>{label}</a>
+            <a href={href} class="quiet" aria-current={(Astro.props.section ?? path).startsWith(href) ? 'page' : undefined}>{label}</a>
           ))}
           <!-- the newsletter, quietly; on a phone the row is full, so it moves to the footer -->
           <a href={links.substack} class="quiet sub" rel="me">Subscribe</a>
@@ -204,13 +213,14 @@ const person = {
     height: 100%;
     gap: var(--gutter);
   }
-  .top .left { display: flex; align-items: center; gap: clamp(1.25rem, 2.6vw, 2.5rem); }
+  .top .left { display: flex; align-items: center; gap: clamp(1.25rem, 2.6vw, 2.5rem); flex: none; }
   .mark {
     display: block;
     color: var(--ink);
     padding-block: 0.5rem;
   }
   .top .start {
+    white-space: nowrap;
     font-size: var(--fs-small);
     font-weight: 500;
     color: var(--ink-muted);
@@ -228,10 +238,10 @@ const person = {
   }
   .top nav a[aria-current='page'] { text-decoration: underline; text-decoration-color: currentColor; }
   .top nav a { white-space: nowrap; }
-  /* Subscribe sits a little apart from the four nouns, before the dm; under 600px the row is
-     full, so it lives in the footer and the homepage's Explore instead */
+  /* Subscribe sits a little apart from the nouns, before the dm; under 900px the row is full
+     (six nouns once Books and Making are in), so it lives in the footer and the homepage's Explore */
   .top nav .sub { margin-left: clamp(0.25rem, 1.2vw, 1.25rem); }
-  @media (max-width: 599px) { .top nav .sub { display: none; } }
+  @media (max-width: 899px) { .top nav .sub { display: none; } }
   .top nav .dm {
     text-decoration-color: var(--accent);
     text-decoration-thickness: 1.5px;
@@ -241,10 +251,13 @@ const person = {
   /* during a poem interlude the header leaves the screen and the tab order */
   .top { transition: opacity var(--d-ui) var(--ease-standard), visibility 0s linear 0s; }
   html[data-interlude] .top { opacity: 0; visibility: hidden; transition-delay: 0s, var(--d-ui); }
-  @media (max-width: 479px) {
+  /* under 600px: the mark and "send a dm" on the first row, the nouns on a row of their own */
+  @media (max-width: 599px) {
     .top { height: auto; }
     .top .row { flex-direction: column; align-items: flex-start; padding-block: 1rem 0.25rem; gap: 0.75rem; }
-    .top nav { gap: 1.1rem; flex-wrap: wrap; }
+    .top nav { gap: 0.4rem 1.1rem; flex-wrap: wrap; }
+    /* the nouns get the second row to themselves; "send a dm" stays up by the mark */
+    .top nav .dm { position: absolute; top: 1.4rem; right: var(--margin); }
   }
 
   .foot {

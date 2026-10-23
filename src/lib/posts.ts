@@ -182,12 +182,46 @@ export function inPost(p: Post, line: string): boolean {
   return source.includes(flat(line.replace(/^…|…$/g, '')));
 }
 
+/**
+ * A poem's first line, as he wrote it: an untitled poem goes by it
+ * (docs/design/making.md, Amendment 1). Read from the verse /tend saves
+ * (src/lib/tend/detect.ts): markup, indents and markdown escapes dropped.
+ */
+export function firstVerseLine(p: Post): string | undefined {
+  const body = p.raw?.body;
+  if (p.kind !== 'poem' || !body) return undefined;
+  for (const raw of body.replace(/<!--[\s\S]*?-->/g, '').split('\n')) {
+    const l = raw
+      .replace(/<[^>]+>/g, '')
+      .replace(/^\s*\\/, '')
+      .replace(/^(\d+)\\([.)])/, '$1$2')
+      .trim();
+    if (l) return l;
+  }
+  return undefined;
+}
+
 /** What a post is called when it has no title. */
 export function label(p: Post): string {
   if (p.title) return p.title;
+  const verse = firstVerseLine(p);
+  if (verse) return verse;
   if (p.subject) return p.by ? `${p.subject}, ${p.by}` : p.subject;
   if (p.excerpt) return p.excerpt.length > 60 ? p.excerpt.slice(0, 60).replace(/\s+\S*$/, '') + '…' : p.excerpt;
   return p.kind;
+}
+
+/**
+ * Where a post lives (docs/design/making.md, Amendment 1 C: one home per kind).
+ * Books in Books; photos, videos, music and trips in Making; the rest in Writing.
+ * Its reading page's back link, header and newer / older all follow it.
+ */
+export type Home = { label: 'Writing' | 'Books' | 'Making'; href: '/writing/' | '/books/' | '/making/' };
+const MAKING: readonly string[] = ['photo', 'video', 'mix', 'listening', 'trip'];
+export function homeOf(p: Pick<Post, 'kind'>): Home {
+  if (p.kind === 'book') return { label: 'Books', href: '/books/' };
+  if (MAKING.includes(p.kind)) return { label: 'Making', href: '/making/' };
+  return { label: 'Writing', href: '/writing/' };
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

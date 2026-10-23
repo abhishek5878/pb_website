@@ -1,0 +1,113 @@
+---
+/**
+ * Videos as cards. Nothing on this page loads from YouTube or Vimeo: a post's own
+ * photograph is made at build by astro:assets; otherwise the player's still comes
+ * from this site (/writing/<id>/poster.jpg, fetched once at build); and a video
+ * with neither gets a typeset title card (its title on the raised surface, the
+ * pink play mark: his pink on dark green). The player waits behind a click on the post.
+ *
+ * Staggered in pairs, 7 columns and 5, the second dropped, so they never read
+ * as a grid of equal cards.
+ */
+import { Image } from 'astro:assets';
+import { fmtDate, iso, label } from '../../../lib/posts';
+import type { Video } from '../_making';
+
+interface Props {
+  videos: Video[];
+}
+const { videos } = Astro.props;
+const items = videos.map((v) => ({ ...v, title: v.post.title ?? label(v.post) }));
+---
+
+<ol class="reels grid" role="list">
+  {items.map((v, i) => (
+    <li class:list={['reel', i % 2 ? 'r' : 'l']}>
+      <a href={v.post.href} class="quiet frame" aria-label={v.title}>
+        {v.still ? (
+          <Image src={v.still.src} alt="" widths={[480, 800, 1200, 1600]} sizes="(max-width: 719px) 100vw, 760px" loading="lazy" decoding="async" />
+        ) : v.poster ? (
+          <img src={v.poster} alt="" width="1280" height="720" loading="lazy" decoding="async" />
+        ) : (
+          <span class="slate" aria-hidden="true">
+            <span class="st">{v.title}</span>
+          </span>
+        )}
+        <svg class="play" viewBox="0 0 20 22" aria-hidden="true" focusable="false"><path d="M1 1.5v19L19 11z" /></svg>
+      </a>
+      <p class="meta small">
+        {(v.still || v.poster) && <a href={v.post.href} class="quiet t">{v.title}</a>}
+        {v.post.place && <span>{v.post.place}</span>}
+        <time class="mono" datetime={iso(v.post.date)}>{fmtDate(v.post.date)}</time>
+        {v.host && <span class="muted">{v.host}</span>}
+      </p>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .reels { row-gap: clamp(3rem, 5vw, 5rem); align-items: start; }
+  .reel.l { grid-column: 1 / 8; }
+  .reel.r { grid-column: 8 / 13; margin-top: clamp(4rem, 9vw, 9rem); }
+  .frame {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-raised);
+    container-type: inline-size;
+    transition: background-color var(--d-relight) var(--ease-standard);
+  }
+  .frame :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .frame:hover { text-decoration: none; }
+  .frame:focus-visible { outline-offset: 4px; }
+
+  /* the typeset card: the title set like a film's title card, bottom left */
+  .slate {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: clamp(1.1rem, 5cqi, 2.25rem);
+  }
+  .st {
+    max-width: 14ch;
+    color: var(--ink);
+    /* sized by the card, so the smaller of a pair says it smaller */
+    font-size: clamp(1.5rem, 7cqi, 3.25rem);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  /* the play mark: the one pink thing on the card */
+  .play {
+    position: absolute;
+    top: clamp(1.1rem, 5cqi, 2.25rem);
+    right: clamp(1.1rem, 5cqi, 2.25rem);
+    width: clamp(1rem, 0.7rem + 0.9vw, 1.5rem);
+    height: auto;
+    fill: var(--accent);
+    transition: fill var(--d-relight) var(--ease-standard), transform var(--d-hover) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .frame:hover .play { transform: scale(1.18); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .frame:hover .play { transform: none; }
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
+    margin-top: 0.9rem;
+    color: var(--ink-muted);
+  }
+  .meta .t { color: var(--ink); font-size: var(--fs-lit); font-weight: 600; letter-spacing: -0.01em; flex-basis: 100%; }
+  @media (max-width: 719px) {
+    .reel.l, .reel.r { grid-column: 1 / -1; margin-top: 0; }
+    .reels { row-gap: 2.75rem; }
+  }
+</style>

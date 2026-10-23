@@ -11,11 +11,68 @@ import { getCollection } from 'astro:content';
 import { THREADS } from '../data/threads';
 import start from '../data/start.json';
 import { getLog, films, nowSnapshots, ratingText, KIND_LABEL as LOG_KIND } from '../lib/log';
+import { getMaking, LINE } from './making/_making';
+import { getBooks, LINE as BOOKS_LINE } from './books/_books';
+import { inWriting, writingTabs, openingLine } from './writing/_writing';
 
 const SITE = 'https://vyas.garden';
 
+/** His line in quotes, unless it already opens with one of his own. */
+const quoted = (s: string) => (/^[“"‘']/.test(s) ? s : `“${s}”`);
+
+/* /making/: photos, videos, music and trips, one tab each; only the tabs with something in them */
+function makingLines(m: Awaited<ReturnType<typeof getMaking>>): string[] {
+  if (m.count === 0) return [];
+  const url = (href: string) => new URL(href, SITE).href;
+  const tab = (id: string) => m.tabs.find((t) => t.id === id);
+  const out = [
+    '## Making',
+    `Photos, videos, music and trips, one tab each (${m.tabs.map((t) => `${t.label}, ${t.n}`).join('; ')}): ${SITE}/making/. His line for it: “${LINE.plan} ${LINE.done}”`,
+  ];
+  if (tab('photos')) {
+    out.push(`- Photos (${SITE}/making/photos/): ${m.frames.length} photographs from ${m.rolls.length} ${m.rolls.length === 1 ? 'post' : 'posts'}, newest first:`);
+    for (const r of m.rolls) {
+      const n = m.frames.filter((f) => f.post === r).length;
+      out.push(`  - ${label(r)}${r.place ? `, ${r.place}` : ''} (${fmtDate(r.date)}, ${n} ${n === 1 ? 'photo' : 'photos'}) ${url(r.href)}`);
+    }
+  }
+  if (tab('videos')) {
+    out.push(`- Videos (${SITE}/making/videos/):`);
+    for (const v of m.videos) out.push(`  - ${label(v.post)}${v.post.place ? `, ${v.post.place}` : ''} (${fmtDate(v.post.date)}${v.host ? `, on ${v.host}` : ''}) ${url(v.post.href)}${v.post.youtube ?? v.post.link ? ` ${v.post.youtube ?? v.post.link}` : ''}`);
+  }
+  if (tab('music')) {
+    out.push(`- Music (${SITE}/making/music/): mixes and listening posts:`);
+    for (const t of m.music) out.push(`  - ${t.kind}: ${t.title}${t.by ? `, ${t.by}` : ''} (${fmtDate(t.post.date)}) ${url(t.post.href)}`);
+  }
+  if (tab('trips')) {
+    out.push(`- Trips (${SITE}/making/trips/):`);
+    for (const t of m.trips) out.push(`  - ${label(t.post)}${t.place ? `, ${t.place}` : ''} (${fmtDate(t.post.date)}) ${url(t.post.href)}`);
+  }
+  out.push('');
+  return out;
+}
+
+/* /books/: reading now, read by year, and the books on his Taste shelf */
+function booksLines(b: Awaited<ReturnType<typeof getBooks>>): string[] {
+  if (b.count === 0) return [];
+  const url = (href: string) => new URL(href, SITE).href;
+  const row = (x: { title: string; by?: string; rating?: number; status?: string; note?: string; href?: string }, when?: Date) =>
+    `  - ${x.title}${x.by ? `, ${x.by}` : ''}${when ? ` (${fmtDate(when)})` : ''}${x.status === 'stopped' ? ', stopped' : x.rating != null ? `, ${ratingText(x.rating)}` : ''}${x.note ? `: ${quoted(x.note)}` : ''}${x.href ? ` ${url(x.href)}` : ''}`;
+  const out = ['## Books', `Reading now, read by year (his rating and the first line of his notes), and the books on his Taste shelf: ${SITE}/books/. His line: “${BOOKS_LINE.library} ${BOOKS_LINE.daily}”`];
+  if (b.reading.length) out.push('- Reading now:', ...b.reading.map((x) => row(x, x.date)));
+  if (b.years.length) out.push('- Read, newest first:', ...b.years.flatMap((y) => y.items.map((x) => row(x, x.date))));
+  if (b.shelf.length) out.push('- On his Taste shelf:', ...b.shelf.map((x) => row(x)));
+  out.push('');
+  return out;
+}
+
 export const GET: APIRoute = async () => {
-  const writing = await getWriting();
+  /* Writing lists what the /writing/ index lists: photos, videos and music are Making's, books are Books' */
+  const writing = (await getWriting()).filter(inWriting);
+  const wTabs = writingTabs(writing).filter((t) => t.id !== 'all');
+  const making = await getMaking();
+  const books = await getBooks();
+  const poems = writing.filter((p) => p.kind === 'poem');
   const pages = new Set((await getCollection('work')).map((e) => e.id));
   const page = (slug: string) => (pages.has(slug) ? ` Page: ${SITE}/work/${slug}/` : '');
   const kinds = Object.keys(KIND_LABEL) as Kind[];
@@ -92,9 +149,12 @@ export const GET: APIRoute = async () => {
       : []),
     '',
     '## Writing',
-    `Every post by year, filterable by lane: ${SITE}/writing/ (lanes: Night, personal and poems; Signal, venture notes; Build, things he built).`,
+    `Every post by year, filterable by lane: ${SITE}/writing/ (lanes: Night, personal and poems; Signal, venture notes; Build, things he built). One tab per kind: ${wTabs.map((t) => `${t.label} (${t.n}) ${SITE}${t.href}`).join(', ')}.`,
     ...writing.slice(0, 20).map((p) => `- ${fmtDate(p.date)}: ${label(p)}${lane(p)} ${new URL(p.href, SITE).href}`),
+    ...(poems.length ? ['', `Poems (${SITE}/writing/poems/), with each one's first line:`, ...poems.map((p) => `- ${label(p)} (${fmtDate(p.date)}): ${quoted(openingLine(p))} ${new URL(p.href, SITE).href}`)] : []),
     '',
+    ...booksLines(books),
+    ...makingLines(making),
     '## Threads',
     `Ideas his writing and work keep coming back to, in order: ${SITE}/threads/`,
     '- Being seen without performing: the desire to be seen → Perform!!! → Seven minutes → Rocky, Signal Spark → the charter.',

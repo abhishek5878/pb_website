@@ -13,7 +13,7 @@
  * in it adds nothing. The words are titles, names and statuses; the rest is UI.
  */
 import filmsJson from '../data/films.json';
-import { getWriting, LANE_LABEL, type Lane } from './posts';
+import { getWriting, homeOf, LANE_LABEL, type Lane } from './posts';
 
 /* ---- Agent A's files, read defensively ---- */
 const archiveFile = import.meta.glob('../data/films-archive.json', { eager: true, import: 'default' }) as Record<string, unknown>;
@@ -85,6 +85,8 @@ export type Line = {
   text: string;
   href?: string;
   external?: boolean;
+  /** A post: the section it lives in (Writing, Books, Making), as the line names it. */
+  section?: string;
   /** Writing: its lane. */
   lane?: string;
   /** Films: the film's year, his rating out of 5, and a rewatch. */
@@ -109,6 +111,7 @@ export async function getLog(): Promise<Line[]> {
       day: dayOf(p.date),
       date: p.date,
       kind: 'writing',
+      section: homeOf(p).label,
       text: p.title ?? p.subject ?? p.id,
       href: p.href,
       external: p.external,

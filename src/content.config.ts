@@ -1,5 +1,6 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { isAudioUrl, isHttpUrl, isLocalAudio, isYouTubeUrl } from './components/writing/embeds';
 
 /**
  * Posts. One markdown file per post, anywhere under src/content/posts/.
@@ -30,6 +31,16 @@ export const LANES = [
   'signal', // venture notes: the WASP Signal issues, reading markets and founders
   'build', // things he built
 ] as const;
+
+/** A poem's language (docs/design/making.md): hi and mixed set lang="hi" on the verse. src/lib/tend/shapes.ts keeps the same list. */
+export const LANGS = ['en', 'hi', 'mixed'] as const;
+/** Where a post came from: absent means written by hand; tend, the publishing room; substack and youtube, the weekly sync. */
+export const SOURCES = ['substack', 'youtube', 'tend'] as const;
+/** A book post's status (docs/design/making.md, Amendment 1 B). */
+export const BOOK_STATUS = ['reading', 'read', 'stopped'] as const;
+
+/* Links: http(s) only, no javascript:, data: or file: (src/components/writing/embeds.ts). */
+const httpUrl = z.string().url().refine(isHttpUrl, 'http(s) only');
 
 const examples = process.env.SITE_EXAMPLES === '1';
 
@@ -64,12 +75,25 @@ const posts = defineCollection({
       /** Out of 5, halves allowed. */
       rating: z.number().min(0).max(5).optional(),
       images: z.array(z.object({ src: image(), alt: z.string().default('') })).default([]),
-      youtube: z.string().url().optional(),
-      /** An audio file in public/ or a SoundCloud / Mixcloud URL. */
-      audio: z.string().optional(),
-      link: z.string().url().optional(),
+      /** A youtube.com or youtu.be link. Plays behind a click-to-load facade (src/components/writing/Embed.astro). */
+      youtube: httpUrl.refine(isYouTubeUrl, 'a youtube.com or youtu.be link').optional(),
+      /** A SoundCloud, Mixcloud, Spotify or YouTube link, or an audio file in public/. */
+      audio: z
+        .string()
+        .max(500)
+        .refine((u) => isAudioUrl(u) || isLocalAudio(u), 'a SoundCloud, Mixcloud, Spotify or YouTube link')
+        .optional(),
+      link: httpUrl.optional(),
       /** Where it was first published, if somewhere else (Substack). */
-      canonical: z.string().url().optional(),
+      canonical: httpUrl.optional(),
+      /** Where it came from (absent: by hand). The weekly sync sets substack or youtube; /tend sets tend. */
+      source: z.enum(SOURCES).optional(),
+      /** Poems: en, hi or mixed. hi and mixed set lang="hi" on the verse. */
+      lang: z.enum(LANGS).optional(),
+      /** Books: reading now, finished, or stopped. */
+      status: z.enum(BOOK_STATUS).optional(),
+      /** Books: lines from the book, the author's words. Shown as quotes above his notes. */
+      highlights: z.array(z.string()).default([]),
       place: z.string().optional(),
       tags: z.array(z.string()).default([]),
       /** Lines lifted out as a full-screen interlude. Must be his exact words from the post. */

@@ -1,0 +1,54 @@
+---
+/**
+ * Writing's tabs: plain links, one route each, so they work with JavaScript off.
+ * Only tabs with posts are passed in; the count is mono.
+ */
+interface Props {
+  tabs: { id: string; label: string; n: number; href: string }[];
+  current: string;
+}
+const { tabs, current } = Astro.props;
+---
+
+<nav class="tabs" aria-label="Writing">
+  {tabs.map((t) => (
+    <a href={t.href} aria-current={t.id === current ? 'page' : undefined}>
+      {t.label}<span class="n mono">{t.n}</span>
+    </a>
+  ))}
+</nav>
+
+<style>
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem clamp(1.5rem, 2.6vw, 2.5rem);
+    font-size: var(--fs-lit);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .tabs a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    text-underline-offset: 0.3em;
+    transition: color var(--d-hover) var(--ease-hover);
+  }
+  .tabs a:hover { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: currentColor; }
+  .tabs a[aria-current='page'] {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: var(--accent);
+  }
+  /* phone: a step down, so the row holds on one line */
+  @media (max-width: 719px) {
+    .tabs { font-size: var(--fs-body); gap: 0.5rem 1.15rem; }
+  }
+  .n {
+    margin-left: 0.45em;
+    color: var(--ink-muted);
+    font-weight: 400;
+    vertical-align: 0.1em;
+  }
+</style>

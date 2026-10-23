@@ -1,5 +1,5 @@
 /**
- * POST /api/tend/list/ {} → { posts: [{ id, path, kind, title, subject, by, date, draft, images }] }, newest first.
+ * POST /api/tend/list/ {} → { posts: [{ id, path, kind, title, subject, by, date, draft, images, tags }] }, newest first.
  * POST /api/tend/list/ { of: 'pages' } → { pages: [slug] }: the projects whose page folder holds an index.md.
  */
 import type { APIRoute } from 'astro';
