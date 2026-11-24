@@ -19,18 +19,12 @@ The notebook feeds the brain. The brain feeds the site. The site is not the poin
 
 ## What I believe
 
-**Storage is not thinking.** A brain that only files things is a cabinet. The useful one knows the difference between what I remember and what I intend, and it plots.
+Planning is the part I hate. So an agent plans, and I decide. It never guilt-trips. It just re-plans.
 
-**The machine plans. I decide.** Planning is the part I hate, so the brain gets a resident agent that does it. It proposes; I dispose. And it never guilt-trips. It just re-plans.
+The Google Sheets version stalled at setup; paper doesn't stall. Writing your thoughts makes them real, gives them an existence.
 
-**Paper beats apps for the day itself.** Paper, in the pocket, survives contact with real life. I learned that from [life-track](/work/life-track/), which stalled at setup. Paper doesn't stall. Writing your thoughts makes them real, gives them an existence.
-
-**A system is a guess until it has been lived.** Nothing here is final until I've run it and it held. One aspect of life at a time. A room that stays incoherent gets reworked or killed.
+Nothing here is final until I've run it and it held. One aspect of life at a time.
 
 ## Where it stands
 
-The map and the rooms exist, built in one sitting on 31 August 2026, and not touched since. The notebook's daily page isn't designed yet. The agent isn't built. It doesn't have a name: it's mine, so it needs its own.
-
-The one piece that moved is the outlet. This site went live in October. My ideology is to make it exist first.
-
-Each piece is done when I've said: this is how it works now.
+The map and the rooms exist. The notebook page and the agent don't yet. The one piece that moved is this site. My ideology is to make it exist first.
