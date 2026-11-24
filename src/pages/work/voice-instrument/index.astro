@@ -1,0 +1,22 @@
+---
+/**
+ * The voice instrument and Priya were one project (24 Nov 2026), so the
+ * instrument's page became Priya's first chapter. This keeps the old address
+ * working: a static page that forwards, since the Vercel adapter's own
+ * redirect never matches once trailing slashes are enforced.
+ */
+const to = '/work/priya/#first-the-instrument';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0; url=${to}`} />
+    <link rel="canonical" href="https://vyas.garden/work/priya/" />
+    <meta name="robots" content="noindex" />
+    <title>Voice instrument, now part of Priya</title>
+  </head>
+  <body>
+    <p>The voice instrument is now part of <a href={to}>Priya</a>.</p>
+  </body>
+</html>

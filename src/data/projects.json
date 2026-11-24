@@ -14,12 +14,13 @@
   {
     "slug": "priya",
     "name": "Priya",
-    "line": "A Hinglish voice agent that calls before your parcel goes back.",
-    "status": "live",
+    "line": "A Hinglish voice agent that called before your parcel went back, and the instrument that measured her.",
+    "status": "stopped",
     "when": "Aug 2026",
     "tags": [
       "voice",
-      "agents"
+      "agents",
+      "tooling"
     ],
     "href": "https://apriori.work"
   },
@@ -80,17 +81,6 @@
       "founders"
     ],
     "href": "https://abhishek5878.github.io/rocky"
-  },
-  {
-    "slug": "voice-instrument",
-    "name": "Voice instrument",
-    "line": "No independent Indian instrument exists.",
-    "status": "paused",
-    "when": "Aug 2026",
-    "tags": [
-      "voice",
-      "tooling"
-    ]
   },
   {
     "slug": "sizing",
