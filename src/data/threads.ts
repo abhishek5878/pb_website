@@ -26,7 +26,7 @@ export const THREADS: Thread[] = [
       { refs: [{ post: '2025-09-26-the-desire-to-be-seen', quote: '…we all just want to be SEEN.' }], at: [0, 42], phone: [0, 90] },
       { refs: [{ post: '2026-03-09-perform-this-is-gtm-dude', quote: 'But I’m done performing.' }], at: [34, 42], phone: [10, 90] },
       { refs: [{ post: '2026-10-22-seven-minutes', quote: 'Who in my brain is editing this?' }], at: [8, 42], phone: [0, 90] },
-      { refs: [{ project: 'rocky' }, { project: 'signal-spark' }], at: [42, 42], phone: [10, 90] },
+      { refs: [{ project: 'signal-spark' }], at: [42, 42], phone: [10, 90] },
       { refs: [{ charter: 0 }], at: [16, 42], phone: [0, 90] },
     ],
   },

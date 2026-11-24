@@ -71,18 +71,6 @@
     ]
   },
   {
-    "slug": "rocky",
-    "name": "Rocky",
-    "line": "A check-in for founders that compares you only to yourself.",
-    "status": "paused",
-    "when": "Aug 2026",
-    "tags": [
-      "mental health",
-      "founders"
-    ],
-    "href": "https://abhishek5878.github.io/rocky"
-  },
-  {
     "slug": "sizing",
     "name": "Audience sizing",
     "line": "Audience sizing from a spec, not a one-off script.",
@@ -146,16 +134,6 @@
     "when": "Aug 2026",
     "tags": [
       "personal"
-    ]
-  },
-  {
-    "slug": "apexy",
-    "name": "Apexy",
-    "line": "Built in a day for a friend.",
-    "status": "stopped",
-    "when": "Aug 2026",
-    "tags": [
-      "agents"
     ]
   },
   {

@@ -489,7 +489,7 @@ The ones not told above, grouped by layer. Each is told as question, build, resu
 
 Most of the code was written by Claude Code sessions I directed, so the repos were built to hold them to account. Hooks stopped the agents from editing the contracts, the reason codes, the rehearsal suite and the hooks themselves. Tests could be added, never loosened. The builder is not the judge: the rule was a fresh, read-only reviewer on every diff before a deploy. In four adversarial reviews of the platform seam, three of them with 111 to 166 agents and three skeptics per finding, the critical bug in one round was my own fix.
 
-After any correction, one line went into a lessons file naming the rule and the code that now enforces it. By November there were 560 lessons, and 374 had nothing behind them, so a test now lets that count only fall. Then I tested my own process: the same task with and without the agent file. It added about 23% to the cost, made no difference to the code a strong model wrote, and made the difference on lessons with an explicit check, 2 of 2 against 0 of 2. Proven on lessons, not on code. Nothing reached a live call without my yes.
+After any correction, one line went into a lessons file naming the rule and the code that now enforces it. By November there were 560 lessons, and 374 had nothing behind them, so a test now lets that count only fall. Then I tested my own process: the same task with and without the agent file. In the larger of two small runs it added about 13% to the cost, made no difference to the code a strong model wrote, and made the difference on lessons with an explicit check, 2 of 2 against 0 of 2. Proven on lessons, not on code. Nothing reached a live call without my yes.
 
 ## What set the ceiling
 
