@@ -13,9 +13,9 @@ Today's scores count. Katha reads.
 
 ## Built for the few
 
-In March 2024 I wrote that in India, "just 3% of people" possess a formal credit card, and that to use one of the best-known credit apps you need a CIBIL score above 750: the top 1%. Credit in India was built for the few who already have it. Everyone else is a thin file, and a thin file is a story nobody has read.
+In March 2024 I wrote that in India, "just 3% of people" possess a formal credit card, and that to use one of the best-known credit apps you need a CIBIL score above 750: the top 1%. Credit in India was built for the few who already have it. Most files are thin, and a thin file is a story nobody has read. People with no file at all, Katha can't read yet.
 
-Katha is my project, Hindi for story. finbud backs it with data and a team, and Shalaj builds it with me. The line this page opens with is his, from the brief that started it.
+Katha is my project, Hindi for story. finbud backs it with data and a team, and Shalaj builds it with me. The line this page opens with is his, and so are the two borrowers under it, from the brief that started it.
 
 ## What we believe
 
@@ -23,7 +23,7 @@ Katha is my project, Hindi for story. finbud backs it with data and a team, and 
 
 **Order carries what totals erase.** When a missed payment happened, what came before it and what came after: that is where the story is, and where a count goes blind.
 
-**India should have a score of its own.** The rest of the world already runs models like this. What's undone is the Indian version, and the hard part is the unglamorous work nobody wants to do. Katha should be able to calibrate the CIBIL or Experian score, or stand in its place. Today it gives answers with a number. In my own words: the future is very, very clear.
+**India should have a score of its own.** The rest of the world already runs models like this. What's undone is the Indian version, and the hard part is the unglamorous work nobody wants to do. Katha should be able to calibrate the CIBIL or Experian score, or stand in its place. Today it gives answers with a number. The future is very, very clear.
 
 **Fair to both sides of the loan.** The borrower should be read fairly, and the lender should be able to say yes to more people at the same risk. Neither is worth much without the other. Katha never reads a name, a pincode, an employer, a lender's name, or anything protected.
 
@@ -35,7 +35,7 @@ Katha is my project, Hindi for story. finbud backs it with data and a team, and 
 
 ## How we hold ourselves to it
 
-Most reported gains in credit modelling are leaks: a model that beats the incumbent has, more often than not, seen the answer somewhere. So every experiment is written down before it runs. Results count only on later months, and on people the model has never seen. Every look at a test window goes in a ledger. And the test for the whole idea is written in advance: if reading in order doesn't hold up on later, unseen data, we publish that, and stop.
+Most reported gains in credit modelling are leaks: a model that beats the incumbent has, more often than not, seen the answer somewhere. So every experiment is written down before it runs. Results count only on later months, and on people the model has never seen. Every look at a test window goes in a ledger. And the test for the whole idea, which Shalaj wrote into that first brief, is fixed in advance: if reading in order doesn't hold up on later, unseen data, we publish that, and stop.
 
 ## What it does
 
@@ -56,7 +56,7 @@ For the person being scored: a history read as a story, not a tally, and nothing
 
 **A Katha score.** One number per person, checked against the CIBIL and Experian scores, built to calibrate them or to stand in their place.
 
-**Every lending decision.** Not just whether to lend: decisions about the person, the lender, the issuer and the type of product. In my words from the first week: predict everything about a loan, its future and its decisions; Katha will do it all.
+**Every lending decision.** Not just whether to lend: decisions about the person, the lender, the issuer and the type of product. Predict everything about a loan, its future and its decisions. Katha will do it all.
 
 **Judged in rupees.** In the end, by the money a lender keeps and the good borrowers it no longer turns away.
 

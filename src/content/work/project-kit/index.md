@@ -28,7 +28,6 @@ You drop the documents in one folder. A one-pager comes back, with every line ci
 
 - **Gaps live in the hand-offs.** The first end-to-end run, on a throwaway project with every stage in its own fresh session, found seven defects. All seven were between stages, not inside them.
 - **I tested my own method, and it came back half-proven.** Same failing test suite, the kit against no kit, two runs each. The code came out fixed and the tests intact either way: against a strong model, the guard rails changed nothing, so they are insurance. But lessons that named a real check: 2 of 2 with the kit, 0 of 2 without, for about 13% more cost per run. It didn't change the code. It changed what got learned.
-- **"Strongest model, always" had an exception.** Checking whether the work passes moved to a smaller model in November, after measuring it on a live project. It read one count wrong, and a rule fixed that: quote the tool's own summary line.
 - **The last stages are still unproven.** No real project has gone past building yet. Shipping and learning have only run on the throwaway.
 
 ## Where it has run

@@ -17,9 +17,7 @@ You are here. This website will be my anchor point to not forget those things. W
 
 **A person is shown by what he loves, not by a theme.** Point at a film or a record I love and the whole page relights in its colours. It ships lit by La La Land, which I've watched more than a hundred times.
 
-**My words only.** If I haven't said it, it isn't here. A missing line stays empty.
-
-**Show everything, the unfinished too.** Every project is here with its dates, the stopped ones included.
+**Show the unfinished too.** The stopped projects I still stand behind stay up, with their dates.
 
 **Agents are readers too.** Founders, investors, friends and strangers might send their AI agents in first. We have to impress not just humans, but agents too. We should be that good. So there's an llms.txt for them.
 

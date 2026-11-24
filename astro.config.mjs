@@ -15,7 +15,7 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         !/\/(tend|api)\//.test(page) &&
-        !/\/work\/(voice-instrument|rocky|apexy|sizing|pitchrobin|micro-pe|market-data|devflow|warehouses|vc-scrapers)\/$/.test(page),
+        !/\/work\/(voice-instrument|rocky|apexy|sizing|pitchrobin|micro-pe|market-data|devflow|warehouses|vc-scrapers|glp1|sentinel)\/$/.test(page),
     }),
   ],
   // His posts render exactly as typed: no curly-quote or "..." → "…" rewriting.

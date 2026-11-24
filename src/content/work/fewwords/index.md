@@ -21,7 +21,7 @@ I hit this myself. Kairos once produced a confident, well-sourced investment the
 
 **Stop it before it runs.** Detection without prevention is a smoke detector that gets muted in a week.
 
-**Same input, same verdict, forever.** No model in the loop, so the answer never changes its mind, and it comes back in a fraction of a millisecond. Why waste time say lot word, when few word do trick.
+**Same input, same verdict, forever.** No model in the loop, so the answer never changes its mind, and it comes back in a fraction of a millisecond. Why waste time say lot word, when few word do trick. (Kevin, The Office.)
 
 ## What it taught me
 

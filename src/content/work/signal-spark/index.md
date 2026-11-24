@@ -37,8 +37,8 @@ A bench where you say how you are, and it lets go of it by default. A next step 
 
 ## What it taught us
 
-- **Our founding bet came back mixed.** Keeping reminders of your worth can help, but positive recall can backfire on the worst night.
-- **In the whole evidence base, the large and lasting effects come with a human, even a thin one.** That is why Iti's voice is at the door, and why a bench with trained listeners is where this goes next.
+- **Our founding bet came back mixed, and against us for the worst night.** Keeping reminders of your worth can help, but positive recall can backfire exactly when things are at their hardest.
+- **In the whole evidence base, the large and lasting effects come with a human, even a thin one.** That is why Iti's voice is at the door, and why a bench with trained listeners is where this goes later.
 - **The words have to sound like two tired humans.** Early on, Iti said they felt AI-generated. We rewrote them ourselves, round after round. My first try at the gym's opening question had three sentences with the word "shitty" in them; the same day it was four shorter ones: *It's me. It's the situation. It's coming out on others. I'm keeping it in.*
 - **The first five minutes asked too much and explained too little.** That came from the first people Iti shared it with, and it is why the next release puts help before any card.
 - **Nothing proves it works yet, and nothing can yet.** We say so.

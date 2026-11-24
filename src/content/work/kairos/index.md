@@ -14,7 +14,7 @@ updated: 2026-11-24
 
 Especially for the best deals. The founders worth meeting leave public traces long before they pitch: what they ship, what they write, who they build with. The job is to read those traces first, and to be honest about how little you know when you do.
 
-## What we believe
+## What I believe
 
 **The fund finds the founder.** A deal that reaches another fund first is not a separate channel. It is a detection failure, and it gets studied like one.
 
@@ -38,7 +38,7 @@ For a founder: nothing about them is invented, anything a machine inferred is la
 
 Next, every ordinary day of the work, from the first look at a founder to the last decision about them, should already run through Kairos. The bar I set for it: we have to be tasteful and exceptional.
 
-The longer arc is to publish the method, with its misses left in, so an edge is something a stranger can check, not a story told afterwards.
+One day I want the method published, with its misses left in, so an edge is something a stranger can check, not a story told afterwards.
 
 No company ever finds a VC. It is always the other way around.
 

@@ -83,17 +83,6 @@
     "href": "https://github.com/abhishek5878/fewwords"
   },
   {
-    "slug": "sentinel",
-    "name": "Sentinel",
-    "line": "Talent misallocation is the biggest capital inefficiency.",
-    "status": "stopped",
-    "when": "Mar 2026",
-    "tags": [
-      "vc",
-      "founders"
-    ]
-  },
-  {
     "slug": "life-agent",
     "name": "life_agent",
     "line": "A +1 in the family WhatsApp group. Designed, never piloted.",
@@ -112,16 +101,6 @@
     "when": "Aug 2026",
     "tags": [
       "personal"
-    ]
-  },
-  {
-    "slug": "glp1",
-    "name": "GLP-1 India",
-    "line": "Care for GLP-1 patients after the patent expires.",
-    "status": "stopped",
-    "when": "Apr 2026",
-    "tags": [
-      "health"
     ]
   },
   {
