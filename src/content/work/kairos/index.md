@@ -22,13 +22,13 @@ Kairos grew out of Wasp, which I was building on my own.
 
 **Evidence, or it doesn't exist.** Every claim carries its source and its date, or it is refused at the door. No founder, company or quote is ever made up by a model. I made that a rule in May, in fewer words: real founders and real companies everywhere.
 
-**What everyone can see is already priced.** The famous school, the famous employer, the cohort page, the "I'm leaving to build something" post: by the time a signal is certain, everyone has it, and it costs more. So the obvious signals can lower a guess but never raise one. Certainty and edge run in opposite directions.
+**What kept bothering me:** how hard it is to spot real signal early, before consensus, before noise takes over.
 
-**Machines widen what a partner sees. People decide.** The honest payoff of data in venture is a wider aperture, not a better ranking. So a partner sees a few names, each with its evidence, in plain English. On a quiet day, the honest answer is "nothing new".
+**AI surfaces signal. Humans make decisions.**
 
-**A firm's memory is its compounding asset.** What partners say they look for is a starting guess. What they actually decide is the truth, and it should teach the system. Every decision and every thought a partner has while using it should be kept, so the firm never meets the same founder twice as a stranger.
+**On memory:** every decision that they took, or every thought that they had that they felt needs to be stored somewhere, and they used Kairos, should be saved.
 
-**A method should be describable to the person it is about.** If we couldn't explain to a founder how we found them, we shouldn't be doing it. And one day, a founder should be able to see their own file and correct it.
+**A method should be describable to the person it is about.** If we couldn't explain to a founder how we found them, we shouldn't be doing it.
 
 ## What it is for
 
