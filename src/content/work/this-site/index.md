@@ -30,5 +30,3 @@ What stuck is this one: a dark room with one pink light. The lesson took four tr
 ## Where it is going
 
 I want to iterate this again and again. Still open are the spots only I can fill: poems, a mix, photos, the 2am pages. Films arrive on their own, every night, from my diary.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>

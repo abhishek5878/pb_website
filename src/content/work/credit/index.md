@@ -61,5 +61,3 @@ For the person being scored: a history read as a story, not a tally, and nothing
 **Judged in rupees.** In the end, by the money a lender keeps and the good borrowers it no longer turns away.
 
 We aim for the moon, and to change how lending works in India. I really feel there is something novel here, in the thinking of it and in the making of it.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>

@@ -8,7 +8,7 @@ Ramu Kaka is the one every film family has: he has been around forever, he knows
 
 The doctor said something; nobody followed up. The bank sent a notice; nobody understood it. The school had a deadline; nobody caught it.
 
-This is not a knowledge problem. Indians are not uninformed. It is an implementation gap: the chasm between receiving information and completing the action it demands. And in India it lives in one place, the family WhatsApp group. So the agent would not be an app. It would be the +1 in the group the family already has.
+This is not a knowledge problem. Indians are not uninformed. It is an implementation gap: the chasm between receiving information and completing the action it demands. And in India it lives in the family WhatsApp group. So the agent would not be an app. It would be the +1 in the group the family already has.
 
 Close the gap between information and implementation. For every family. One by one.
 
@@ -28,5 +28,3 @@ Two more lines from the thesis. Win Mom first: the logistics veto is the real ve
 I designed the family before meeting one. My first model of a household hard-coded one shape of family, and I archived it the next day. The shape has to come from real families.
 
 In April and May 2026 I wrote the thesis, a spec and a roadmap, and built the first pieces. The next step was four weeks with a person playing the agent by hand. It never started. The roadmap had already said it: the thesis cannot be sharpened further without contact with reality, and the most expensive thing we can do is keep writing.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>

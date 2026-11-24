@@ -1,15 +1,15 @@
 ---
 summary: "A Hinglish voice agent that called the buyer before a cash-on-delivery parcel went back, and the instrument that measured her."
 links:
-  - { label: "apriori.work", url: "https://apriori.work", kind: live }
+  - { label: "apriori.work", url: "https://apriori.work", kind: page }
   - { label: "How it works, stage by stage", url: "https://apriori.work/technology", kind: page }
   - { label: "How we prove it", url: "https://apriori.work/proof", kind: page }
   - { label: "The instrument's method, as published in August", url: "https://apriori.work/methodology", kind: page }
 examples:
-  - { src: ./shot-1.png, caption: "apriori.work, the site for Priya.", url: "https://apriori.work" }
-  - { src: ./shot-2.png, caption: "The six courier reason codes Priya handles, and what each call does about it.", url: "https://apriori.work" }
-  - { src: ./shot-3.png, caption: "From the instrument's published method: each threshold, its value, and why.", url: "https://apriori.work/methodology" }
-  - { src: ./shot-4.png, caption: "The proof page: we publish the exam, not the grade.", url: "https://apriori.work/proof" }
+  - { src: ./shot-1.png, caption: "apriori.work as it was in October 2026, when it was Priya's site.", url: "https://apriori.work" }
+  - { src: ./shot-2.png, caption: "The six courier reason codes Priya handled, as the site showed them in October 2026.", url: "https://apriori.work" }
+  - { src: ./shot-3.png, caption: "From the instrument's published method, October 2026: each threshold, its value, and why.", url: "https://apriori.work/methodology" }
+  - { src: ./shot-4.png, caption: "The proof page in October 2026: we publish the exam, not the grade.", url: "https://apriori.work/proof" }
 stopped: "Stopped in November 2026."
 updated: 2026-11-24
 ---
@@ -23,8 +23,7 @@ When a cash-on-delivery parcel can't be delivered, the courier hands the brand a
 It was one project in two halves, August to November 2026, for Apriori, a company of my senior [Rahul Bissa](https://www.linkedin.com/in/rahul-bissa-741006186/). The instrument and the agent were mine; the platform around her and the console were my teammates' work. Most of the code was written by Claude Code sessions I directed, under rules they were not allowed to edit.
 
 <dl class="glance">
-<div><dt>3,002</dt><dd>commits across two repos, all but 95 of them mine</dd></div>
-<div><dt>120+</dt><dd>experiments, each told as question, build and result</dd></div>
+<div><dt>120+</dt><dd>experiments on record; about twenty are told on this page</dd></div>
 <div><dt>39</dt><dd>ears, voices and brains wired to one phone call</dd></div>
 <div><dt>64.4%</dt><dd>of a caller's wait that a real bot's own log admitted to</dd></div>
 <div><dt>48%</dt><dd>not the 89% I believed, once every branch was scored</dd></div>
@@ -500,14 +499,11 @@ After any correction, one line went into a lessons file naming the rule and the 
 
 ## Where I left her
 
-Live on real calls. On 60 whole calls none of the new brains beat the live one, so live stayed. The call-state work shipped on 21 November, with its reader switched off on live. In the last week my teammates began moving calls onto the speech vendor's own hosted agents, one per kind of call; my part there was the test-call page and the order checker's new mode, deployed after 0 of 963 real replies differed.
+When I left, she was live on real calls. On 60 whole calls none of the new brains had beaten the live one, so live stayed. The call-state work shipped on 21 November, with its reader switched off on live. In the last week my teammates began moving calls onto the speech vendor's own hosted agents, one per kind of call; my part there was the test-call page and the order checker's new mode, deployed after 0 of 963 real replies differed.
 
 If I had to keep one thing, it would be the order: build the instrument first, and let it be the one that says no.
 
 The gap between claim and caller is the product. It still is.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>
-
 ## Sources
 
 <ol class="sources">

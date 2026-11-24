@@ -41,5 +41,3 @@ Next, every ordinary day of the work, from the first look at a founder to the la
 One day I want the method published, with its misses left in, so an edge is something a stranger can check, not a story told afterwards.
 
 No company ever finds a VC. It is always the other way around.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>

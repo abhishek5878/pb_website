@@ -25,5 +25,3 @@ For the first two to four weeks, nothing would be a bad number. Just looking. Af
 I built it on 20 August 2026, in an afternoon. Then it needed me to run a setup, and I never did. Not one day was ever logged. The bar I had set was seven days in a row.
 
 It died at a setup screen, before the habit ever got a chance. The idea moved into [Life OS](/work/life-os/), as a paper notebook.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>

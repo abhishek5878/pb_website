@@ -39,5 +39,3 @@ Signal Spark was the first real thing built with it, the same day as the kit. Th
 A lot of it isn't mine, and I'd rather say so. Andrej Karpathy's [coding guidelines](https://github.com/forrestchang/andrej-karpathy-skills), Matt Pocock's [skills](https://github.com/mattpocock/skills), obra's [superpowers](https://github.com/obra/superpowers) and Addy Osmani's [agent skills](https://github.com/addyosmani/agent-skills) are all in it. "Delegate, don't dictate" is the title of a deck I was given, written after Thorsten Ball's "How I work with agents". The definition of taste I use is Ojasvika's essay "Taste in 20 minutes"; "tasteslop" is from Nemesis Memos. The setup doc, and the way it all fits together, are mine.
 
 The line I keep coming back to, from that April setup doc: you are not building a tool, you are building a compounding operating system for how you ship software.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>

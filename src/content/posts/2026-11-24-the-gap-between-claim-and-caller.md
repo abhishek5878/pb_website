@@ -4,6 +4,7 @@ date: 2026-11-24
 title: The gap between claim and caller
 subtitle: What three months of measuring a voice agent taught me about measuring anything.
 lane: build
+draft: true
 pull:
   - "The gap between claim and caller is the product."
   - "Rules lost moments and won calls."

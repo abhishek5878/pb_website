@@ -29,10 +29,8 @@ Why waste time say lot word, when few word do trick. (Kevin, The Office.)
 
 ## What the numbers said
 
-On my own audit of 300 agent runs, fewwords agreed with an independent policy audit 80–82% of the time. A leading model acting as judge managed 54–62%.
+On a 300-run audit I ran and published, fewwords matched the policy auditor 80–82% of the time. A leading model acting as judge managed 54–62%.
 
-It also only covers about a quarter of the ways an agent can break a policy, and it misses more on the conditional, fuzzy ones. I published both numbers, and I dated my own moat: my honest horizon for this being useful is 18 to 24 months.
+It also only covers about a quarter of that benchmark's violation patterns, and it misses more on the conditional, fuzzy ones. I published both numbers, and I dated my own moat: my honest horizon for this being useful is 18 to 24 months.
 
-Ten days, 139 commits, a public release in April 2026. What I took from it: AI makes you faster only if you've already decided what "good" looks like.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>
+Ten days of work, and a public release in April 2026. What I took from it: AI makes you faster only if you've already decided what "good" looks like.

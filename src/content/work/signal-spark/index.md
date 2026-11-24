@@ -48,5 +48,3 @@ A bench where you say how you are, and it lets go of it by default. A next step 
 It's live, free, for anyone 18 and over in India, and Iti shares it person to person. Next: help before signing up, a preview before you commit, and a consented study Iti sets up, so one day we can say what it did. Later, a bench where a trained volunteer can sit with you. A community only once this spark has lit something.
 
 Every word is still a draft until it has been through clinical review. It is not therapy, and it is not for a crisis.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>

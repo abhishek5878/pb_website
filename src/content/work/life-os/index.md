@@ -34,5 +34,3 @@ The map and the rooms exist, built in one sitting on 31 August 2026, and not tou
 The one piece that moved is the outlet. This site went live in October. My ideology is to make it exist first.
 
 Each piece is done when I've said: this is how it works now.
-
-<p class="sign">Abhishek Vyas · 24 November 2026</p>
