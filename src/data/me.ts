@@ -180,17 +180,61 @@ export const proud = [
 ];
 
 /**
- * Q23: "somewhere in some drop-down menu… in my own language." TODO(abhishek): one line each, your words.
- * His rule (23 Oct 2026): Apriori is the only company named. Every other place is described, never named.
+ * Work history, as he wrote it on LinkedIn (refreshed 24 Nov 2026): "make it as it is written on
+ * linkedin, i wrote that". His words, verbatim; `more` holds the paragraphs under a role.
+ * This list is the one place employers are named: everywhere else on the site, Apriori is the only
+ * company named (his rule, 23 Oct 2026).
  */
-export const jobs = [
-  { when: 'Jan 2027', what: 'A VC fund' },
-  { when: 'Apr 2026 →', what: 'Part-time with a public fintech company: credit and audience data' },
-  { when: 'Jan 2026', what: 'Scouting founders for a venture fund, till May' },
-  { when: 'Aug 2025', what: 'A healthcare startup, paused the second the regulatory reality showed up' },
-  { when: 'Jun 2025 →', what: 'Advisor and builder at Apriori' },
-  { when: 'Jul 2024', what: 'A data scientist job at a startup, for a year' },
-  { when: 'Before', what: 'Assistant manager at an analytics firm, research for a quant firm, two data science internships, research at IIT Delhi, and my first internship, at an asset manager' },
+export const jobs: { when: string; what: string; more?: string[] }[] = [
+  {
+    when: 'Apr 2026 – Nov 2026',
+    what: 'EiR, public fintech co',
+    more: [
+      'EiR at a major public Indian fintech that holds credit-bureau data on 160M+ people, I majorly took up AI initiatives, the layer on top of their data: system one models that read a person\'s entire credit history(reimagining the credit score for India), agents that let non-technical teams do data science(infra for anybody to do anything agent, tried to prove the "AI-native" tag) and the cohort engine behind 30+ client audiences for India\'s leading banks, insurers and consumer brands. A LOT of FUN and tokens!!',
+    ],
+  },
+  { when: 'Mar 2026 – Nov 2026', what: 'Builder, Apriori' },
+  {
+    when: 'Jul 2025 – Nov 2026',
+    what: 'Founder, Stealth Startup',
+    more: [
+      'attempt-1: started out in many directions, finally saw a gap in venture ecosystem so spent the months building and breaking things around how decisions actually get made in venture. Started with a preventive healthcare idea, paused it once the regulatory reality hit. Then went deep into something that kept bothering me: how hard it is to spot real signal early, before consensus, before noise takes over. Built an early-stage sourcing system from scratch, messy, opinionated, and very hands-on. Pulled in 200+ pre-seed and seed opportunities, sat with them, filtered them, broke my own assumptions, rebuilt the system again. A few made it through IC-level conversations. Most didn’t and that was the point. Went very deep into founder archetypes and whatnot, stopped at last as business outcomes wasn\'t that clear for this, either I had to start angel investing for the deals I\'m sourcing or sell to some particular firms, one option has little less money and for other option I needed to have money(lol)',
+      'attempt-2: started with a simple thesis, building products has become dramatically faster and figuring out what to build is still painfully slow(still true) so we built a product that allows thousands of synthetic user through your product flow, each one thinks, reacts, hesitates, and decides, trying to get the WHY behind every drop-off. So much fun doing and solving a very difficult problem statement, it\'s just a research paper at the end but FUN(https://arxiv.org/abs/2605.29400), build this with Rahul and Yash, my +1 seniors',
+      'attempt-3: Voice AI built for one job: getting the order delivered, got to know about so many pieces in voice infrastructure, how random Indian callers are, why these benchmarks and open weights work and break in the production, best of the times building this again with two of my iit delhi mates, Rahul and Yash, at the time of writing they are still going force down in solving for voice AI layer for D2C brands',
+    ],
+  },
+  {
+    when: 'Jul 2024 – Jul 2025',
+    what: 'Data Scientist, FREED',
+    more: [
+      'Joined in as a “Data Scientist”, learnt almost everything on how a startup works.',
+      'New flagship product ideation, Funnel optimisation, Customer behaviour modelling, AI agents for customer insights, API development, list can go on and limit would be reached.',
+      'Onto building my own startup with learnings of this awesome experience, upwards and onwards',
+    ],
+  },
+  { when: 'Aug 2023 – Jul 2024', what: 'Assistant Manager, EXL' },
+  { when: 'Apr 2023 – Jun 2023', what: 'Research Consultant, WorldQuant' },
+  { when: 'Feb 2023 – Mar 2023', what: 'Data Science Intern, Siemens' },
+  { when: 'Mar 2022 – Jun 2022', what: 'Data Science, ShareChat' },
+  {
+    when: 'Jan 2022 – Mar 2022',
+    what: 'Undergraduate Research Assistant, Indian Institute of Technology, Delhi',
+    more: [
+      'Won SURA(Summer Undergraduate Research Award), worked with Prof. N.M. Anoop Krishnan and Sayam Singla. We worked on using ML to explain the genome of chalcogenide glasses.',
+      'This was the perfect ML 101 for me where I could see applications of machine learning in field of material science. Another major intellectually stimulating experience!!',
+      'Our work eventually ended up in a research paper, big up to Md. Zaki!!',
+    ],
+  },
+  {
+    when: 'Oct 2021 – Mar 2022',
+    what: 'Quantitative Strategist, Torch Investment Management',
+    more: [
+      'Best first internship experience possible, beat their flagship model’s CAGR by 7%, major high for a 19 year old',
+      'Started coding and going more into ML research, PyTorch, codeforces just for the fun of it.',
+      'This was the first inflection point!!',
+    ],
+  },
+  { when: 'Education', what: 'Indian Institute of Technology, Delhi, Bachelor of Technology' },
 ];
 
 /** Q38. */

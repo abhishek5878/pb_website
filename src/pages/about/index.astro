@@ -128,7 +128,10 @@ const grain =
         {jobs.map((j) => (
           <div class="job">
             <dt class="mono">{j.when}</dt>
-            <dd>{j.what}</dd>
+            <dd>
+              {j.what}
+              {j.more?.map((line) => <p class="more">{line}</p>)}
+            </dd>
           </div>
         ))}
       </dl>
@@ -286,12 +289,13 @@ const grain =
   .history summary:hover { color: var(--ink); text-decoration-color: currentColor; }
   .history[open] summary { color: var(--ink); }
   .history dl { margin-top: 1.25rem; display: grid; gap: 0.75rem; }
-  .job { display: grid; grid-template-columns: 6rem 1fr; gap: 0.25rem 1rem; align-items: baseline; }
+  .job { display: grid; grid-template-columns: 12.5rem 1fr; gap: 0.25rem 1rem; align-items: baseline; }
   .job dt { color: var(--ink-muted); }
   .job dd { max-width: 34em; }
+  .job .more { margin-top: 0.5rem; color: var(--ink-muted); font-size: var(--fs-small); line-height: 1.55; overflow-wrap: anywhere; }
   @media (max-width: 719px) {
     .accounts { flex-direction: column; gap: 1rem; }
-    .job { grid-template-columns: 5rem 1fr; }
+    .job { grid-template-columns: 1fr; gap: 0.1rem; }
   }
 
   /* 6. the exit */

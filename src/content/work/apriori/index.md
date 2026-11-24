@@ -8,11 +8,13 @@ stopped: "Paused after July 2026. In August the company turned to voice, and apr
 updated: 2026-11-24
 ---
 
-<p class="thesis">You should be able to watch your users get confused before you have any users.</p>
+<p class="thesis">Building products has become dramatically faster. Figuring out what to build is still painfully slow.</p>
 
-Product testing before the product has anyone to test it on. You describe the audience instead of recruiting it, put a design in front of them, and watch where they get lost. Much cheaper than shipping and finding out.
+Still true.
 
-I built it at [Apriori](https://apriori.work) with Rahul Bissa and Yash Jain, in the first half of 2026. Synthetic Indian personas walked an onboarding flow screen by screen, each one looking at the screen as that person, and the output said who dropped off and why.
+So we built a product that sends thousands of synthetic users through your product flow. Each one thinks, reacts, hesitates and decides, and the point is to get the WHY behind every drop-off. Product testing before the product has anyone to test it on.
+
+I built it at [Apriori](https://apriori.work) with Rahul and Yash, my +1 seniors, in the first half of 2026. So much fun, solving a very difficult problem statement. It's just a research paper at the end, but FUN.
 
 ## The part I'd show anyone
 

@@ -14,6 +14,8 @@ updated: 2026-11-24
 
 Especially for the best deals. The founders worth meeting leave public traces long before they pitch: what they ship, what they write, who they build with. The job is to read those traces first, and to be honest about how little you know when you do.
 
+Kairos grew out of Wasp, which I was building on my own.
+
 ## What I believe
 
 **The fund finds the founder.** A deal that reaches another fund first is not a separate channel. It is a detection failure, and it gets studied like one.

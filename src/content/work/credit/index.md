@@ -15,7 +15,7 @@ Today's scores count. Katha reads.
 
 In March 2024 I wrote that in India, "just 3% of people" possess a formal credit card, and that to use one of the best-known credit apps you need a CIBIL score above 750: the top 1%. Credit in India was built for the few who already have it. Most files are thin, and a thin file is a story nobody has read. People with no file at all, Katha can't read yet.
 
-Katha is my project, Hindi for story. finbud backs it with data and a team, and Shalaj builds it with me. The line this page opens with is his, and so are the two borrowers under it, from the brief that started it.
+I built Katha as EiR at a public fintech company, from April to November 2026, with Shalaj. It is still live there. Katha is Hindi for story. In my own words on the job: system one models that read a person's entire credit history, reimagining the credit score for India. The line this page opens with is Shalaj's, and so are the two borrowers under it, from the brief that started it.
 
 ## What we believe
 
@@ -46,13 +46,13 @@ For the person being scored: a history read as a story, not a tally, and nothing
 ## What it has taught us so far
 
 - **We think order beats totals. We haven't proved it.** On synthetic borrowers, Katha trailed at 3,000 and 10,000 people, drew level at 30,000, and led at one lakh. Then we found the lead came mostly from the bureau score. With equal inputs it was +0.005 without the score and −0.005 with it: close to nothing, either way.
-- **On a first small panel of real histories, neither gain is proven yet.** The real-data work stays inside finbud.
+- **On a first small panel of real histories, neither gain is proven yet.** The real-data work stays inside the company.
 - **Our own founding documents had numbers that didn't hold.** Three facts from published work failed when we checked them, so they're gone.
 - **As far as we could find, nobody has published this on Indian bureau data.** That is either the opportunity or the warning, and the paper will say which.
 
 ## Where it is going
 
-**The paper, by the end of the year.** One question: does reading a credit history in order add anything to today's best models? If the answer is no, the paper gets shorter, and still gets written.
+**A paper.** One question: does reading a credit history in order add anything to today's best models? If the answer is no, the paper gets shorter, and still gets written.
 
 **A Katha score.** One number per person, checked against the CIBIL and Experian scores, built to calibrate them or to stand in their place.
 

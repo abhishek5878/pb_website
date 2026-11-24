@@ -28,7 +28,7 @@
     "slug": "credit",
     "name": "Katha",
     "line": "A credit score for India, apart from the current CIBIL and Experian score.",
-    "status": "building",
+    "status": "live",
     "when": "Oct 2026",
     "tags": [
       "lending",

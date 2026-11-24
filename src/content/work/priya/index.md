@@ -20,7 +20,7 @@ I wrote that line in August 2026, in the spec for an instrument that measures vo
 
 When a cash-on-delivery parcel can't be delivered, the courier hands the brand a reason code and 24 to 48 hours to answer it. A reason code is a question nobody answers, so the parcel goes back. Priya called the buyer in Hinglish, found out what actually went wrong, fixed it on the line, and wrote the instruction back to the courier before the window closed. She had a second job too: a call twenty minutes after a cash order came in, to check the address and that the buyer meant it.
 
-It was one project in two halves, August to November 2026, for Apriori, a company of my senior [Rahul Bissa](https://www.linkedin.com/in/rahul-bissa-741006186/). The instrument and the agent were mine; the platform around her and the console were my teammates' work. Most of the code was written by Claude Code sessions I directed, under rules they were not allowed to edit.
+Voice AI built for one job: getting the order delivered. It was one project in two halves, August to November 2026, built at Apriori with two of my IIT Delhi mates, [Rahul](https://www.linkedin.com/in/rahul-bissa-741006186/) and Yash. The instrument and the agent were mine; the platform around her and the console were their work. I got to know so many pieces of voice infrastructure, how random Indian callers are, and why benchmarks and open weights work, and then break, in production. Best of the times. At the time of writing, they are still going. Most of the code was written by Claude Code sessions I directed, under rules they were not allowed to edit.
 
 <dl class="glance">
 <div><dt>120+</dt><dd>experiments on record; about twenty are told on this page</dd></div>
