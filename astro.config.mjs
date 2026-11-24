@@ -10,7 +10,14 @@ export default defineConfig({
   output: 'static',
   adapter: vercel(),
   // /tend is private: not in the sitemap, not linked, noindex (src/layouts/Tend.astro).
-  integrations: [sitemap({ filter: (page) => !/\/(tend|api)\//.test(page) && !page.endsWith('/work/voice-instrument/') })],
+  // Removed project pages forward elsewhere (src/layouts/Forward.astro); they stay out of the sitemap.
+  integrations: [
+    sitemap({
+      filter: (page) =>
+        !/\/(tend|api)\//.test(page) &&
+        !/\/work\/(voice-instrument|rocky|apexy|sizing|pitchrobin|micro-pe|market-data|devflow|warehouses|vc-scrapers)\/$/.test(page),
+    }),
+  ],
   // His posts render exactly as typed: no curly-quote or "..." → "…" rewriting.
   markdown: { smartypants: false },
   devToolbar: { enabled: false },

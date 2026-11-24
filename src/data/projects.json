@@ -71,17 +71,6 @@
     ]
   },
   {
-    "slug": "sizing",
-    "name": "Audience sizing",
-    "line": "Audience sizing from a spec, not a one-off script.",
-    "status": "shipped",
-    "when": "Jun 2026",
-    "tags": [
-      "lending",
-      "tooling"
-    ]
-  },
-  {
     "slug": "fewwords",
     "name": "fewwords",
     "line": "Checks an agent’s plan against rules before it runs.",
@@ -92,17 +81,6 @@
       "tooling"
     ],
     "href": "https://github.com/abhishek5878/fewwords"
-  },
-  {
-    "slug": "pitchrobin",
-    "name": "PitchRobin",
-    "line": "A digital twin for an investor or a high agency person.",
-    "status": "stopped",
-    "when": "Feb 2026",
-    "tags": [
-      "vc",
-      "agents"
-    ]
   },
   {
     "slug": "sentinel",
@@ -144,59 +122,6 @@
     "when": "Apr 2026",
     "tags": [
       "health"
-    ]
-  },
-  {
-    "slug": "micro-pe",
-    "name": "micro-PE hunt",
-    "line": "Small software companies for sale, and how motivated the seller is.",
-    "status": "stopped",
-    "when": "Feb 2026",
-    "tags": [
-      "finance",
-      "agents"
-    ]
-  },
-  {
-    "slug": "market-data",
-    "name": "Market data for agents",
-    "line": "Every number on the console comes back from a tool call.",
-    "status": "shipped",
-    "when": "May 2026",
-    "tags": [
-      "finance",
-      "agents"
-    ]
-  },
-  {
-    "slug": "devflow",
-    "name": "devflow",
-    "line": "One memory across every AI coding tool.",
-    "status": "stopped",
-    "when": "Mar 2026",
-    "tags": [
-      "tooling"
-    ]
-  },
-  {
-    "slug": "warehouses",
-    "name": "Warehouse finder",
-    "line": "Warehouses in India, from satellite images.",
-    "status": "stopped",
-    "when": "May 2026",
-    "tags": [
-      "agents"
-    ]
-  },
-  {
-    "slug": "vc-scrapers",
-    "name": "The first scrapers",
-    "line": "The first step before WASP.",
-    "status": "stopped",
-    "when": "Sep 2025",
-    "tags": [
-      "vc",
-      "research"
     ]
   },
   {

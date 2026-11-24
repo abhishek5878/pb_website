@@ -1,0 +1,21 @@
+---
+/**
+ * A removed page's old address: a static page that forwards. (The Vercel
+ * adapter's own redirects never match once trailing slashes are enforced.)
+ */
+interface Props { to: string; label?: string }
+const { to, label = 'Work' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0; url=${to}`} />
+    <link rel="canonical" href={new URL(to, 'https://vyas.garden').href} />
+    <meta name="robots" content="noindex" />
+    <title>Moved</title>
+  </head>
+  <body>
+    <p>This page has moved to <a href={to}>{label}</a>.</p>
+  </body>
+</html>
