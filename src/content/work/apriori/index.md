@@ -12,23 +12,25 @@ updated: 2026-11-24
 
 Product testing before the product has anyone to test it on. You describe the audience instead of recruiting it, put a design in front of them, and watch where they get lost. Much cheaper than shipping and finding out.
 
-I built it at [Apriori](https://apriori.work) with Rahul Bissa and Yash Jain, in the first half of 2026.
+I built it at [Apriori](https://apriori.work) with Rahul Bissa and Yash Jain, in the first half of 2026. Synthetic Indian personas walked an onboarding flow screen by screen, each one looking at the screen as that person, and the output said who dropped off and why.
 
-## What we believed
+## The part I'd show anyone
 
-**People differ, so averages lie.** No single tested variant is right for the whole audience. Other tools show one blob of clicks; the point was to know *who* each person was, and where each of them fell off.
+We wrote a paper. The question was whether a small model, trained on real screen-level behaviour, could beat the biggest models used as they come. On the same 661 held-out rows:
 
-**A test that only says which variant won has stopped one step short.** The April version was built on one line: we don't report which variant won, we build the variant that should exist.
+| Model | Score, out of 1 |
+|---|--:|
+| A fine-tuned Qwen3-VL-8B | 0.783 |
+| GPT-5.5, as it comes | 0.482 |
+| Claude Opus 4.7, as it comes | 0.459 |
+| The same recipe on a larger model | 0.441 |
 
-**A small model trained on the right data beats a large general one at a narrow job.** That one we showed, once, on one task.
+The small one won, and making it bigger made it worse. I still kept it away from the product's features, and one feature, the attention heatmap, was dropped as the price.
 
-**Less data you can trace beats more data you can't.** Less data with verified provenance is strictly better than more data with synthetic content.
+## Two lines I kept
 
-## What it taught us
+The April version was built on this: we don't report which variant won, we build the variant that should exist. People differ, so no single tested variant is right for the whole audience.
 
-- **The paper.** On the same 661 held-out rows of screen-level behaviour, a fine-tuned Qwen3-VL-8B scored 0.783 out of 1. Claude Opus 4.7 and GPT-5.5, used as they come, scored 0.459 and 0.482.
-- **Bigger did not help.** The same recipe on a larger model scored 0.441.
-- **I kept our best model away from the product's features.** One feature, the attention heatmap, was dropped as the price.
-- **The provenance rule was earned.** An agent once changed six evaluation cases on the strength of search snippets, two with the wrong author. After that, nothing entered the data without a source.
+And a rule about data, earned the hard way, after an agent changed six evaluation cases on the strength of search snippets, two of them with the wrong author: less data with verified provenance is strictly better than more data with synthetic content.
 
 <p class="sign">Abhishek Vyas · 24 November 2026</p>

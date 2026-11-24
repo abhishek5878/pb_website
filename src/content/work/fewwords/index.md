@@ -11,25 +11,28 @@ updated: 2026-11-24
 
 <p class="thesis">Stop your AI agent from doing something stupid.</p>
 
-I hit this myself. Kairos once produced a confident, well-sourced investment thesis on the wrong company: a handle resolved to a store abroad with the same name as the Indian brand I was tracking. Every tool fired correctly, on the wrong founders, and the AI judge called it "coherent". I caught it only because I knew the founders. The fix was one line. That check didn't belong in my repo. It belonged to everyone.
+I hit this myself. Kairos once produced a confident, well-sourced investment thesis on the wrong company. A handle had resolved to a store abroad with the same name as the Indian brand I was tracking. Every tool fired correctly, on the wrong founders, and the AI judge reading the result called it "coherent".
 
-## What I believed
+The judge wasn't wrong. It evaluated what it saw. It saw the wrong thing. I caught it only because I happened to know the founders.
 
-**"Helpful" isn't a contract.** Check an agent against rules you wrote, not against another model's opinion. An AI grading an AI is two interns grading each other's homework.
+The fix was one line: check that the company you resolved is the company you were asked about. That check didn't belong in my repo. It belonged to everyone.
 
-**The judge wasn't wrong. It saw the wrong thing.** A run can look polite at every step and still be broken as a sequence. So the sequence is the unit: search before reply, validate before submit, never the dangerous call.
+So fewwords checks what an agent did, or is about to do, against rules you write yourself:
 
-**Stop it before it runs.** Detection without prevention is a smoke detector that gets muted in a week.
+- never call drop_database
+- search before reply
+- validate before submit
 
-**Same input, same verdict, forever.** No model in the loop, so the answer never changes its mind, and it comes back in a fraction of a millisecond. Why waste time say lot word, when few word do trick. (Kevin, The Office.)
+No AI grading the AI, because that's two interns grading each other's homework. Same input, same verdict, every time, in a fraction of a millisecond. And it runs before the action, because detection without prevention is a smoke detector that gets muted in a week.
 
-## What it taught me
+Why waste time say lot word, when few word do trick. (Kevin, The Office.)
 
-- **Rules beat the judge where rules apply.** On my own audit of 300 agent runs, fewwords agreed with an independent policy audit 80–82% of the time. A leading model acting as judge managed 54–62%.
-- **And rules only reach so far.** It covers about a quarter of the violation patterns, and misses more on the conditional, fuzzy ones. I published both numbers.
-- **I dated my own moat.** My honest horizon for this being useful: 18 to 24 months.
-- **AI makes you faster only if you've already decided what "good" looks like.** Clarity produces velocity. Velocity alone produces noise.
+## What the numbers said
 
-Ten days, 139 commits, and a public release in April 2026. The benchmarks are still up, every trace and every reason.
+On my own audit of 300 agent runs, fewwords agreed with an independent policy audit 80–82% of the time. A leading model acting as judge managed 54–62%.
+
+It also only covers about a quarter of the ways an agent can break a policy, and it misses more on the conditional, fuzzy ones. I published both numbers, and I dated my own moat: my honest horizon for this being useful is 18 to 24 months.
+
+Ten days, 139 commits, a public release in April 2026. What I took from it: AI makes you faster only if you've already decided what "good" looks like.
 
 <p class="sign">Abhishek Vyas · 24 November 2026</p>
